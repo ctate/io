@@ -1,0 +1,225 @@
+# Lazy Loading
+Lazy load imported libraries and React Components to improve your application's loading performance.
+
+[Lazy loading](https://developer.mozilla.org/docs/Web/Performance/Lazy_loading) in Next.js helps improve the initial loading performance of an application by decreasing the amount of JavaScript needed to render a route.
+
+It allows you to defer loading of **Client Components** and imported libraries, and only include them in the client bundle when they're needed. For example, you might want to defer loading a modal until a user clicks to open it.
+
+There are two ways you can implement lazy loading in Next.js:
+
+1. Using [Dynamic Imports](#nextdynamic) with `next/dynamic`
+2. Using [`React.lazy()`](https://react.dev/reference/react/lazy) with [Suspense](https://react.dev/reference/react/Suspense)
+
+By default, Server Components are automatically [code split](https://developer.mozilla.org/docs/Glossary/Code_splitting), and you can use [streaming](https://developer.mozilla.org/docs/Web/API/Streams_API) to progressively send pieces of UI from the server to the client. Lazy loading applies to Client Components.
+
+## `next/dynamic`
+
+`next/dynamic` is a composite of [`React.lazy()`](https://react.dev/reference/react/lazy) and [Suspense](https://react.dev/reference/react/Suspense). It behaves the same way in the `app` and `pages` directories to allow for incremental migration.
+
+### Examples
+
+### Importing Client Components
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
+
+// Client Components:
+const ComponentA = dynamic(() => import('../components/A'))
+const ComponentB = dynamic(() => import('../components/B'))
+const ComponentC = dynamic(() => import('../components/C'), { ssr: false })
+
+export default function ClientComponentExample() {
+  const [showMore, setShowMore] = useState(false)
+
+  return (
+    <div>
+      {/* Load immediately, but in a separate client bundle */}
+      <ComponentA />
+
+      {/* Load on demand, only when/if the condition is met */}
+      {showMore && <ComponentB />}
+      <button onClick={() => setShowMore(!showMore)}>Toggle</button>
+
+      {/* Load only on the client side */}
+      <ComponentC />
+    </div>
+  )
+}
+```
+
+### Skipping SSR
+
+When using `React.lazy()` and Suspense, Client Components will be pre-rendered (SSR) by default.
+
+> **Note:** `ssr: false` option will only work for client components, move it into client components ensure the client code-splitting working properly.
+
+If you want to disable pre-rendering for a Client Component, you can use the `ssr` option set to `false`:
+
+```jsx
+const ComponentC = dynamic(() => import('../components/C'), { ssr: false })
+```
+
+### Importing Server Components
+
+If you dynamically import a Server Component, only the Client Components that are children of the Server Component will be lazy-loaded - not the Server Component itself.
+It will also help preload the static assets such as CSS when you're using it in Server Components.
+
+```jsx
+import dynamic from 'next/dynamic'
+
+// Server Component:
+const ServerComponent = dynamic(() => import('../components/ServerComponent'))
+
+export default function ServerComponentExample() {
+  return (
+    <div>
+      <ServerComponent />
+    </div>
+  )
+}
+```
+
+> **Note:** `ssr: false` option is not supported in Server Components. You will see an error if you try to use it in Server Components.
+> `ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a client component.
+
+### Loading External Libraries
+
+External libraries can be loaded on demand using the [`import()`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/import) function. This example uses the external library `fuse.js` for fuzzy search. The module is only loaded on the client after the user types in the search input.
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+
+const names = ['Tim', 'Joe', 'Bel', 'Lee']
+
+export default function Page() {
+  const [results, setResults] = useState()
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search"
+        onChange={async (e) => {
+          const { value } = e.currentTarget
+          // Dynamically load fuse.js
+          const Fuse = (await import('fuse.js')).default
+          const fuse = new Fuse(names)
+
+          setResults(fuse.search(value))
+        }}
+      />
+      <pre>Results: {JSON.stringify(results, null, 2)}</pre>
+    </div>
+  )
+}
+```
+
+### Adding a custom loading component
+
+```jsx
+import dynamic from 'next/dynamic'
+
+const WithCustomLoading = dynamic(
+  () => import('../components/WithCustomLoading'),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+)
+
+export default function Page() {
+  return (
+    <div>
+      {/* The loading component will be rendered while  <WithCustomLoading/> is loading */}
+      <WithCustomLoading />
+    </div>
+  )
+}
+```
+
+### Importing Named Exports
+
+To dynamically import a named export, you can return it from the Promise returned by [`import()`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/import) function:
+
+```jsx
+'use client'
+
+export function Hello() {
+  return <p>Hello!</p>
+}
+```
+
+```jsx
+import dynamic from 'next/dynamic'
+
+const ClientComponent = dynamic(() =>
+  import('../components/hello').then((mod) => mod.Hello)
+)
+```
+
+### With named exports
+
+To dynamically import a named export, you can return it from the [Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise) returned by [`import()`](https://github.com/tc39/proposal-dynamic-import#example):
+
+```jsx
+export function Hello() {
+  return <p>Hello!</p>
+}
+
+// pages/index.js
+import dynamic from 'next/dynamic'
+
+const DynamicComponent = dynamic(() =>
+  import('../components/hello').then((mod) => mod.Hello)
+)
+```
+
+### With no SSR
+
+To dynamically load a component on the client side, you can use the `ssr` option to disable server-rendering. This is useful if an external dependency or component relies on browser APIs like `window`.
+
+```jsx
+'use client'
+
+import dynamic from 'next/dynamic'
+
+const DynamicHeader = dynamic(() => import('../components/header'), {
+  ssr: false,
+})
+```
+
+### With external libraries
+
+This example uses the external library `fuse.js` for fuzzy search. The module is only loaded in the browser after the user types in the search input.
+
+```jsx
+import { useState } from 'react'
+
+const names = ['Tim', 'Joe', 'Bel', 'Lee']
+
+export default function Page() {
+  const [results, setResults] = useState()
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search"
+        onChange={async (e) => {
+          const { value } = e.currentTarget
+          // Dynamically load fuse.js
+          const Fuse = (await import('fuse.js')).default
+          const fuse = new Fuse(names)
+
+          setResults(fuse.search(value))
+        }}
+      />
+      <pre>Results: {JSON.stringify(results, null, 2)}</pre>
+    </div>
+  )
+}
+```
