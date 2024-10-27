@@ -22,21 +22,6 @@ const docs = [
     url: "/chartjs",
   },
   {
-    name: "Claude",
-    image: "/icons/claude-icon.svg",
-    url: "/claude",
-  },
-  {
-    name: "daisyUI",
-    image: "/icons/daisyUI-icon.svg",
-    url: "daisyUI",
-  },
-  {
-    name: "Django",
-    image: "/icons/django-icon.svg",
-    url: "django",
-  },
-  {
     name: "Effect",
     image: "/icons/effect-icon.svg",
     url: "effect",
@@ -57,11 +42,6 @@ const docs = [
     url: "/htmx",
   },
   {
-    name: "Linear",
-    image: "/icons/linear-icon.svg",
-    url: "/linear",
-  },
-  {
     name: "Million",
     image: "/icons/million-icon.svg",
     url: "/million",
@@ -75,11 +55,6 @@ const docs = [
     name: "Nuxt",
     image: "/icons/nuxt-icon.svg",
     url: "/nuxt",
-  },
-  {
-    name: "OpenAI",
-    image: "/icons/openai-icon.svg",
-    url: "/openai",
   },
   {
     name: "Panda",
@@ -137,19 +112,9 @@ const docs = [
     url: "/turborepo",
   },
   {
-    name: "Vercel",
-    image: "/icons/vercel-icon.svg",
-    url: "/vercel",
-  },
-  {
     name: "Webpack",
     image: "/icons/webpack.svg",
     url: "/webpack",
-  },
-  {
-    name: "xAI",
-    image: "/icons/xai-icon.svg",
-    url: "/xai",
   },
   {
     name: "Zod",

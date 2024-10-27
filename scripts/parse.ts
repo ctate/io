@@ -1,12 +1,11 @@
 import { config } from "dotenv";
 import { existsSync } from "fs";
-import { dirname, join, normalize } from "path";
+import { dirname, extname, join, normalize } from "path";
 import { mkdir, readFile, writeFile } from "fs/promises";
 
 import { getChecksum } from "../utils/getChecksum";
 import { getFilesRecursively } from "../utils/getFilesRecursively";
 import { getFolders } from "../utils/getFolders";
-import { pause } from "../utils/pause";
 import { parseText } from "../utils/parseText";
 import { replaceInputWithOutput } from "../utils/replaceInputWithOutput";
 
@@ -21,6 +20,10 @@ async function parse() {
     const files = await getFilesRecursively(join(folder, "input"));
 
     for (const file of files) {
+      if (![".md", ".mdx"].includes(extname(file))) {
+        continue;
+      }
+
       console.log(`Parsing: ${file}`);
       const prompt = await readFile(file, "utf8");
       const promptChecksum = getChecksum(prompt);
@@ -33,7 +36,7 @@ async function parse() {
         continue;
       }
 
-      const text = prompt.includes("<") ? await parseText(prompt) : prompt;
+      const text = await parseText(prompt);
 
       const outputFile = replaceInputWithOutput(file);
       const outputDir = dirname(outputFile);
@@ -48,8 +51,6 @@ async function parse() {
       await writeFile(ioLockFile, JSON.stringify(ioLock, null, 2));
 
       console.log(`\nDone: ${outputFile}`);
-
-      await pause(30);
     }
   }
 }

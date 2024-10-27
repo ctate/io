@@ -1,0 +1,1 @@
+OpenAPI Pydantic models are utilized for generating and validating the OpenAPI specifications. These models are part of the FastAPI framework and facilitate the creation of API documentation and validation processes.

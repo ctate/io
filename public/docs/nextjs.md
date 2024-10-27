@@ -10013,3 +10013,25563 @@ Attributes:
 - `next.span_type`: `NextNodeServer.startResponse`.
 
 This zero-length span represents the time when the first byte has been sent in the response.
+
+# Static Assets in `public`
+
+Next.js allows you to serve static files, like images, in the `public` directory. Files inside `public` can be referenced by your code starting from the base URL (`/`).
+
+For example, the file `public/avatars/me.png` can be viewed by visiting the `/avatars/me.png` path. The code to display that image might look like:
+
+```jsx
+import Image from 'next/image'
+
+export function Avatar({ id, alt }) {
+  return <Image src={`/avatars/${id}.png`} alt={alt} width="64" height="64" />
+}
+
+export function AvatarOfMe() {
+  return <Avatar id="me" alt="A portrait of me" />
+}
+```
+
+## Caching
+
+Next.js cannot safely cache assets in the `public` folder because they may change. The default caching headers applied are:
+
+```
+Cache-Control: public, max-age=0
+```
+
+## Robots, Favicons, and Others
+
+The folder is also useful for `robots.txt`, `favicon.ico`, Google Site Verification, and any other static files (including `.html`). Ensure that there is no static file with the same name as a file in the `pages/` directory, as this will result in an error.
+
+For static metadata files, such as `robots.txt`, `favicon.ico`, etc., you should use special metadata files inside the `app` folder.
+
+### Good to Know
+
+- The directory must be named `public`. The name cannot be changed and it's the only directory used to serve static assets.
+- Only assets that are in the `public` directory at build time will be served by Next.js. Files added at request time won't be available. It is recommended to use a third-party service like Vercel Blob for persistent file storage.
+
+# Third Party Libraries
+
+Optimize the performance of third-party libraries in your application with the `@next/third-parties` package.
+
+`@next/third-parties` is a library that provides a collection of components and utilities that improve the performance and developer experience of loading popular third-party libraries in your Next.js application. All third-party integrations provided by `@next/third-parties` have been optimized for performance and ease of use.
+
+## Getting Started
+
+To get started, install the `@next/third-parties` library:
+
+```bash
+npm install @next/third-parties@latest next@latest
+```
+
+`@next/third-parties` is currently an **experimental** library under active development. We recommend installing it with the **latest** or **canary** flags while we work on adding more third-party integrations.
+
+## Google Third-Parties
+
+All supported third-party libraries from Google can be imported from `@next/third-parties/google`.
+
+### Google Tag Manager
+
+The `GoogleTagManager` component can be used to instantiate a Google Tag Manager container to your page. By default, it fetches the original inline script after hydration occurs on the page.
+
+To load Google Tag Manager for all routes, include the component directly in your root layout and pass in your GTM container ID:
+
+```tsx
+import { GoogleTagManager } from '@next/third-parties/google'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <GoogleTagManager gtmId="GTM-XYZ" />
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+To load Google Tag Manager for a single route, include the component in your page file:
+
+```jsx
+import { GoogleTagManager } from '@next/third-parties/google'
+
+export default function Page() {
+  return <GoogleTagManager gtmId="GTM-XYZ" />
+}
+```
+
+#### Sending Events
+
+The `sendGTMEvent` function can be used to track user interactions on your page by sending events using the `dataLayer` object. For this function to work, the `<GoogleTagManager />` component must be included in either a parent layout, page, or component, or directly in the same file.
+
+```jsx
+'use client'
+
+import { sendGTMEvent } from '@next/third-parties/google'
+
+export function EventButton() {
+  return (
+    <div>
+      <button onClick={() => sendGTMEvent({ event: 'buttonClicked', value: 'xyz' })}>
+        Send Event
+      </button>
+    </div>
+  )
+}
+```
+
+Refer to the Tag Manager developer documentation to learn about the different variables and events that can be passed into the function.
+
+#### Server-side Tagging
+
+If you're using a server-side tag manager and serving `gtm.js` scripts from your tagging server, you can use the `gtmScriptUrl` option to specify the URL of the script.
+
+#### Options
+
+| Name            | Type     | Description                                                              |
+| --------------- | -------- | ------------------------------------------------------------------------ |
+| `gtmId`         | Required | Your GTM container ID. Usually starts with `GTM-`.                       |
+| `gtmScriptUrl`  | Optional | GTM script URL. Defaults to `https://www.googletagmanager.com/gtm.js`.   |
+| `dataLayer`     | Optional | Data layer object to instantiate the container with.                     |
+| `dataLayerName` | Optional | Name of the data layer. Defaults to `dataLayer`.                         |
+| `auth`          | Optional | Value of authentication parameter (`gtm_auth`) for environment snippets. |
+| `preview`       | Optional | Value of preview parameter (`gtm_preview`) for environment snippets.     |
+
+### Google Analytics
+
+The `GoogleAnalytics` component can be used to include Google Analytics 4 to your page via the Google tag (`gtag.js`). By default, it fetches the original scripts after hydration occurs on the page.
+
+> **Recommendation**: If Google Tag Manager is already included in your application, you can configure Google Analytics directly using it, rather than including Google Analytics as a separate component.
+
+To load Google Analytics for all routes, include the component directly in your root layout and pass in your measurement ID:
+
+```tsx
+import { GoogleAnalytics } from '@next/third-parties/google'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+      <GoogleAnalytics gaId="G-XYZ" />
+    </html>
+  )
+}
+```
+
+To load Google Analytics for a single route, include the component in your page file:
+
+```jsx
+import { GoogleAnalytics } from '@next/third-parties/google'
+
+export default function Page() {
+  return <GoogleAnalytics gaId="G-XYZ" />
+}
+```
+
+#### Sending Events
+
+The `sendGAEvent` function can be used to measure user interactions on your page by sending events using the `dataLayer` object. For this function to work, the `<GoogleAnalytics />` component must be included in either a parent layout, page, or component, or directly in the same file.
+
+```jsx
+'use client'
+
+import { sendGAEvent } from '@next/third-parties/google'
+
+export function EventButton() {
+  return (
+    <div>
+      <button onClick={() => sendGAEvent('event', 'buttonClicked', { value: 'xyz' })}>
+        Send Event
+      </button>
+    </div>
+  )
+}
+```
+
+Refer to the Google Analytics developer documentation to learn more about event parameters.
+
+#### Tracking Pageviews
+
+Google Analytics automatically tracks pageviews when the browser history state changes. This means that client-side navigations between Next.js routes will send pageview data without any configuration.
+
+To ensure that client-side navigations are being measured correctly, verify that the "Enhanced Measurement" property is enabled in your Admin panel and the "Page changes based on browser history events" checkbox is selected.
+
+> **Note**: If you decide to manually send pageview events, make sure to disable the default pageview measurement to avoid having duplicate data.
+
+#### Options
+
+| Name            | Type     | Description                                                                                            |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `gaId`          | Required | Your measurement ID. Usually starts with `G-`.                                                       |
+| `dataLayerName` | Optional | Name of the data layer. Defaults to `dataLayer`.                                                       |
+| `nonce`         | Optional | A nonce for content security policy.                                                                    |
+
+### Google Maps Embed
+
+The `GoogleMapsEmbed` component can be used to add a Google Maps Embed to your page. By default, it uses the `loading` attribute to lazy-load the embed below the fold.
+
+```jsx
+import { GoogleMapsEmbed } from '@next/third-parties/google'
+
+export default function Page() {
+  return (
+    <GoogleMapsEmbed
+      apiKey="XYZ"
+      height={200}
+      width="100%"
+      mode="place"
+      q="Brooklyn+Bridge,New+York,NY"
+    />
+  )
+}
+```
+
+#### Options
+
+| Name              | Type     | Description                                                                                         |
+| ----------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `apiKey`          | Required | Your API key.                                                                                       |
+| `mode`            | Required | Map mode.                                                                                           |
+| `height`          | Optional | Height of the embed. Defaults to `auto`.                                                            |
+| `width`           | Optional | Width of the embed. Defaults to `auto`.                                                             |
+| `style`           | Optional | Pass styles to the iframe.                                                                          |
+| `allowfullscreen` | Optional | Property to allow certain map parts to go full screen.                                              |
+| `loading`         | Optional | Defaults to lazy. Consider changing if you know your embed will be above the fold.                  |
+| `q`               | Optional | Defines map marker location. _This may be required depending on the map mode_.                      |
+| `center`          | Optional | Defines the center of the map view.                                                                 |
+| `zoom`            | Optional | Sets initial zoom level of the map.                                                                 |
+| `maptype`         | Optional | Defines type of map tiles to load.                                                                  |
+| `language`        | Optional | Defines the language to use for UI elements and for the display of labels on map tiles.             |
+| `region`          | Optional | Defines the appropriate borders and labels to display, based on geo-political sensitivities.        |
+
+### YouTube Embed
+
+The `YouTubeEmbed` component can be used to load and display a YouTube embed. This component loads faster by using lite-youtube-embed under the hood.
+
+```jsx
+import { YouTubeEmbed } from '@next/third-parties/google'
+
+export default function Page() {
+  return <YouTubeEmbed videoid="ogfYd705cRs" height={400} params="controls=0" />
+}
+```
+
+#### Options
+
+| Name        | Type     | Description                                                                                                                                                                                                  |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `videoid`   | Required | YouTube video id.                                                                                                                                                                                            |
+| `width`     | Optional | Width of the video container. Defaults to `auto`                                                                                                                                                             |
+| `height`    | Optional | Height of the video container. Defaults to `auto`                                                                                                                                                            |
+| `playlabel` | Optional | A visually hidden label for the play button for accessibility.                                                                                                                                               |
+| `params`    | Optional | The video player params defined here. Params are passed as a query param string. Eg: `params="controls=0&start=10&end=30"`                                                                                 |
+| `style`     | Optional | Used to apply styles to the video container.                                                                                                                                                                 |
+
+# Memory Usage
+
+Optimize memory used by your application in development and production.
+
+As applications grow and become more feature-rich, they can demand more resources when developing locally or creating production builds. Here are strategies and techniques to optimize memory and address common memory issues in Next.js.
+
+## Reduce Number of Dependencies
+
+Applications with a large number of dependencies will use more memory. The Bundle Analyzer can help you investigate large dependencies in your application that may be removable to improve performance and memory usage.
+
+## Try `experimental.webpackMemoryOptimizations`
+
+Starting in v15.0.0, add `experimental.webpackMemoryOptimizations: true` to your `next.config.js` file to reduce max memory usage, though it may slightly increase compilation times. This feature is currently experimental but considered low-risk.
+
+## Run `next build` with `--experimental-debug-memory-usage`
+
+Starting in v14.2.0, run `next build --experimental-debug-memory-usage` to print information about memory usage continuously throughout the build, including heap usage and garbage collection statistics. Heap snapshots will be taken automatically when memory usage approaches the configured limit. This feature is not compatible with the Webpack build worker option.
+
+## Record a Heap Profile
+
+To identify memory issues, record a heap profile from Node.js and load it in Chrome DevTools. Use the following command:
+
+```sh
+node --heap-prof node_modules/next/dist/bin/next build
+```
+
+A `.heapprofile` file will be created at the end of the build. Open the Memory tab in Chrome DevTools and click "Load Profile" to visualize the file.
+
+## Analyze a Snapshot of the Heap
+
+To analyze memory usage, run `next build` or `next dev` with `NODE_OPTIONS=--inspect` to expose the inspector agent. Use `--inspect-brk` to break before any user code starts. Connect to the debugging port with Chrome DevTools to record and analyze a heap snapshot. In v14.2.0 and later, you can also run `next build` with `--experimental-debug-memory-usage` to facilitate heap snapshots.
+
+## Webpack Build Worker
+
+The Webpack build worker allows Webpack compilations to run inside a separate Node.js worker, decreasing memory usage during builds. This option is enabled by default if there is no custom Webpack configuration starting in v14.1.0. For older versions or custom configurations, enable it by setting `experimental.webpackBuildWorker: true` in `next.config.js`. This feature may not be compatible with all custom Webpack plugins.
+
+## Disable Webpack Cache
+
+The Webpack cache saves generated modules in memory and/or to disk, improving build speed but increasing memory usage. Disable this by adding a custom Webpack configuration:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  webpack: (config, { dev }) => {
+    if (config.cache && !dev) {
+      config.cache = Object.freeze({
+        type: 'memory',
+      });
+    }
+    return config;
+  },
+}
+
+export default nextConfig
+```
+
+## Disable Static Analysis
+
+Typechecking and linting can require significant memory, especially in large projects. If builds encounter out-of-memory issues during linting and type checking, disable these tasks:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+}
+
+export default nextConfig
+```
+
+This may lead to faulty deployments due to type errors or linting issues. It is recommended to promote builds to production only after static analysis has completed.
+
+## Disable Source Maps
+
+Generating source maps consumes extra memory during the build process. Disable source map generation by adding `productionBrowserSourceMaps: false` and `experimental.serverSourceMaps: false` to your Next.js configuration. Some plugins may require custom configuration to disable source maps.
+
+## Edge Memory Issues
+
+Next.js v14.1.3 fixed a memory issue when using the Edge runtime. Update to this version or later to see if it resolves your issue.
+
+# Optimizations
+
+Optimize your Next.js application for best performance and user experience.
+
+Next.js comes with a variety of built-in optimizations designed to improve your application's speed and Core Web Vitals. This guide will cover the optimizations you can leverage to enhance your user experience.
+
+## Built-in Components
+
+Built-in components abstract away the complexity of implementing common UI optimizations. These components are:
+
+- **Images**: Built on the native `<img>` element. The Image Component optimizes images for performance by lazy loading and automatically resizing images based on device size.
+- **Link**: Built on the native `<a>` tags. The Link Component prefetches pages in the background for faster and smoother page transitions.
+- **Scripts**: Built on the native `<script>` tags. The Script Component gives you control over loading and execution of third-party scripts.
+
+## Metadata
+
+Metadata helps search engines understand your content better, which can result in better SEO, and allows you to customize how your content is presented on social media, creating a more engaging and consistent user experience across various platforms.
+
+The Metadata API in Next.js allows you to modify the `<head>` element of a page. You can configure metadata in two ways:
+
+- **Config-based Metadata**: Export a static metadata object or a dynamic generateMetadata function in a layout.js or page.js file.
+- **File-based Metadata**: Add static or dynamically generated special files to route segments.
+
+Additionally, you can create dynamic Open Graph Images using JSX and CSS with the imageResponse constructor.
+
+## Static Assets
+
+Next.js `/public` folder can be used to serve static assets like images, fonts, and other files. Files inside `/public` can also be cached by CDN providers for efficient delivery.
+
+## Analytics and Monitoring
+
+For large applications, Next.js integrates with popular analytics and monitoring tools to help you understand how your application is performing. Learn more in the Analytics, OpenTelemetry, and Instrumentation guides.
+
+# TypeScript
+
+Next.js provides a TypeScript-first development experience for building your React application. It includes built-in TypeScript support for automatically installing necessary packages and configuring settings.
+
+## New Projects
+
+`create-next-app` now ships with TypeScript by default.
+
+```bash
+npx create-next-app@latest
+```
+
+## Existing Projects
+
+To add TypeScript to your project, rename a file to `.ts` or `.tsx`. Run `next dev` and `next build` to automatically install necessary dependencies and create a `tsconfig.json` file with recommended options. If a `jsconfig.json` file exists, copy the `paths` compiler option to the new `tsconfig.json` and delete the old file. It is recommended to use `next.config.ts` for better type inference.
+
+## TypeScript Plugin
+
+Next.js includes a custom TypeScript plugin and type checker for advanced type-checking and auto-completion in editors like VSCode. Enable the plugin by:
+
+1. Opening the command palette (`Ctrl/⌘` + `Shift` + `P`)
+2. Searching for "TypeScript: Select TypeScript Version"
+3. Selecting "Use Workspace Version"
+
+### Plugin Features
+
+The TypeScript plugin provides:
+
+- Warnings for invalid values in segment config options.
+- Available options and in-context documentation.
+- Correct usage of the `use client` directive.
+- Ensuring client hooks are used only in Client Components.
+
+## Minimum TypeScript Version
+
+It is recommended to use at least TypeScript `v4.5.2` for syntax features and performance improvements.
+
+## Type Checking in Next.js Configuration
+
+### Type Checking next.config.js
+
+Add type checking in `next.config.js` using JSDoc:
+
+```js
+// @ts-check
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  /* config options here */
+}
+
+module.exports = nextConfig
+```
+
+### Type Checking next.config.ts
+
+Use TypeScript in `next.config.ts`:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  /* config options here */
+}
+
+export default nextConfig
+```
+
+**Note**: Module resolution in `next.config.ts` is limited to CommonJS.
+
+## Statically Typed Links
+
+Enable statically typed links by setting `experimental.typedRoutes` in `next.config.ts`:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    typedRoutes: true,
+  },
+}
+
+export default nextConfig
+```
+
+Next.js generates a link definition in `.next/types` for all existing routes, improving type safety.
+
+## End-to-End Type Safety
+
+The Next.js App Router enhances type safety by allowing direct fetching in components without serialization. This simplifies data flow and improves type safety.
+
+## Async Server Component TypeScript Error
+
+Ensure TypeScript is `5.1.3` or higher and `@types/react` is `18.2.8` or higher to avoid type errors with async Server Components.
+
+## Passing Data Between Server & Client Components
+
+Data passed between Server and Client Components is serialized as usual, but un-rendered data remains on the server.
+
+## Static Generation and Server-side Rendering
+
+Use `GetStaticProps`, `GetStaticPaths`, and `GetServerSideProps` types for static generation and server-side rendering:
+
+```tsx
+import type { GetStaticProps, GetStaticPaths, GetServerSideProps } from 'next'
+
+export const getStaticProps = (async (context) => {
+  // ...
+}) satisfies GetStaticProps
+
+export const getStaticPaths = (async () => {
+  // ...
+}) satisfies GetStaticPaths
+
+export const getServerSideProps = (async (context) => {
+  // ...
+}) satisfies GetServerSideProps
+```
+
+## API Routes
+
+Example of using built-in types for API routes:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  res.status(200).json({ name: 'John Doe' })
+}
+```
+
+## Custom App
+
+Use the built-in type `AppProps` in a custom App:
+
+```ts
+import type { AppProps } from 'next/app'
+
+export default function MyApp({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />
+}
+```
+
+## Path Aliases and baseUrl
+
+Next.js supports the `tsconfig.json` `"paths"` and `"baseUrl"` options.
+
+## Incremental Type Checking
+
+Next.js supports incremental type checking when enabled in `tsconfig.json`, improving type checking speed in larger applications.
+
+## Ignoring TypeScript Errors
+
+To allow production builds with TypeScript errors, enable `ignoreBuildErrors` in `next.config.ts`:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+}
+
+export default nextConfig
+```
+
+**Note**: Use `tsc --noEmit` to check for TypeScript errors before building.
+
+## Custom Type Declarations
+
+Create a new file for custom types instead of modifying `next-env.d.ts`, and reference it in `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": [
+    "new-types.d.ts",
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}
+```
+
+## Version Changes
+
+| Version   | Changes                                                                                                                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `v15.0.0` | `next.config.ts` support added for TypeScript projects.                                                                              |
+| `v13.2.0` | Statically typed links available in beta.                                                                                           |
+| `v12.0.0` | SWC is now used by default for faster TypeScript and TSX builds.                                                                     |
+| `v10.2.1` | Incremental type checking support added when enabled in `tsconfig.json`.                                                             |
+
+# ESLint
+
+Next.js provides an integrated ESLint experience by default. These conformance rules help you use Next.js optimally.
+
+Next.js provides an integrated ESLint experience out of the box. Add `next lint` as a script to `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "next lint"
+  }
+}
+```
+
+Run `npm run lint` or `yarn lint`:
+
+```bash
+yarn lint
+```
+
+If ESLint is not configured, you will be guided through the installation and configuration process.
+
+```bash
+yarn lint
+```
+
+You will see a prompt like this:
+
+```
+? How would you like to configure ESLint?
+❯ Strict (recommended)  
+  Base  
+  Cancel
+```
+
+Select one of the following options:
+
+- **Strict**: Includes Next.js' base ESLint configuration and a stricter Core Web Vitals rule-set. Recommended for first-time ESLint setup.
+
+  ```json
+  {
+    "extends": "next/core-web-vitals"
+  }
+  ```
+
+- **Base**: Includes Next.js' base ESLint configuration.
+
+  ```json
+  {
+    "extends": "next"
+  }
+  ```
+
+- **Cancel**: No ESLint configuration. Select this only if you plan to set up your own custom configuration.
+
+If you select either configuration option, Next.js will install `eslint` and `eslint-config-next` as dependencies and create an `.eslintrc.json` file in your project root.
+
+Run `next lint` to catch errors. ESLint will also run during every build (`next build`). Errors will fail the build; warnings will not.
+
+We recommend using an appropriate integration to view warnings and errors directly in your code editor during development.
+
+## ESLint Config
+
+The default configuration (`eslint-config-next`) provides an optimal linting experience. If ESLint is not configured, use `next lint` to set it up.
+
+Recommended rule-sets from the following ESLint plugins are used within `eslint-config-next`:
+
+- eslint-plugin-react
+- eslint-plugin-react-hooks
+- eslint-plugin-next
+
+This takes precedence over the configuration from `next.config.js`.
+
+## ESLint Plugin
+
+Next.js provides an ESLint plugin, `eslint-plugin-next`, bundled within the base configuration to catch common issues in a Next.js application. The full set of rules includes:
+
+- @next/next/google-font-display: Enforce font-display behavior with Google Fonts.
+- @next/next/google-font-preconnect: Ensure `preconnect` is used with Google Fonts.
+- @next/next/inline-script-id: Enforce `id` attribute on `next/script` components with inline content.
+- @next/next/next-script-for-ga: Prefer `next/script` component for inline Google Analytics scripts.
+- @next/next/no-assign-module-variable: Prevent assignment to the `module` variable.
+- @next/next/no-async-client-component: Prevent client components from being async functions.
+- @next/next/no-before-interactive-script-outside-document: Prevent usage of `next/script`'s `beforeInteractive` strategy outside of `pages/_document.js`.
+- @next/next/no-css-tags: Prevent manual stylesheet tags.
+- @next/next/no-document-import-in-page: Prevent importing `next/document` outside of `pages/_document.js`.
+- @next/next/no-duplicate-head: Prevent duplicate usage of `<Head>` in `pages/_document.js`.
+- @next/next/no-head-element: Prevent usage of `<head>` element.
+- @next/next/no-head-import-in-document: Prevent usage of `next/head` in `pages/_document.js`.
+- @next/next/no-html-link-for-pages: Prevent usage of `<a>` elements for internal Next.js navigation.
+- @next/next/no-img-element: Prevent usage of `<img>` element due to slower LCP and higher bandwidth.
+- @next/next/no-page-custom-font: Prevent page-only custom fonts.
+- @next/next/no-script-component-in-head: Prevent usage of `next/script` in `next/head`.
+- @next/next/no-styled-jsx-in-document: Prevent usage of `styled-jsx` in `pages/_document.js`.
+- @next/next/no-sync-scripts: Prevent synchronous scripts.
+- @next/next/no-title-in-document-head: Prevent usage of `<title>` with `Head` component from `next/document`.
+- @next/next/no-typos: Prevent common typos in Next.js's data fetching functions.
+- @next/next/no-unwanted-polyfillio: Prevent duplicate polyfills from Polyfill.io.
+
+If ESLint is already configured, extend from this plugin directly instead of including `eslint-config-next`.
+
+### Custom Settings
+
+#### `rootDir`
+
+For projects where Next.js isn't installed in the root directory (e.g., monorepos), specify the Next.js application location using the `settings` property in your `.eslintrc`:
+
+```json
+{
+  "extends": "next",
+  "settings": {
+    "next": {
+      "rootDir": "packages/my-app/"
+    }
+  }
+}
+```
+
+`rootDir` can be a path, glob, or an array of paths/globs.
+
+## Linting Custom Directories and Files
+
+By default, Next.js runs ESLint for all files in the `pages/`, `app/`, `components/`, `lib/`, and `src/` directories. Specify directories using the `dirs` option in `next.config.js` for production builds:
+
+```js
+module.exports = {
+  eslint: {
+    dirs: ['pages', 'utils'],
+  },
+}
+```
+
+Use the `--dir` and `--file` flags with `next lint` to lint specific directories and files:
+
+```bash
+next lint --dir pages --dir utils --file bar.js
+```
+
+## Caching
+
+To improve performance, ESLint caches processed file information by default in `.next/cache`. Use the `--no-cache` flag to disable the cache if needed.
+
+```bash
+next lint --no-cache
+```
+
+## Disabling Rules
+
+Modify or disable rules from supported plugins using the `rules` property in your `.eslintrc`:
+
+```json
+{
+  "extends": "next",
+  "rules": {
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-page-custom-font": "off"
+  }
+}
+```
+
+### Core Web Vitals
+
+The `next/core-web-vitals` rule set is enabled when `next lint` is run for the first time with the **strict** option selected.
+
+```json
+{
+  "extends": "next/core-web-vitals"
+}
+```
+
+This updates `eslint-plugin-next` to error on rules affecting Core Web Vitals.
+
+### TypeScript
+
+Using `create-next-app --typescript` adds TypeScript-specific lint rules with `next/typescript`:
+
+```json
+{
+  "extends": ["next/core-web-vitals", "next/typescript"]
+}
+```
+
+These rules are based on `plugin:@typescript-eslint/recommended`.
+
+## Usage With Other Tools
+
+### Prettier
+
+To avoid conflicts with Prettier, include `eslint-config-prettier` in your ESLint config.
+
+Install the dependency:
+
+```bash
+npm install --save-dev eslint-config-prettier
+```
+
+Add `prettier` to your ESLint config:
+
+```json
+{
+  "extends": ["next", "prettier"]
+}
+```
+
+### lint-staged
+
+To use `next lint` with lint-staged, add the following to the `.lintstagedrc.js` file:
+
+```js
+const path = require('path')
+
+const buildEslintCommand = (filenames) =>
+  `next lint --fix --file ${filenames
+    .map((f) => path.relative(process.cwd(), f))
+    .join(' --file ')}`
+
+module.exports = {
+  '*.{js,jsx,ts,tsx}': [buildEslintCommand],
+}
+```
+
+## Migrating Existing Config
+
+### Recommended Plugin Ruleset
+
+If ESLint is already configured and you have certain plugins installed or specific `parserOptions`, consider extending directly from the Next.js ESLint plugin:
+
+```js
+module.exports = {
+  extends: [
+    'plugin:@next/next/recommended',
+  ],
+}
+```
+
+Install the plugin:
+
+```bash
+npm install --save-dev @next/eslint-plugin-next
+```
+
+This prevents collisions or errors from importing the same plugin across multiple configurations.
+
+### Additional Configurations
+
+If using a separate ESLint configuration, ensure `eslint-config-next` is extended last:
+
+```json
+{
+  "extends": ["eslint:recommended", "next"]
+}
+```
+
+The `next` configuration handles default values for `parser`, `plugins`, and `settings`. Avoid re-declaring these properties unless necessary.
+
+# Environment Variables
+
+Learn to add and access environment variables in your Next.js application.
+
+Next.js comes with built-in support for environment variables, allowing you to:
+
+- Use `.env` to load environment variables
+- Bundle environment variables for the browser by prefixing with `NEXT_PUBLIC_`
+
+## Loading Environment Variables
+
+Next.js loads environment variables from `.env*` files into `process.env`.
+
+Example `.env` file:
+```
+DB_HOST=localhost
+DB_USER=myuser
+DB_PASS=mypassword
+```
+
+This loads `process.env.DB_HOST`, `process.env.DB_USER`, and `process.env.DB_PASS` into the Node.js environment, allowing usage in data fetching methods and API routes.
+
+Example using `getStaticProps`:
+```js
+export async function getStaticProps() {
+  const db = await myDB.connect({
+    host: process.env.DB_HOST,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+  })
+  // ...
+}
+```
+
+### Loading Environment Variables with `@next/env`
+
+To load environment variables outside of the Next.js runtime, use the `@next/env` package.
+
+Install the package:
+```bash
+npm install @next/env
+```
+
+Load environment variables:
+```tsx
+import { loadEnvConfig } from '@next/env'
+
+const projectDir = process.cwd()
+loadEnvConfig(projectDir)
+```
+
+Example configuration:
+```tsx
+import './envConfig.ts'
+
+export default defineConfig({
+  dbCredentials: {
+    connectionString: process.env.DATABASE_URL!,
+  },
+})
+```
+
+### Referencing Other Variables
+
+Next.js expands variables using `$` to reference other variables in `.env*` files.
+
+Example:
+```
+TWITTER_USER=nextjs
+TWITTER_URL=https://x.com/$TWITTER_USER
+```
+
+## Bundling Environment Variables for the Browser
+
+Non-`NEXT_PUBLIC_` environment variables are only available in the Node.js environment. To make a variable accessible in the browser, prefix it with `NEXT_PUBLIC_`.
+
+Example:
+```
+NEXT_PUBLIC_ANALYTICS_ID=abcdefghijk
+```
+
+This will inline the variable into the JavaScript bundle during `next build`.
+
+Example usage:
+```js
+setupAnalyticsService(process.env.NEXT_PUBLIC_ANALYTICS_ID)
+```
+
+Dynamic lookups will not be inlined.
+
+### Runtime Environment Variables
+
+Next.js supports both build time and runtime environment variables. By default, environment variables are only available on the server. To expose a variable to the browser, it must be prefixed with `NEXT_PUBLIC_`.
+
+Example for dynamic rendering:
+```tsx
+import { connection } from 'next/server'
+
+export default async function Component() {
+  await connection()
+  const value = process.env.MY_VALUE
+  // ...
+}
+```
+
+## Default Environment Variables
+
+You can set defaults in `.env`, `.env.development`, and `.env.production`.
+
+## Environment Variables on Vercel
+
+When deploying to Vercel, configure environment variables in the Project Settings. You can pull Development Environment Variables into a `.env.local` file using:
+```bash
+vercel env pull
+```
+
+## Test Environment Variables
+
+For testing, use a `.env.test` file. This file will not load `.env.local` to ensure consistent test results.
+
+Example for Jest setup:
+```js
+import { loadEnvConfig } from '@next/env'
+
+export default async () => {
+  const projectDir = process.cwd()
+  loadEnvConfig(projectDir)
+}
+```
+
+## Environment Variable Load Order
+
+Environment variables are looked up in the following order:
+
+1. `process.env`
+2. `.env.$(NODE_ENV).local`
+3. `.env.local` (Not checked when `NODE_ENV` is `test`.)
+4. `.env.$(NODE_ENV)`
+5. `.env`
+
+## Good to know
+
+- If using a `/src` directory, `.env.*` files should remain in the root of your project.
+- If `NODE_ENV` is unassigned, Next.js assigns `development` for `next dev` and `production` for other commands.
+
+## Version History
+
+| Version  | Changes                                       |
+| -------- | --------------------------------------------- |
+| `v9.4.0` | Support for `.env` and `NEXT_PUBLIC_` introduced. |
+
+# Absolute Imports and Module Path Aliases
+
+Configure module path aliases that allow you to remap certain import paths.
+
+Next.js has in-built support for the "paths" and "baseUrl" options of `tsconfig.json` and `jsconfig.json` files. These options allow you to alias project directories to absolute paths, making it easier to import modules. 
+
+## Absolute Imports
+
+The `baseUrl` configuration option allows you to import directly from the root of the project.
+
+Example configuration:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "."
+  }
+}
+```
+
+Example usage:
+
+```tsx
+// components/button.tsx
+export default function Button() {
+  return <button>Click me</button>
+}
+
+// app/page.tsx
+import Button from 'components/button'
+
+export default function HomePage() {
+  return (
+    <>
+      <h1>Hello World</h1>
+      <Button />
+    </>
+  )
+}
+```
+
+## Module Aliases
+
+You can use the "paths" option to alias module paths. For example, the following configuration maps `@/components/*` to `components/*`:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": ["components/*"]
+    }
+  }
+}
+```
+
+Example usage:
+
+```tsx
+// components/button.tsx
+export default function Button() {
+  return <button>Click me</button>
+}
+
+// app/page.tsx
+import Button from '@/components/button'
+
+export default function HomePage() {
+  return (
+    <>
+      <h1>Hello World</h1>
+      <Button />
+    </>
+  )
+}
+```
+
+Each of the "paths" are relative to the `baseUrl` location. For example:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "src/",
+    "paths": {
+      "@/styles/*": ["styles/*"],
+      "@/components/*": ["components/*"]
+    }
+  }
+}
+```
+
+Example usage:
+
+```tsx
+// app/page.tsx
+import Button from '@/components/button'
+import '@/styles/styles.css'
+import Helper from 'utils/helper'
+
+export default function HomePage() {
+  return (
+    <Helper>
+      <h1>Hello World</h1>
+      <Button />
+    </Helper>
+  )
+}
+```
+
+# Markdown and MDX
+
+Learn how to configure MDX and use it in your Next.js apps.
+
+Markdown is a lightweight markup language used to format text. It allows you to write using plain text syntax and convert it to structurally valid HTML. It's commonly used for writing content on websites and blogs.
+
+Example:
+
+```md
+I **love** using Next.js
+```
+
+Output:
+
+```html
+<p>I <strong>love</strong> using <a href="#">Next.js</a></p>
+```
+
+MDX is a superset of markdown that lets you write JSX directly in your markdown files. It allows for dynamic interactivity and embedding React components within your content.
+
+Next.js supports both local MDX content and remote MDX files fetched dynamically on the server. The Next.js plugin transforms markdown and React components into HTML, supporting usage in Server Components.
+
+## Install dependencies
+
+Install the `@next/mdx` package and related packages to configure Next.js for processing markdown and MDX:
+
+```bash
+npm install @next/mdx @mdx-js/loader @mdx-js/react @types/mdx
+```
+
+## Configure `next.config.mjs`
+
+Update the `next.config.mjs` file to configure it to use MDX:
+
+```js
+import createMDX from '@next/mdx'
+
+const nextConfig = {
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+}
+
+const withMDX = createMDX({
+  // Add markdown plugins here, as desired
+})
+
+export default withMDX(nextConfig)
+```
+
+## Add an `mdx-components.tsx` file
+
+Create an `mdx-components.tsx` (or `.js`) file in the root of your project to define global MDX Components:
+
+```tsx
+import type { MDXComponents } from 'mdx/types'
+
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    ...components,
+  }
+}
+```
+
+## Rendering MDX
+
+You can render MDX using Next.js's file-based routing or by importing MDX files into other pages.
+
+### Using file-based routing
+
+Create a new MDX page within the `/app` or `/pages` directory:
+
+```txt
+  my-project
+  ├── app
+  │   └── mdx-page
+  │       └── page.(mdx/md)
+  ├── mdx-components.(tsx/js)
+  └── package.json
+```
+
+You can use MDX in these files and import React components directly inside your MDX page:
+
+```mdx
+import { MyComponent } from 'my-component'
+
+# Welcome to my MDX page!
+
+This is some **bold** and _italics_ text.
+
+This is a list in markdown:
+
+- One
+- Two
+- Three
+
+Checkout my React component:
+
+<MyComponent />
+```
+
+### Using imports
+
+Create a new page within the `/app` or `/pages` directory and an MDX file wherever you'd like:
+
+```txt
+  my-project
+  ├── app
+  │   └── mdx-page
+  │       └── page.(tsx/js)
+  ├── markdown
+  │   └── welcome.(mdx/md)
+  ├── mdx-components.(tsx/js)
+  └── package.json
+```
+
+Import the MDX file inside the page to display the content:
+
+```tsx
+import Welcome from '@/markdown/welcome.mdx'
+
+export default function Page() {
+  return <Welcome />
+}
+```
+
+## Using custom styles and components
+
+Markdown maps to native HTML elements. To style your markdown, provide custom components that map to the generated HTML elements.
+
+### Global styles and components
+
+Adding styles and components in `mdx-components.tsx` will affect all MDX files in your application:
+
+```tsx
+import type { MDXComponents } from 'mdx/types'
+import Image, { ImageProps } from 'next/image'
+
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    h1: ({ children }) => (
+      <h1 style={{ color: 'red', fontSize: '48px' }}>{children}</h1>
+    ),
+    img: (props) => (
+      <Image
+        sizes="100vw"
+        style={{ width: '100%', height: 'auto' }}
+        {...(props as ImageProps)}
+      />
+    ),
+    ...components,
+  }
+}
+```
+
+### Local styles and components
+
+Apply local styles and components to specific pages by passing them into imported MDX components:
+
+```tsx
+import Welcome from '@/markdown/welcome.mdx'
+
+function CustomH1({ children }) {
+  return <h1 style={{ color: 'blue', fontSize: '100px' }}>{children}</h1>
+}
+
+const overrideComponents = {
+  h1: CustomH1,
+}
+
+export default function Page() {
+  return <Welcome components={overrideComponents} />
+}
+```
+
+### Shared layouts
+
+To share a layout across MDX pages, create a layout component:
+
+```tsx
+export default function MdxLayout({ children }) {
+  return <div style={{ color: 'blue' }}>{children}</div>
+}
+```
+
+Then, import the layout component into the MDX page and wrap the MDX content in the layout.
+
+## Frontmatter
+
+Frontmatter is a YAML-like key/value pairing used to store data about a page. `@next/mdx` does not support frontmatter by default, but you can use solutions like `remark-frontmatter`, `remark-mdx-frontmatter`, or `gray-matter`.
+
+You can use exports like any other JavaScript component:
+
+```mdx
+export const metadata = {
+  author: 'John Doe',
+}
+
+# Blog post
+```
+
+## Remark and Rehype Plugins
+
+You can provide `remark` and `rehype` plugins to transform the MDX content. For example, use `remark-gfm` to support GitHub Flavored Markdown.
+
+```js
+import remarkGfm from 'remark-gfm'
+import createMDX from '@next/mdx'
+
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [],
+  },
+})
+```
+
+## Remote MDX
+
+Fetch MDX files or content dynamically on the server. Use `next-mdx-remote` for this purpose.
+
+```tsx
+import { MDXRemote } from 'next-mdx-remote/rsc'
+
+export default async function RemoteMdxPage() {
+  const res = await fetch('https://...')
+  const markdown = await res.text()
+  return <MDXRemote source={markdown} />
+}
+```
+
+## Deep Dive: How do you transform markdown into HTML?
+
+React does not natively understand markdown. Use `remark` and `rehype` to transform markdown into HTML.
+
+```js
+import { unified } from 'unified'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import rehypeSanitize from 'rehype-sanitize'
+import rehypeStringify from 'rehype-stringify'
+
+async function main() {
+  const file = await unified()
+    .use(remarkParse)
+    .use(remarkRehype)
+    .use(rehypeSanitize)
+    .use(rehypeStringify)
+    .process('Hello, Next.js!')
+
+  console.log(String(file))
+}
+```
+
+## Using the Rust-based MDX compiler (experimental)
+
+Next.js supports a new MDX compiler written in Rust. To use it, configure `next.config.js`:
+
+```js
+module.exports = withMDX({
+  experimental: {
+    mdxRs: true,
+  },
+})
+```
+
+## Helpful Links
+
+- MDX
+- `@next/mdx`
+- remark
+- rehype
+- Markdoc
+
+# src Directory
+
+Save pages under the `src` directory as an alternative to the root `pages` directory.
+
+The content of this document is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+As an alternative to having the special Next.js `app` or `pages` directories in the root of your project, Next.js also supports the common pattern of placing application code under the `src` directory. This separates application code from project configuration files which mostly live in the root of a project, which is preferred by some individuals and teams.
+
+To use the `src` directory, move the `app` Router folder or `pages` Router folder to `src/app` or `src/pages` respectively.
+
+![An example folder structure with the `src` directory](srcLight="/docs/light/project-organization-src-directory.png" srcDark="/docs/dark/project-organization-src-directory.png" width="1600" height="687")
+
+**Good to know**:
+- The `/public` directory should remain in the root of your project.
+- Config files like `package.json`, `next.config.js`, and `tsconfig.json` should remain in the root of your project.
+- `.env.*` files should remain in the root of your project.
+- `src/app` or `src/pages` will be ignored if `app` or `pages` are present in the root directory.
+- If you're using `src`, you'll probably also move other application folders such as `/components` or `/lib`.
+- If you're using Middleware, ensure it is placed inside the `src` directory.
+- If you're using Tailwind CSS, you'll need to add the `/src` prefix to the `tailwind.config.js` file in the content section.
+- If you are using TypeScript paths for imports such as `@/*`, you should update the `paths` object in `tsconfig.json` to include `src/`.
+
+# Custom Server
+
+Start a Next.js app programmatically using a custom server.
+
+Next.js includes its own server with `next start` by default. If you have an existing backend, you can still use it with Next.js (this is not a custom server). A custom Next.js server allows you to programmatically start a server for custom patterns. The majority of the time, you will not need this approach. However, it's available if you need to eject.
+
+**Good to know**:
+- Before deciding to use a custom server, keep in mind that it should only be used when the integrated router of Next.js can't meet your app requirements. A custom server will remove important performance optimizations, like Automatic Static Optimization.
+- A custom server cannot be deployed on Vercel.
+- When using standalone output mode, it does not trace custom server files. This mode outputs a separate minimal `server.js` file, instead. These cannot be used together.
+
+Example of a custom server:
+
+```ts
+import { createServer } from 'http'
+import { parse } from 'url'
+import next from 'next'
+
+const port = parseInt(process.env.PORT || '3000', 10)
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dev })
+const handle = app.getRequestHandler()
+
+app.prepare().then(() => {
+  createServer((req, res) => {
+    const parsedUrl = parse(req.url!, true)
+    handle(req, res, parsedUrl)
+  }).listen(port)
+
+  console.log(
+    `> Server listening at http://localhost:${port} as ${
+      dev ? 'development' : process.env.NODE_ENV
+    }`
+  )
+})
+```
+
+```js
+import { createServer } from 'http'
+import { parse } from 'url'
+import next from 'next'
+
+const port = parseInt(process.env.PORT || '3000', 10)
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dev })
+const handle = app.getRequestHandler()
+
+app.prepare().then(() => {
+  createServer((req, res) => {
+    const parsedUrl = parse(req.url, true)
+    handle(req, res, parsedUrl)
+  }).listen(port)
+
+  console.log(
+    `> Server listening at http://localhost:${port} as ${
+      dev ? 'development' : process.env.NODE_ENV
+    }`
+  )
+})
+```
+
+`server.js` does not run through the Next.js Compiler or bundling process. Ensure the syntax and source code this file requires are compatible with the current Node.js version you are using.
+
+To run the custom server, update the `scripts` in `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js"
+  }
+}
+```
+
+Alternatively, you can set up `nodemon`. The custom server uses the following import to connect the server with the Next.js application:
+
+```js
+import next from 'next'
+
+const app = next({})
+```
+
+The `next` import is a function that receives an object with the following options:
+
+| Option         | Type               | Description                                                                         |
+| -------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `conf`         | `Object`           | The same object you would use in `next.config.js`. Defaults to `{}`                 |
+| `customServer` | `Boolean`          | (_Optional_) Set to false when the server was created by Next.js                    |
+| `dev`          | `Boolean`          | (_Optional_) Whether or not to launch Next.js in dev mode. Defaults to `false`      |
+| `dir`          | `String`           | (_Optional_) Location of the Next.js project. Defaults to `'.'`                     |
+| `quiet`        | `Boolean`          | (_Optional_) Hide error messages containing server information. Defaults to `false` |
+| `hostname`     | `String`           | (_Optional_) The hostname the server is running behind                              |
+| `port`         | `Number`           | (_Optional_) The port the server is running behind                                  |
+| `httpServer`   | `node:http#Server` | (_Optional_) The HTTP Server that Next.js is running behind                         |
+| `turbo`        | `Boolean`          | (_Optional_) Enable Turbopack                                                       |
+
+The returned `app` can then be used to let Next.js handle requests as required.
+
+## Disabling file-system routing
+
+By default, Next.js will serve each file in the `pages` folder under a pathname matching the filename. If your project uses a custom server, this behavior may result in the same content being served from multiple paths, which can present problems with SEO and UX.
+
+To disable this behavior, open `next.config.js` and disable the `useFileSystemPublicRoutes` config:
+
+```js
+module.exports = {
+  useFileSystemPublicRoutes: false,
+}
+```
+
+Note that `useFileSystemPublicRoutes` disables filename routes from SSR; client-side routing may still access those paths. When using this option, guard against navigation to routes you do not want programmatically.
+
+You may also wish to configure the client-side router to disallow client-side redirects to filename routes.
+
+# Draft Mode
+
+Draft Mode allows you to preview draft content from your headless CMS in your Next.js application. This is useful for static pages generated at build time, enabling you to switch to dynamic rendering and see draft changes without rebuilding your entire site.
+
+## Step 1: Create a Route Handler
+
+Create a Route Handler, for example, `app/api/draft/route.ts`.
+
+```ts
+export async function GET(request: Request) {
+  return new Response('')
+}
+```
+
+```js
+export async function GET() {
+  return new Response('')
+}
+```
+
+Import the `draftMode` function and call the `enable()` method.
+
+```ts
+import { draftMode } from 'next/headers'
+
+export async function GET(request: Request) {
+  const draft = await draftMode()
+  draft.enable()
+  return new Response('Draft mode is enabled')
+}
+```
+
+```js
+import { draftMode } from 'next/headers'
+
+export async function GET(request) {
+  const draft = await draftMode()
+  draft.enable()
+  return new Response('Draft mode is enabled')
+}
+```
+
+This sets a cookie to enable draft mode. Subsequent requests with this cookie will trigger draft mode and alter the behavior of statically generated pages. Test this by visiting `/api/draft` and checking the `Set-Cookie` response header for a cookie named `__prerender_bypass`.
+
+## Step 2: Access the Route Handler from your Headless CMS
+
+These steps assume your headless CMS supports custom draft URLs. If not, you can still secure your draft URLs but will need to construct and access them manually.
+
+1. Create a secret token string known only to your Next.js app and your headless CMS.
+2. If your headless CMS supports custom draft URLs, specify a draft URL, e.g.:
+
+```bash
+https://<your-site>/api/draft?secret=<token>&slug=<path>
+```
+
+- `<your-site>`: your deployment domain.
+- `<token>`: the secret token you generated.
+- `<path>`: the path for the page you want to view (e.g., `&slug=/posts/one`).
+
+3. In your Route Handler, check that the secret matches and that the `slug` parameter exists. If valid, call `draftMode.enable()` to set the cookie and redirect to the specified `slug`:
+
+```ts
+import { draftMode } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const secret = searchParams.get('secret')
+  const slug = searchParams.get('slug')
+
+  if (secret !== 'MY_SECRET_TOKEN' || !slug) {
+    return new Response('Invalid token', { status: 401 })
+  }
+
+  const post = await getPostBySlug(slug)
+
+  if (!post) {
+    return new Response('Invalid slug', { status: 401 })
+  }
+
+  const draft = await draftMode()
+  draft.enable()
+
+  redirect(post.slug)
+}
+```
+
+```js
+import { draftMode } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url)
+  const secret = searchParams.get('secret')
+  const slug = searchParams.get('slug')
+
+  if (secret !== 'MY_SECRET_TOKEN' || !slug) {
+    return new Response('Invalid token', { status: 401 })
+  }
+
+  const post = await getPostBySlug(slug)
+
+  if (!post) {
+    return new Response('Invalid slug', { status: 401 })
+  }
+
+  const draft = await draftMode()
+  draft.enable()
+
+  redirect(post.slug)
+}
+```
+
+If successful, the browser will redirect to the desired path with the draft mode cookie.
+
+## Step 3: Preview the Draft Content
+
+Update your page to check the value of `draftMode().isEnabled`. If the cookie is set, data will be fetched at request time instead of build time, and `isEnabled` will be `true`.
+
+```tsx
+import { draftMode } from 'next/headers'
+
+async function getData() {
+  const { isEnabled } = await draftMode()
+
+  const url = isEnabled
+    ? 'https://draft.example.com'
+    : 'https://production.example.com'
+
+  const res = await fetch(url)
+
+  return res.json()
+}
+
+export default async function Page() {
+  const { title, desc } = await getData()
+
+  return (
+    <main>
+      <h1>{title}</h1>
+      <p>{desc}</p>
+    </main>
+  )
+}
+```
+
+```jsx
+import { draftMode } from 'next/headers'
+
+async function getData() {
+  const { isEnabled } = await draftMode()
+
+  const url = isEnabled
+    ? 'https://draft.example.com'
+    : 'https://production.example.com'
+
+  const res = await fetch(url)
+
+  return res.json()
+}
+
+export default async function Page() {
+  const { title, desc } = await getData()
+
+  return (
+    <main>
+      <h1>{title}</h1>
+      <p>{desc}</p>
+    </main>
+  )
+}
+```
+
+Access the draft Route Handler (with `secret` and `slug`) from your headless CMS or manually using the URL to view the draft content. If you update your draft without publishing, you should be able to see the draft.
+
+# Content Security Policy
+
+Learn how to set a Content Security Policy (CSP) for your Next.js application.
+
+Content Security Policy (CSP) is important to guard your Next.js application against various security threats such as cross-site scripting (XSS), clickjacking, and other code injection attacks. By using CSP, developers can specify which origins are permissible for content sources, scripts, stylesheets, images, fonts, objects, media (audio, video), iframes, and more.
+
+## Examples
+
+- Strict CSP: GitHub repository example with strict CSP.
+
+## Nonces
+
+A nonce is a unique, random string of characters created for a one-time use. It is used in conjunction with CSP to selectively allow certain inline scripts or styles to execute, bypassing strict CSP directives.
+
+### Why use a nonce?
+
+CSPs are designed to block malicious scripts, but there are legitimate scenarios where inline scripts are necessary. Nonces allow these scripts to execute if they have the correct nonce.
+
+### Adding a nonce with Middleware
+
+Middleware enables you to add headers and generate nonces before the page renders. Every time a page is viewed, a fresh nonce should be generated, requiring dynamic rendering to add nonces.
+
+Example in TypeScript:
+
+```ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+    style-src 'self' 'nonce-${nonce}';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+`
+  const contentSecurityPolicyHeaderValue = cspHeader.replace(/\s{2,}/g, ' ').trim()
+
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicyHeaderValue)
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+  response.headers.set('Content-Security-Policy', contentSecurityPolicyHeaderValue)
+
+  return response
+}
+```
+
+Example in JavaScript:
+
+```js
+import { NextResponse } from 'next/server'
+
+export function middleware(request) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+    style-src 'self' 'nonce-${nonce}';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+`
+  const contentSecurityPolicyHeaderValue = cspHeader.replace(/\s{2,}/g, ' ').trim()
+
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicyHeaderValue)
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+  response.headers.set('Content-Security-Policy', contentSecurityPolicyHeaderValue)
+
+  return response
+}
+```
+
+By default, Middleware runs on all requests. You can filter Middleware to run on specific paths using a matcher. It is recommended to ignore matching prefetches and static assets that don't need the CSP header.
+
+Example matcher configuration:
+
+```ts
+export const config = {
+  matcher: [
+    {
+      source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+      missing: [
+        { type: 'header', key: 'next-router-prefetch' },
+        { type: 'header', key: 'purpose', value: 'prefetch' },
+      ],
+    },
+  ],
+}
+```
+
+### Reading the nonce
+
+You can read the nonce from a Server Component using headers:
+
+```tsx
+import { headers } from 'next/headers'
+import Script from 'next/script'
+
+export default async function Page() {
+  const nonce = (await headers()).get('x-nonce')
+
+  return (
+    <Script
+      src="https://www.googletagmanager.com/gtag/js"
+      strategy="afterInteractive"
+      nonce={nonce}
+    />
+  )
+}
+```
+
+## Without Nonces
+
+For applications that do not require nonces, you can set the CSP header directly in your next.config.js file:
+
+```js
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+`
+
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\n/g, ''),
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Version History
+
+Use v13.4.20+ of Next.js to properly handle and apply nonces.
+
+# Debugging
+
+Learn how to debug your Next.js application with VS Code or Chrome DevTools.
+
+This documentation explains how to debug your Next.js frontend and backend code with full source maps support using either the VS Code debugger or Chrome DevTools.
+
+Any debugger that can attach to Node.js can also be used to debug a Next.js application. More details can be found in the Node.js Debugging Guide.
+
+## Debugging with VS Code
+
+Create a file named `.vscode/launch.json` at the root of your project with the following content:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Next.js: debug client-side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Next.js: debug full stack",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "action": "debugWithEdge",
+        "killOnServerStop": true,
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "webRoot": "${workspaceFolder}"
+      }
+    }
+  ]
+}
+```
+
+`npm run dev` can be replaced with `yarn dev` or `pnpm dev`. If you're changing the port number, replace `3000` in `http://localhost:3000` with your port. If running Next.js from a directory other than root, add `cwd` to the server-side and full stack debugging tasks.
+
+Go to the Debug panel, select a launch configuration, then press `F5` or select **Debug: Start Debugging** from the Command Palette to start your debugging session.
+
+## Using the Debugger in Jetbrains WebStorm
+
+Click the drop-down menu listing the runtime configuration, and click `Edit Configurations...`. Create a `JavaScript Debug` configuration with `http://localhost:3000` as the URL. Customize as needed and click `OK`. Run this configuration to open the selected browser.
+
+## Debugging with Chrome DevTools
+
+### Client-side code
+
+Start your development server by running `next dev`, `npm run dev`, or `yarn dev`. Open `http://localhost:3000` in Chrome, then open Chrome's Developer Tools and go to the **Sources** tab. When your client-side code reaches a `debugger` statement, execution will pause, and you can set breakpoints manually.
+
+### Server-side code
+
+To debug server-side Next.js code, pass the `--inspect` flag to the Node.js process:
+
+```bash
+NODE_OPTIONS='--inspect' next dev
+```
+
+If using `npm run dev` or `yarn dev`, update the `dev` script in your `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "NODE_OPTIONS='--inspect' next dev"
+  }
+}
+```
+
+Once the server starts, visit `chrome://inspect` in Chrome to see your Next.js application in the **Remote Target** section. Click **inspect** to open a separate DevTools window.
+
+### Inspect Server Errors with Chrome DevTools
+
+When encountering an error, inspect the source code to trace the root cause. Next.js displays a Node.js logo on the dev overlay. Clicking it copies the Chrome DevTool URL to the clipboard, allowing you to inspect the Next.js server process.
+
+### Debugging on Windows
+
+Windows users may encounter issues with `NODE_OPTIONS='--inspect'`. Install the `cross-env` package and replace the `dev` script:
+
+```json
+{
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev"
+  }
+}
+```
+
+`cross-env` sets the `NODE_OPTIONS` environment variable across platforms. Ensure Windows Defender is disabled to avoid increased Fast Refresh time.
+
+## More information
+
+To learn more about using a JavaScript debugger, refer to the following documentation:
+
+- Node.js debugging in VS Code: Breakpoints
+- Chrome DevTools: Debug JavaScript
+
+# Progressive Web Applications (PWA)
+
+Progressive Web Applications (PWAs) combine the reach and accessibility of web applications with the features and user experience of native mobile apps. With Next.js, you can create PWAs that provide a seamless, app-like experience across all platforms without the need for multiple codebases or app store approvals.
+
+## Benefits of PWAs
+
+- Deploy updates instantly without waiting for app store approval.
+- Create cross-platform applications with a single codebase.
+- Provide native-like features such as home screen installation and push notifications.
+
+## Creating a PWA with Next.js
+
+### 1. Creating the Web App Manifest
+
+Next.js supports creating a web app manifest using the App Router. Create a `app/manifest.ts` or `app/manifest.json` file:
+
+```tsx
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Next.js PWA',
+    short_name: 'NextPWA',
+    description: 'A Progressive Web App built with Next.js',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#000000',
+    icons: [
+      {
+        src: '/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
+  }
+}
+```
+
+This file contains information about the name, icons, and display settings for the PWA.
+
+### 2. Implementing Web Push Notifications
+
+Web Push Notifications are supported in modern browsers, including iOS 16.4+, Safari 16 for macOS 13 or later, Chromium-based browsers, and Firefox. 
+
+To implement push notifications in a Next.js application, create the main page component in `app/page.tsx`:
+
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { subscribeUser, unsubscribeUser, sendNotification } from './actions'
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding)
+    .replace(/\\-/g, '+')
+    .replace(/_/g, '/')
+
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+```
+
+Add a component to manage subscribing, unsubscribing, and sending push notifications:
+
+```tsx
+function PushNotificationManager() {
+  const [isSupported, setIsSupported] = useState(false)
+  const [subscription, setSubscription] = useState<PushSubscription | null>(null)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      setIsSupported(true)
+      registerServiceWorker()
+    }
+  }, [])
+
+  async function registerServiceWorker() {
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none',
+    })
+    const sub = await registration.pushManager.getSubscription()
+    setSubscription(sub)
+  }
+
+  async function subscribeToPush() {
+    const registration = await navigator.serviceWorker.ready
+    const sub = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+    })
+    setSubscription(sub)
+    await subscribeUser(sub)
+  }
+
+  async function unsubscribeFromPush() {
+    await subscription?.unsubscribe()
+    setSubscription(null)
+    await unsubscribeUser()
+  }
+
+  async function sendTestNotification() {
+    if (subscription) {
+      await sendNotification(message)
+      setMessage('')
+    }
+  }
+
+  if (!isSupported) {
+    return <p>Push notifications are not supported in this browser.</p>
+  }
+
+  return (
+    <div>
+      <h3>Push Notifications</h3>
+      {subscription ? (
+        <>
+          <p>You are subscribed to push notifications.</p>
+          <button onClick={unsubscribeFromPush}>Unsubscribe</button>
+          <input
+            type="text"
+            placeholder="Enter notification message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+          <button onClick={sendTestNotification}>Send Test</button>
+        </>
+      ) : (
+        <>
+          <p>You are not subscribed to push notifications.</p>
+          <button onClick={subscribeToPush}>Subscribe</button>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+Create a component to show a message for iOS devices to instruct them to install to their home screen:
+
+```tsx
+function InstallPrompt() {
+  const [isIOS, setIsIOS] = useState(false)
+  const [isStandalone, setIsStandalone] = useState(false)
+
+  useEffect(() => {
+    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream)
+    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches)
+  }, [])
+
+  if (isStandalone) {
+    return null
+  }
+
+  return (
+    <div>
+      <h3>Install App</h3>
+      <button>Add to Home Screen</button>
+      {isIOS && (
+        <p>
+          To install this app on your iOS device, tap the share button
+          <span role="img" aria-label="share icon"> ⎋ </span>
+          and then "Add to Home Screen"
+          <span role="img" aria-label="plus icon"> ➕ </span>.
+        </p>
+      )}
+    </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <div>
+      <PushNotificationManager />
+      <InstallPrompt />
+    </div>
+  )
+}
+```
+
+### 3. Implementing Server Actions
+
+Create a new file at `app/actions.ts` to handle subscriptions and notifications:
+
+```tsx
+'use server'
+
+import webpush from 'web-push'
+
+webpush.setVapidDetails(
+  '<mailto:your-email@example.com>',
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+)
+
+let subscription: PushSubscription | null = null
+
+export async function subscribeUser(sub: PushSubscription) {
+  subscription = sub
+  return { success: true }
+}
+
+export async function unsubscribeUser() {
+  subscription = null
+  return { success: true }
+}
+
+export async function sendNotification(message: string) {
+  if (!subscription) {
+    throw new Error('No subscription available')
+  }
+
+  try {
+    await webpush.sendNotification(
+      subscription,
+      JSON.stringify({
+        title: 'Test Notification',
+        body: message,
+        icon: '/icon.png',
+      })
+    )
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending push notification:', error)
+    return { success: false, error: 'Failed to send notification' }
+  }
+}
+```
+
+### 4. Generating VAPID Keys
+
+Generate VAPID keys using a script:
+
+```js
+const webpush = require('web-push')
+const vapidKeys = webpush.generateVAPIDKeys()
+
+console.log('Paste the following keys in your .env file:')
+console.log('-------------------')
+console.log('NEXT_PUBLIC_VAPID_PUBLIC_KEY=', vapidKeys.publicKey)
+console.log('VAPID_PRIVATE_KEY=', vapidKeys.privateKey)
+```
+
+Run this script with Node.js to generate your VAPID keys.
+
+### 5. Creating a Service Worker
+
+Create a `public/sw.js` file for your service worker:
+
+```js
+self.addEventListener('push', function (event) {
+  if (event.data) {
+    const data = event.data.json()
+    const options = {
+      body: data.body,
+      icon: data.icon || '/icon.png',
+      badge: '/badge.png',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: '2',
+      },
+    }
+    event.waitUntil(self.registration.showNotification(data.title, options))
+  }
+})
+
+self.addEventListener('notificationclick', function (event) {
+  console.log('Notification click received.')
+  event.notification.close()
+  event.waitUntil(clients.openWindow('https://your-website.com'))
+})
+```
+
+### 6. Adding to Home Screen
+
+The `InstallPrompt` component shows a message for iOS devices to instruct them to install to their home screen. Ensure your application has a valid web app manifest and is served over HTTPS.
+
+### 7. Testing Locally
+
+To view notifications locally, ensure you are running with HTTPS and that your browser has notifications enabled.
+
+### 8. Securing Your Application
+
+Configure security headers in `next.config.js`:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Next Steps
+
+1. Explore PWA capabilities like background sync and the File System Access API.
+2. Consider static exports for applications not requiring a server.
+3. Implement offline support using tools like Serwist.
+4. Ensure your service worker is secured and properly handles push messages.
+5. Implement progressive enhancement techniques for better user experience.
+
+# Configuring
+
+Next.js allows you to customize your project to meet specific requirements. This includes integrations with TypeScript, ESLint, and more, as well as internal configuration options such as Absolute Imports and Environment Variables.
+
+# Setting up Vitest with Next.js
+
+Vite and React Testing Library are frequently used together for **Unit Testing**. This guide will show you how to set up Vitest with Next.js and write your first tests.
+
+**Good to know:** Since `async` Server Components are new to the React ecosystem, Vitest currently does not support them. While you can still run **unit tests** for synchronous Server and Client Components, we recommend using **E2E tests** for `async` components.
+
+## Quickstart
+
+You can use `create-next-app` with the Next.js with-vitest example to quickly get started:
+
+```bash
+npx create-next-app@latest --example with-vitest with-vitest-app
+```
+
+## Manual Setup
+
+To manually set up Vitest, install `vitest` and the following packages as dev dependencies:
+
+```bash
+npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+# or
+yarn add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+# or
+pnpm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+# or
+bun add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom
+```
+
+Create a `vitest.config.ts|js` file in the root of your project, and add the following options:
+
+```ts
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+  },
+})
+```
+
+```js
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+  },
+})
+```
+
+For more information on configuring Vitest, please refer to the Vitest Configuration docs.
+
+Then, add a `test` script to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest"
+  }
+}
+```
+
+When you run `npm run test`, Vitest will **watch** for changes in your project by default.
+
+## Creating your first Vitest Unit Test
+
+Check that everything is working by creating a test to check if the `<Page />` component successfully renders a heading:
+
+<AppOnly>
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```jsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../app/page'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+```jsx
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../app/page'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+**Good to know**: The example above uses the common `__tests__` convention, but test files can also be colocated inside the `app` router.
+
+</AppOnly>
+
+<PagesOnly>
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```jsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../pages/index'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+```jsx
+import { expect, test } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import Page from '../pages/index'
+
+test('Page', () => {
+  render(<Page />)
+  expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeDefined()
+})
+```
+
+</PagesOnly>
+
+## Running your tests
+
+Then, run the following command to run your tests:
+
+```bash
+npm run test
+# or
+yarn test
+# or
+pnpm test
+# or
+bun test
+```
+
+## Additional Resources
+
+You may find these resources helpful:
+
+- Next.js with Vitest example
+- Vitest Docs
+- React Testing Library Docs
+
+# Setting up Jest with Next.js
+
+Jest and React Testing Library are frequently used together for **Unit Testing** and **Snapshot Testing**. This guide will show you how to set up Jest with Next.js and write your first tests.
+
+**Good to know:** Since `async` Server Components are new to the React ecosystem, Jest currently does not support them. While you can still run **unit tests** for synchronous Server and Client Components, we recommend using **E2E tests** for `async` components.
+
+## Quickstart
+
+You can use `create-next-app` with the Next.js example `with-jest` to quickly get started:
+
+```bash
+npx create-next-app@latest --example with-jest with-jest-app
+```
+
+## Manual setup
+
+To set up Jest, install `jest` and the following packages as dev dependencies:
+
+```bash
+npm install -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node
+# or
+yarn add -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node
+# or
+pnpm install -D jest jest-environment-jsdom @testing-library/react @testing-library/dom @testing-library/jest-dom ts-node
+```
+
+Generate a basic Jest configuration file by running the following command:
+
+```bash
+npm init jest@latest
+# or
+yarn create jest@latest
+# or
+pnpm create jest@latest
+```
+
+Update your config file to use `next/jest`:
+
+```ts
+import type { Config } from 'jest'
+import nextJest from 'next/jest.js'
+
+const createJestConfig = nextJest({
+  dir: './',
+})
+
+const config: Config = {
+  coverageProvider: 'v8',
+  testEnvironment: 'jsdom',
+}
+
+export default createJestConfig(config)
+```
+
+```js
+const nextJest = require('next/jest')
+
+const createJestConfig = nextJest({
+  dir: './',
+})
+
+const config = {
+  coverageProvider: 'v8',
+  testEnvironment: 'jsdom',
+}
+
+module.exports = createJestConfig(config)
+```
+
+`next/jest` automatically configures Jest for you, including:
+
+- Setting up `transform` using the Next.js Compiler
+- Auto mocking stylesheets, image imports, and `next/font`
+- Loading `.env` into `process.env`
+- Ignoring `node_modules` and `.next` from test resolving
+- Loading `next.config.js` for flags that enable SWC transforms
+
+**Good to know:** To test environment variables directly, load them manually in a separate setup script or in your `jest.config.ts` file.
+
+## Setting up Jest (with Babel)
+
+If you opt out of the Next.js Compiler and use Babel instead, you will need to manually configure Jest and install `babel-jest` and `identity-obj-proxy`.
+
+Here are the recommended options to configure Jest for Next.js:
+
+```js
+module.exports = {
+  collectCoverage: true,
+  coverageProvider: 'v8',
+  collectCoverageFrom: [
+    '**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+    '!<rootDir>/out/**',
+    '!<rootDir>/.next/**',
+    '!<rootDir>/*.config.js',
+    '!<rootDir>/coverage/**',
+  ],
+  moduleNameMapper: {
+    '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
+    '^.+\\.(css|sass|scss)$': '<rootDir>/__mocks__/styleMock.js',
+    '^.+\\.(png|jpg|jpeg|gif|webp|avif|ico|bmp|svg)$': `<rootDir>/__mocks__/fileMock.js`,
+    '^@/components/(.*)$': '<rootDir>/components/$1',
+    '@next/font/(.*)': `<rootDir>/__mocks__/nextFontMock.js`,
+    'next/font/(.*)': `<rootDir>/__mocks__/nextFontMock.js`,
+    'server-only': `<rootDir>/__mocks__/empty.js`,
+  },
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+  },
+  transformIgnorePatterns: [
+    '/node_modules/',
+    '^.+\\.module\\.(css|sass|scss)$',
+  ],
+}
+```
+
+Create the mock files `fileMock.js` and `styleMock.js` inside a `__mocks__` directory:
+
+```js
+module.exports = 'test-file-stub'
+```
+
+```js
+module.exports = {}
+```
+
+To handle fonts, create the `nextFontMock.js` file inside the `__mocks__` directory:
+
+```js
+module.exports = new Proxy(
+  {},
+  {
+    get: function getter() {
+      return () => ({
+        className: 'className',
+        variable: 'variable',
+        style: { fontFamily: 'fontFamily' },
+      })
+    },
+  }
+)
+```
+
+## Optional: Handling Absolute Imports and Module Path Aliases
+
+If your project is using Module Path Aliases, configure Jest to resolve the imports by matching the paths option in the `jsconfig.json` file with the `moduleNameMapper` option in the `jest.config.js` file.
+
+Example `tsconfig.json` or `jsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {
+      "@/components/*": ["components/*"]
+    }
+  }
+}
+```
+
+Example `jest.config.js`:
+
+```js
+moduleNameMapper: {
+  '^@/components/(.*)$': '<rootDir>/components/$1',
+}
+```
+
+## Optional: Extend Jest with custom matchers
+
+`@testing-library/jest-dom` includes a set of convenient custom matchers. You can import the custom matchers for every test by adding the following option to the Jest configuration file:
+
+```ts
+setupFilesAfterEnv: ['<rootDir>/jest.setup.ts']
+```
+
+Then, inside `jest.setup.ts`, add the following import:
+
+```ts
+import '@testing-library/jest-dom'
+```
+
+**Good to know:** `extend-expect` was removed in `v6.0`, so if you are using `@testing-library/jest-dom` before version 6, you will need to import `@testing-library/jest-dom/extend-expect` instead.
+
+## Add a test script to `package.json`:
+
+Add a Jest `test` script to your `package.json` file:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  }
+}
+```
+
+`jest --watch` will re-run tests when a file is changed.
+
+### Creating your first test:
+
+Create a folder called `__tests__` in your project's root directory.
+
+Example for a test checking if the `<Home />` component renders a heading:
+
+```jsx
+export default function Home() {
+  return <h1>Home</h1>
+}
+```
+
+```jsx
+import '@testing-library/jest-dom'
+import { render, screen } from '@testing-library/react'
+import Home from '../pages/index'
+
+describe('Home', () => {
+  it('renders a heading', () => {
+    render(<Home />)
+
+    const heading = screen.getByRole('heading', { level: 1 })
+
+    expect(heading).toBeInTheDocument()
+  })
+})
+```
+
+Optionally, add a snapshot test to keep track of any unexpected changes in your component:
+
+```jsx
+import { render } from '@testing-library/react'
+import Home from '../pages/index'
+
+it('renders homepage unchanged', () => {
+  const { container } = render(<Home />)
+  expect(container).toMatchSnapshot()
+})
+```
+
+## Running your tests
+
+Run the following command to execute your tests:
+
+```bash
+npm run test
+# or
+yarn test
+# or
+pnpm test
+```
+
+## Additional Resources
+
+For further reading, you may find these resources helpful:
+
+- Next.js with Jest example
+- Jest Docs
+- React Testing Library Docs
+- Testing Playground - use good testing practices to match elements.
+
+# Setting up Playwright with Next.js
+
+Playwright is a testing framework that automates Chromium, Firefox, and WebKit with a single API, enabling End-to-End (E2E) testing. This guide outlines how to set up Playwright with Next.js and write your first tests.
+
+## Quickstart
+
+To quickly start, use `create-next-app` with the with-playwright example. This creates a Next.js project with Playwright configured.
+
+```bash
+npx create-next-app@latest --example with-playwright with-playwright-app
+```
+
+## Manual setup
+
+To install Playwright, run:
+
+```bash
+npm init playwright
+# or
+yarn create playwright
+# or
+pnpm create playwright
+```
+
+Follow the prompts to set up and configure Playwright, including adding a `playwright.config.ts` file. Refer to the Playwright installation guide for detailed instructions.
+
+## Creating your first Playwright E2E test
+
+Create two new Next.js pages:
+
+**App Directory Structure:**
+
+```tsx
+// app/page.tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx
+// app/about/page.tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>About</h1>
+      <Link href="/">Home</Link>
+    </div>
+  )
+}
+```
+
+**Pages Directory Structure:**
+
+```tsx
+// pages/index.ts
+import Link from 'next/link'
+
+export default function Home() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```tsx
+// pages/about.ts
+import Link from 'next/link'
+
+export default function About() {
+  return (
+    <div>
+      <h1>About</h1>
+      <Link href="/">Home</Link>
+    </div>
+  )
+}
+```
+
+Add a test to verify navigation:
+
+```ts
+// tests/example.spec.ts
+import { test, expect } from '@playwright/test'
+
+test('should navigate to the about page', async ({ page }) => {
+  await page.goto('http://localhost:3000/')
+  await page.click('text=About')
+  await expect(page).toHaveURL('http://localhost:3000/about')
+  await expect(page.locator('h1')).toContainText('About')
+})
+```
+
+**Note**: Use `page.goto("/")` if you add `"baseURL": "http://localhost:3000"` to the `playwright.config.ts`.
+
+### Running your Playwright tests
+
+Ensure your Next.js server is running. Run `npm run build` and `npm run start`, then execute `npx playwright test` in another terminal to run the tests.
+
+**Note**: You can use the `webServer` feature to let Playwright start the development server.
+
+### Running Playwright on Continuous Integration (CI)
+
+Playwright runs tests in headless mode by default. To install all Playwright dependencies, run `npx playwright install-deps`.
+
+For more information on Playwright and Continuous Integration, refer to the following resources:
+
+- Next.js with Playwright example
+- Playwright on your CI provider
+- Playwright Discord
+
+# Setting up Cypress with Next.js
+
+Cypress is a test runner used for End-to-End (E2E) and Component Testing. This guide shows how to set up Cypress with Next.js and write your first tests.
+
+**Warning:**
+- For component testing, Cypress does not support Next.js version 14 and `async` Server Components. Component testing works with Next.js version 13. E2E testing is recommended for `async` Server Components.
+- Cypress versions below 13.6.3 do not support TypeScript version 5 with `moduleResolution:"bundler"`. This is resolved in Cypress version 13.6.3 and later.
+
+## Quickstart
+
+Use `create-next-app` with the with-cypress example to quickly get started.
+
+```bash
+npx create-next-app@latest --example with-cypress with-cypress-app
+```
+
+## Manual setup
+
+To manually set up Cypress, install `cypress` as a dev dependency:
+
+```bash
+npm install -D cypress
+# or
+yarn add -D cypress
+# or
+pnpm install -D cypress
+```
+
+Add the Cypress `open` command to the `package.json` scripts field:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "cypress:open": "cypress open"
+  }
+}
+```
+
+Run Cypress for the first time:
+
+```bash
+npm run cypress:open
+```
+
+You can configure E2E Testing and/or Component Testing, which will create a `cypress.config.js` file and a `cypress` folder in your project.
+
+## Creating your first Cypress E2E test
+
+Ensure your `cypress.config.js` file has the following configuration:
+
+```ts
+import { defineConfig } from 'cypress'
+
+export default defineConfig({
+  e2e: {
+    setupNodeEvents(on, config) {},
+  },
+})
+```
+
+```js
+const { defineConfig } = require('cypress')
+
+module.exports = defineConfig({
+  e2e: {
+    setupNodeEvents(on, config) {},
+  },
+})
+```
+
+Create two new Next.js files:
+
+```jsx
+// app/page.js
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Home</h1>
+      <Link href="/about">About</Link>
+    </div>
+  )
+}
+```
+
+```jsx
+// app/about/page.js
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <div>
+      <h1>About</h1>
+      <Link href="/">Home</Link>
+    </div>
+  )
+}
+```
+
+Add a test to check navigation:
+
+```js
+// cypress/e2e/app.cy.js
+describe('Navigation', () => {
+  it('should navigate to the about page', () => {
+    cy.visit('http://localhost:3000/')
+    cy.get('a[href*="about"]').click()
+    cy.url().should('include', '/about')
+    cy.get('h1').contains('About')
+  })
+})
+```
+
+### Running E2E Tests
+
+Run `npm run build && npm run start` to build your Next.js application, then run `npm run cypress:open` in another terminal to start Cypress.
+
+**Good to know:**
+- Use `cy.visit("/")` by adding `baseUrl: 'http://localhost:3000'` to `cypress.config.js`.
+- Install `start-server-and-test` to run the Next.js production server with Cypress.
+
+## Creating your first Cypress component test
+
+Select **Component Testing** in the Cypress app, then select **Next.js**. A `cypress/component` folder will be created, and `cypress.config.js` will be updated.
+
+Ensure your `cypress.config.js` file has the following configuration:
+
+```ts
+import { defineConfig } from 'cypress'
+
+export default defineConfig({
+  component: {
+    devServer: {
+      framework: 'next',
+      bundler: 'webpack',
+    },
+  },
+})
+```
+
+Add a test to validate a component:
+
+```tsx
+// cypress/component/about.cy.tsx
+import Page from '../../app/page'
+
+describe('<Page />', () => {
+  it('should render and display expected content', () => {
+    cy.mount(<Page />)
+    cy.get('h1').contains('Home')
+    cy.get('a[href="/about"]').should('be.visible')
+  })
+})
+```
+
+**Good to know:**
+- Cypress does not support component testing for `async` Server Components. Use E2E testing instead.
+- Features like `<Image />` may not function without a Next.js server.
+
+### Running Component Tests
+
+Run `npm run cypress:open` to start Cypress and run your component testing suite.
+
+## Continuous Integration (CI)
+
+Run Cypress headlessly using the `cypress run` command for CI environments:
+
+```json
+{
+  "scripts": {
+    "e2e": "start-server-and-test dev http://localhost:3000 \"cypress open --e2e\"",
+    "e2e:headless": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "component": "cypress open --component",
+    "component:headless": "cypress run --component"
+  }
+}
+```
+
+Learn more about Cypress and Continuous Integration from these resources:
+- Next.js with Cypress example
+- Cypress Continuous Integration Docs
+- Cypress GitHub Actions Guide
+- Official Cypress GitHub Action
+- Cypress Discord
+
+# Testing
+
+Learn how to set up Next.js with four commonly used testing tools — Cypress, Playwright, Vitest, and Jest.
+
+In React and Next.js, there are different types of tests, each with its own purpose and use cases. This document provides an overview of the types and commonly used tools for testing your application.
+
+## Types of Tests
+
+- **Unit Testing**: Tests individual units (or blocks of code) in isolation. In React, a unit can be a single function, hook, or component.
+  - **Component Testing**: A focused version of unit testing where the primary subject is React components. This includes testing component rendering, interaction with props, and behavior in response to user events.
+  - **Integration Testing**: Tests how multiple units work together, combining components, hooks, and functions.
+- **End-to-End (E2E) Testing**: Tests user flows in an environment that simulates real user scenarios, like the browser. This includes testing specific tasks (e.g., signup flow) in a production-like environment.
+- **Snapshot Testing**: Captures the rendered output of a component and saves it to a snapshot file. During tests, the current rendered output is compared against the saved snapshot, with changes indicating unexpected behavior.
+
+## Async Server Components
+
+Since `async` Server Components are new to the React ecosystem, some tools do not fully support them. It is recommended to use **End-to-End Testing** over **Unit Testing** for `async` components.
+
+## Guides
+
+Refer to the guides to learn how to set up Next.js with these commonly used testing tools.
+
+# Authentication
+
+Understanding authentication is crucial for protecting your application's data. This guide covers how to implement authentication in your Next.js application.
+
+## Key Concepts
+
+1. **Authentication**: Verifies if the user is who they say they are, requiring proof of identity (e.g., username and password).
+2. **Session Management**: Tracks the user's authentication state across requests.
+3. **Authorization**: Determines what routes and data the user can access.
+
+## Authentication Flow
+
+The examples on this page demonstrate basic username and password authentication. For increased security and simplicity, consider using an authentication library that provides built-in solutions for authentication, session management, and authorization.
+
+## Authentication
+
+### Sign-up and Login Functionality
+
+Use the `<form>` element with React's Server Actions and `useFormState` to capture user credentials, validate form fields, and call your Authentication Provider's API or database.
+
+#### 1. Capture User Credentials
+
+Create a form that invokes a Server Action on submission:
+
+```tsx
+import { signup } from '@/app/actions/auth'
+
+export function SignupForm() {
+  return (
+    <form action={signup}>
+      <div>
+        <label htmlFor="name">Name</label>
+        <input id="name" name="name" placeholder="Name" />
+      </div>
+      <div>
+        <label htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="Email" />
+      </div>
+      <div>
+        <label htmlFor="password">Password</label>
+        <input id="password" name="password" type="password" />
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+  )
+}
+```
+
+#### 2. Validate Form Fields on the Server
+
+Use the Server Action to validate form fields. Consider using a schema validation library like Zod or Yup.
+
+Example using Zod:
+
+```ts
+import { z } from 'zod'
+
+export const SignupFormSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters long.' }).trim(),
+  email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
+  password: z.string().min(8, { message: 'Be at least 8 characters long' })
+    .regex(/[a-zA-Z]/, { message: 'Contain at least one letter.' })
+    .regex(/[0-9]/, { message: 'Contain at least one number.' })
+    .regex(/[^a-zA-Z0-9]/, { message: 'Contain at least one special character.' })
+    .trim(),
+})
+```
+
+#### 3. Create a User or Check User Credentials
+
+After validating form fields, create a new user account or check if the user exists by calling your authentication provider's API or database.
+
+Example:
+
+```tsx
+export async function signup(state: FormState, formData: FormData) {
+  const validatedFields = SignupFormSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    }
+  }
+
+  const { name, email, password } = validatedFields.data
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  const data = await db.insert(users).values({
+    name,
+    email,
+    password: hashedPassword,
+  }).returning({ id: users.id })
+
+  const user = data[0]
+
+  if (!user) {
+    return {
+      message: 'An error occurred while creating your account.',
+    }
+  }
+
+  // Create user session and redirect user
+}
+```
+
+### Session Management
+
+Session management ensures that the user's authenticated state is preserved across requests. It involves creating, storing, refreshing, and deleting sessions or tokens.
+
+#### Types of Sessions
+
+1. **Stateless**: Session data is stored in the browser's cookies.
+2. **Database**: Session data is stored in a database, with the user's browser receiving an encrypted session ID.
+
+#### Stateless Sessions
+
+To create and manage stateless sessions:
+
+1. Generate a secret key for signing your session.
+2. Write logic to encrypt/decrypt session data using a session management library.
+3. Manage cookies using the Next.js cookies API.
+
+Example of generating a secret key:
+
+```bash
+openssl rand -base64 32
+```
+
+Store it in your environment variables:
+
+```bash
+SESSION_SECRET=your_secret_key
+```
+
+Example of encrypting and decrypting sessions:
+
+```ts
+import { SignJWT, jwtVerify } from 'jose'
+
+const secretKey = process.env.SESSION_SECRET
+const encodedKey = new TextEncoder().encode(secretKey)
+
+export async function encrypt(payload) {
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(encodedKey)
+}
+
+export async function decrypt(session) {
+  try {
+    const { payload } = await jwtVerify(session, encodedKey, {
+      algorithms: ['HS256'],
+    })
+    return payload
+  } catch (error) {
+    console.log('Failed to verify session')
+  }
+}
+```
+
+#### Database Sessions
+
+To create and manage database sessions:
+
+1. Create a table in your database to store session data.
+2. Implement functionality to insert, update, and delete sessions.
+3. Encrypt the session ID before storing it in the user's browser.
+
+Example:
+
+```ts
+import { db } from '@/app/lib/db'
+
+export async function createSession(id) {
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+  const data = await db.insert(sessions).values({
+    userId: id,
+    expiresAt,
+  }).returning({ id: sessions.id })
+
+  const sessionId = data[0].id
+  const session = await encrypt({ sessionId, expiresAt })
+
+  const cookieStore = await cookies()
+  cookieStore().set('session', session, {
+    httpOnly: true,
+    secure: true,
+    expires: expiresAt,
+    sameSite: 'lax',
+    path: '/',
+  })
+}
+```
+
+## Authorization
+
+Once a user is authenticated and a session is created, implement authorization to control what the user can access and do within your application.
+
+### Optimistic Checks with Middleware
+
+Use Middleware to perform optimistic checks and redirect users based on permissions:
+
+```tsx
+import { NextRequest, NextResponse } from 'next/server'
+import { decrypt } from '@/app/lib/session'
+
+const protectedRoutes = ['/dashboard']
+const publicRoutes = ['/login', '/signup', '/']
+
+export default async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname
+  const isProtectedRoute = protectedRoutes.includes(path)
+  const isPublicRoute = publicRoutes.includes(path)
+
+  const cookie = (await cookies()).get('session')?.value
+  const session = await decrypt(cookie)
+
+  if (isProtectedRoute && !session?.userId) {
+    return NextResponse.redirect(new URL('/login', req.nextUrl))
+  }
+
+  if (isPublicRoute && session?.userId) {
+    return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
+  }
+
+  return NextResponse.next()
+}
+```
+
+### Creating a Data Access Layer (DAL)
+
+Centralize your data requests and authorization logic in a DAL. Use a function that verifies the user's session as they interact with your application.
+
+Example:
+
+```ts
+import { cookies } from 'next/headers'
+import { decrypt } from '@/app/lib/session'
+
+export const verifySession = cache(async () => {
+  const cookie = (await cookies()).get('session')?.value
+  const session = await decrypt(cookie)
+
+  if (!session?.userId) {
+    redirect('/login')
+  }
+
+  return { isAuth: true, userId: session.userId }
+})
+```
+
+### Using Data Transfer Objects (DTO)
+
+Return only the necessary data that will be used in your application, avoiding exposure of sensitive information.
+
+Example:
+
+```ts
+export async function getProfileDTO(slug) {
+  const data = await db.query.users.findMany({
+    where: eq(users.slug, slug),
+  })
+  const user = data[0]
+
+  return {
+    username: user.username,
+    phonenumber: user.phonenumber,
+  }
+}
+```
+
+## Resources
+
+### Auth Libraries
+
+- Auth0
+- Clerk
+- Kinde
+- NextAuth.js
+- Stack Auth
+- Supabase
+- Stytch
+- WorkOS
+
+### Session Management Libraries
+
+- Iron Session
+- Jose
+
+### Further Reading
+
+- How to think about security in Next.js
+- Understanding XSS Attacks
+- Understanding CSRF Attacks
+- The Copenhagen Book
+
+# Production Checklist
+
+## Overview
+
+Before taking your Next.js application to production, consider implementing optimizations and patterns for the best user experience, performance, and security. This document provides best practices for building your application, preparing for production, and post-deployment, along with automatic Next.js optimizations.
+
+## Automatic Optimizations
+
+These Next.js optimizations are enabled by default and require no configuration:
+
+### App-Only
+
+- **Server Components:** Next.js uses Server Components by default, which run on the server and do not require JavaScript to render on the client, minimizing client-side JavaScript bundle size.
+- **Code-splitting:** Server Components enable automatic code-splitting by route segments. Consider lazy loading Client Components and third-party libraries as needed.
+- **Prefetching:** Next.js prefetches routes in the background when they enter the user's viewport, making navigation nearly instant. You can opt out of prefetching if necessary.
+- **Static Rendering:** Next.js statically renders components at build time and caches the results to enhance performance. Dynamic Rendering can be opted into for specific routes.
+- **Caching:** Next.js caches data requests, rendered results, and static assets to reduce network requests. You may opt out of caching if needed.
+
+### Pages-Only
+
+- **Code-splitting:** Next.js automatically code-splits application code by pages, loading only the necessary code for the current page. Lazy loading third-party libraries is also recommended.
+- **Prefetching:** Similar to App-Only, Next.js prefetches routes in the background for faster navigation.
+- **Automatic Static Optimization:** Pages without blocking data requirements are automatically determined to be static and can be cached and served from multiple CDN locations. Server-side Rendering can be opted into as needed.
+
+## During Development
+
+### Routing and Rendering
+
+#### App-Only
+
+- **Layouts:** Use layouts to share UI across pages and enable partial rendering on navigation.
+- **`<Link>` Component:** Utilize the `<Link>` component for client-side navigation and prefetching.
+- **Error Handling:** Create custom error pages to handle catch-all and 404 errors gracefully.
+- **Composition Patterns:** Follow recommended patterns for Server and Client Components and manage `"use client"` boundaries to avoid increasing client-side JavaScript bundle size.
+- **Dynamic APIs:** Be cautious with Dynamic APIs, as they can opt the entire route into Dynamic Rendering.
+
+#### Pages-Only
+
+- **`<Link>` Component:** Use for client-side navigation and prefetching.
+- **Custom Errors:** Handle 500 and 404 errors gracefully.
+
+### Data Fetching and Caching
+
+#### App-Only
+
+- **Server Components:** Fetch data on the server using Server Components.
+- **Route Handlers:** Access backend resources from Client Components without calling Route Handlers from Server Components.
+- **Streaming:** Use Loading UI and React Suspense to progressively send UI from the server to the client.
+- **Parallel Data Fetching:** Fetch data in parallel to reduce network waterfalls and consider preloading data.
+- **Data Caching:** Ensure data requests are cached appropriately.
+- **Static Images:** Use the public directory for caching static assets like images.
+
+#### Pages-Only
+
+- **API Routes:** Use Route Handlers to access backend resources securely.
+- **Data Caching:** Verify caching for data requests and use Incremental Static Regeneration to update static pages.
+- **Static Images:** Cache static assets in the public directory.
+
+### UI and Accessibility
+
+#### App-Only
+
+- **Forms and Validation:** Use Server Actions for form submissions and server-side validation.
+
+- **Font Module:** Optimize fonts using the Font Module to reduce layout shift.
+- **`<Image>` Component:** Optimize images to prevent layout shift and serve modern formats.
+- **`<Script>` Component:** Optimize third-party scripts to prevent blocking the main thread.
+- **ESLint:** Use `eslint-plugin-jsx-a11y` to catch accessibility issues early.
+
+### Security
+
+#### App-Only
+
+- **Tainting:** Prevent sensitive data exposure by tainting data objects.
+- **Server Actions:** Ensure user authorization for Server Actions and follow recommended security practices.
+
+#### Pages-Only
+
+- **Environment Variables:** Add `.env.*` files to `.gitignore` and prefix public variables with `NEXT_PUBLIC_`.
+- **Content Security Policy:** Consider adding a Content Security Policy to protect against security threats.
+
+### Metadata and SEO
+
+#### App-Only
+
+- **Metadata API:** Use the Metadata API to enhance SEO with page titles and descriptions.
+- **Open Graph Images:** Create OG images for social sharing.
+- **Sitemaps and Robots:** Generate sitemaps and robots files for search engine indexing.
+
+#### Pages-Only
+
+- **`<Head>` Component:** Use `next/head` to add page titles and descriptions.
+
+### Type Safety
+
+- **TypeScript and TS Plugin:** Utilize TypeScript and the TypeScript plugin for improved type safety.
+
+## Before Going to Production
+
+Run `next build` to build your application locally and catch any build errors, then run `next start` to measure performance in a production-like environment.
+
+### Core Web Vitals
+
+- **Lighthouse:** Run Lighthouse in incognito mode to assess user experience and identify improvement areas.
+
+#### App-Only
+
+- **`useReportWebVitals` Hook:** Use this hook to send Core Web Vitals data to analytics tools.
+
+### Analyzing Bundles
+
+Use the `@next/bundle-analyzer` plugin to analyze JavaScript bundle sizes and identify large modules. Additional tools include Import Cost, Package Phobia, Bundle Phobia, and bundlejs.
+
+## After Deployment
+
+Monitor and improve application performance using available tools and integrations, especially for Vercel deployments:
+
+- **Analytics:** Built-in analytics dashboard for traffic insights.
+- **Speed Insights:** Real-world performance insights based on visitor data.
+- **Logging:** Runtime and activity logs for debugging and monitoring.
+
+Following these recommendations will help you build a faster, more reliable, and secure application for your users.
+
+# Static Exports
+
+Next.js enables starting as a static site or Single-Page Application (SPA), then later optionally upgrading to use features that require a server.
+
+When running `next build`, Next.js generates an HTML file per route. By breaking a strict SPA into individual HTML files, Next.js can avoid loading unnecessary JavaScript code on the client-side, reducing the bundle size and enabling faster page loads.
+
+Since Next.js supports this static export, it can be deployed and hosted on any web server that can serve HTML/CSS/JS static assets.
+
+## Configuration
+
+To enable a static export, change the output mode inside `next.config.js`:
+
+```js
+/**
+ * @type {import('next').NextConfig}
+ */
+const nextConfig = {
+  output: 'export',
+  // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
+  // trailingSlash: true,
+  // Optional: Prevent automatic `/me` -> `/me/`, instead preserve `href`
+  // skipTrailingSlashRedirect: true,
+  // Optional: Change the output directory `out` -> `dist`
+  // distDir: 'dist',
+}
+
+module.exports = nextConfig
+```
+
+After running `next build`, Next.js will produce an `out` folder which contains the HTML/CSS/JS assets for your application.
+
+You can utilize `getStaticProps` and `getStaticPaths` to generate an HTML file for each page in your `pages` directory (or more for dynamic routes).
+
+## Supported Features
+
+The core of Next.js has been designed to support static exports.
+
+### Server Components
+
+When you run `next build` to generate a static export, Server Components consumed inside the `app` directory will run during the build, similar to traditional static-site generation.
+
+The resulting component will be rendered into static HTML for the initial page load and a static payload for client navigation between routes. No changes are required for your Server Components when using the static export, unless they consume dynamic server functions.
+
+```tsx
+export default async function Page() {
+  const res = await fetch('https://api.example.com/...')
+  const data = await res.json()
+  return <main>...</main>
+}
+```
+
+### Client Components
+
+If you want to perform data fetching on the client, you can use a Client Component with SWR to memoize requests.
+
+```tsx
+'use client'
+
+import useSWR from 'swr'
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+export default function Page() {
+  const { data, error } = useSWR(
+    `https://jsonplaceholder.typicode.com/posts/1`,
+    fetcher
+  )
+  if (error) return 'Failed to load'
+  if (!data) return 'Loading...'
+  return data.title
+}
+```
+
+Since route transitions happen client-side, this behaves like a traditional SPA.
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <>
+      <h1>Index Page</h1>
+      <hr />
+      <ul>
+        <li>
+          <Link href="/post/1">Post 1</Link>
+        </li>
+        <li>
+          <Link href="/post/2">Post 2</Link>
+        </li>
+      </ul>
+    </>
+  )
+}
+```
+
+## Supported Features
+
+The majority of core Next.js features needed to build a static site are supported, including:
+
+- Dynamic Routes when using `getStaticPaths`
+- Prefetching with `next/link`
+- Preloading JavaScript
+- Dynamic Imports
+- Any styling options (e.g. CSS Modules, styled-jsx)
+- Client-side data fetching
+- `getStaticProps`
+- `getStaticPaths`
+
+### Image Optimization
+
+Image Optimization through `next/image` can be used with a static export by defining a custom image loader in `next.config.js`.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  images: {
+    loader: 'custom',
+    loaderFile: './my-loader.ts',
+  },
+}
+
+module.exports = nextConfig
+```
+
+This custom loader will define how to fetch images from a remote source.
+
+```ts
+export default function cloudinaryLoader({
+  src,
+  width,
+  quality,
+}) {
+  const params = ['f_auto', 'c_limit', `w_${width}`, `q_${quality || 'auto'}`]
+  return `https://res.cloudinary.com/demo/image/upload/${params.join(
+    ','
+  )}${src}`
+}
+```
+
+You can then use `next/image` in your application, defining relative paths to the image in Cloudinary.
+
+```tsx
+import Image from 'next/image'
+
+export default function Page() {
+  return <Image alt="turtles" src="/turtles.jpg" width={300} height={300} />
+}
+```
+
+### Route Handlers
+
+Route Handlers will render a static response when running `next build`. Only the `GET` HTTP verb is supported.
+
+```ts
+export async function GET() {
+  return Response.json({ name: 'Lee' })
+}
+```
+
+The above file will render to a static file during `next build`, producing `data.json` containing `{ name: 'Lee' }`.
+
+If you need to read dynamic values from the incoming request, you cannot use a static export.
+
+### Browser APIs
+
+Client Components are pre-rendered to HTML during `next build`. Because Web APIs like `window`, `localStorage`, and `navigator` are not available on the server, you need to safely access these APIs only when running in the browser.
+
+```jsx
+'use client';
+
+import { useEffect } from 'react';
+
+export default function ClientComponent() {
+  useEffect(() => {
+    console.log(window.innerHeight);
+  }, [])
+  return ...;
+}
+```
+
+## Unsupported Features
+
+Features that require a Node.js server, or dynamic logic that cannot be computed during the build process, are not supported:
+
+- Dynamic Routes with `dynamicParams: true`
+- Dynamic Routes without `generateStaticParams()`
+- Route Handlers that rely on Request
+- Cookies
+- Rewrites
+- Redirects
+- Headers
+- Middleware
+- Incremental Static Regeneration
+- Image Optimization with the default loader
+- Draft Mode
+- Server Actions
+
+Attempting to use any of these features with `next dev` will result in an error.
+
+## Deploying
+
+With a static export, Next.js can be deployed and hosted on any web server that can serve HTML/CSS/JS static assets.
+
+When running `next build`, Next.js generates the static export into the `out` folder. For example, routes like `/` and `/blog/[id]` will generate files in the `out` folder.
+
+If you are using a static host like Nginx, you can configure rewrites from incoming requests to the correct files.
+
+```nginx
+server {
+  listen 80;
+  server_name acme.com;
+
+  root /var/www/out;
+
+  location / {
+      try_files $uri $uri.html $uri/ =404;
+  }
+
+  location /blog/ {
+      rewrite ^/blog/(.*)$ /blog/$1.html break;
+  }
+
+  error_page 404 /404.html;
+  location = /404.html {
+      internal;
+  }
+}
+```
+
+## Version History
+
+| Version   | Changes                                                                                                              |
+| --------- | -------------------------------------------------------------------------------------------------------------------- |
+| `v14.0.0` | `next export` has been removed in favor of `"output": "export"`                                                      |
+| `v13.4.0` | App Router (Stable) adds enhanced static export support, including using React Server Components and Route Handlers. |
+| `v13.3.0` | `next export` is deprecated and replaced with `"output": "export"`                                                   |
+
+# Multi-Zones
+
+Learn how to build micro-frontends using Next.js Multi-Zones to deploy multiple Next.js apps under a single domain.
+
+Multi-Zones are an approach to micro-frontends that separate a large application on a domain into smaller Next.js applications that each serve a set of paths. This is useful when there are collections of pages unrelated to the other pages in the application. By moving those pages to a separate zone (i.e., a separate application), you can reduce the size of each application, improving build times and removing unnecessary code. Since applications are decoupled, Multi-Zones also allow other applications on the domain to use their own choice of framework.
+
+For example, you can split the following set of pages:
+
+- `/blog/*` for all blog posts
+- `/dashboard/*` for all pages when the user is logged in to the dashboard
+- `/*` for the rest of your website not covered by other zones
+
+With Multi-Zones support, you can create three applications that are served on the same domain and appear the same to the user, but can be developed and deployed independently.
+
+Navigating between pages in the same zone will perform soft navigations, which do not require reloading the page. For example, navigating from `/` to `/products` will be a soft navigation. Navigating from a page in one zone to a page in another zone, such as from `/` to `/dashboard`, will perform a hard navigation, unloading the resources of the current page and loading the resources of the new page. Pages that are frequently visited together should reside in the same zone to avoid hard navigations.
+
+## How to define a zone
+
+A zone is a normal Next.js application where you configure an assetPrefix to avoid conflicts with pages and static files in other zones.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  assetPrefix: '/blog-static',
+}
+```
+
+Next.js assets, such as JavaScript and CSS, will be prefixed with `assetPrefix` to ensure they don't conflict with assets from other zones. These assets will be served under `/assetPrefix/_next/...` for each zone. The default application handling all paths not routed to another more specific zone does not need an `assetPrefix`.
+
+In versions older than Next.js 15, an additional rewrite may be needed to handle static assets, which is no longer necessary in Next.js 15.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  assetPrefix: '/blog-static',
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/blog-static/_next/:path+',
+          destination: '/_next/:path+',
+        },
+      ],
+    }
+  },
+}
+```
+
+## How to route requests to the right zone
+
+With the Multi Zones setup, you need to route the paths to the correct zone since they are served by different applications. You can use any HTTP proxy, but one of the Next.js applications can also route requests for the entire domain.
+
+To route to the correct zone using a Next.js application, use rewrites. For each path served by a different zone, add a rewrite rule to send that path to the domain of the other zone.
+
+```js
+async rewrites() {
+    return [
+        {
+            source: '/blog',
+            destination: `${process.env.BLOG_DOMAIN}/blog`,
+        },
+        {
+            source: '/blog/:path+',
+            destination: `${process.env.BLOG_DOMAIN}/blog/:path+`,
+        }
+    ];
+}
+```
+
+The destination should be a URL served by the zone, including scheme and domain. This should point to the zone's production domain but can also route requests to localhost in local development.
+
+**Good to know**: URL paths should be unique to a zone. For example, two zones trying to serve `/blog` would create a routing conflict.
+
+### Routing requests using middleware
+
+Routing requests through rewrites is recommended to minimize latency overhead, but middleware can also be used for dynamic routing decisions, such as during a migration.
+
+```js
+export async function middleware(request) {
+  const { pathname, search } = req.nextUrl;
+  if (pathname === '/your-path' && myFeatureFlag.isEnabled()) {
+    return NextResponse.rewrite(`${rewriteDomain}${pathname}${search}`);
+  }
+}
+```
+
+## Linking between zones
+
+Links to paths in a different zone should use an `a` tag instead of the Next.js `<Link>` component. This is because Next.js will try to prefetch and soft navigate to any relative path in `<Link>`, which will not work across zones.
+
+## Sharing code
+
+The Next.js applications that make up the different zones can reside in any repository. However, it is often convenient to use a monorepo to share code more easily. For zones in different repositories, code can also be shared using public or private NPM packages.
+
+Since the pages in different zones may be released at different times, feature flags can be useful for enabling or disabling features across the different zones.
+
+For Next.js on Vercel applications, you can use a monorepo to deploy all affected zones with a single `git push`.
+
+## Server Actions
+
+When using Server Actions with Multi-Zones, explicitly allow the user-facing origin since your user-facing domain may serve multiple applications. In your `next.config.js` file, add the following lines:
+
+```js
+const nextConfig = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['your-production-domain.com'],
+    },
+  },
+}
+```
+
+Refer to serverActions.allowedOrigins for more information.
+
+# Deploying
+
+Learn how to deploy your Next.js app to production, either managed or self-hosted.
+
+Congratulations, it's time to ship to production.
+
+You can deploy managed Next.js with Vercel, or self-host on a Node.js server, Docker image, or even static HTML files. When deploying using `next start`, all Next.js features are supported.
+
+## Production Builds
+
+Running `next build` generates an optimized version of your application for production. HTML, CSS, and JavaScript files are created based on your pages. JavaScript is compiled and browser bundles are minified using the Next.js Compiler to help achieve the best performance and support all modern browsers.
+
+Next.js produces a standard deployment output used by managed and self-hosted Next.js, ensuring all features are supported across both methods of deployment.
+
+## Managed Next.js with Vercel
+
+Vercel, the creators and maintainers of Next.js, provide managed infrastructure and a developer experience platform for your Next.js applications.
+
+Deploying to Vercel is zero-configuration and provides additional enhancements for scalability, availability, and performance globally. However, all Next.js features are still supported when self-hosted.
+
+## Self-Hosting
+
+You can self-host Next.js in three different ways:
+
+- A Node.js server
+- A Docker container
+- A static export
+
+### Node.js Server
+
+Next.js can be deployed to any hosting provider that supports Node.js. Ensure your `package.json` has the `"build"` and `"start"` scripts:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  }
+}
+```
+
+Run `npm run build` to build your application, then run `npm run start` to start the Node.js server. This server supports all Next.js features.
+
+### Docker Image
+
+Next.js can be deployed to any hosting provider that supports Docker containers. This approach is suitable for container orchestrators such as Kubernetes or when running inside a container in any cloud provider.
+
+1. Install Docker on your machine.
+2. Clone the example repository.
+3. Build your container: `docker build -t nextjs-docker .`
+4. Run your container: `docker run -p 3000:3000 nextjs-docker`
+
+Next.js through Docker supports all Next.js features.
+
+### Static HTML Export
+
+Next.js enables starting as a static site or Single-Page Application (SPA), then later optionally upgrading to use features that require a server.
+
+Since Next.js supports static export, it can be deployed and hosted on any web server that can serve HTML/CSS/JS static assets, including tools like AWS S3, Nginx, or Apache.
+
+Running as a static export does not support Next.js features that require a server.
+
+## Features
+
+### Image Optimization
+
+Image Optimization through `next/image` works self-hosted with zero configuration when deploying using `next start`. If you prefer a separate service to optimize images, you can configure an image loader.
+
+Image Optimization can be used with a static export by defining a custom image loader in `next.config.js`. Note that images are optimized at runtime, not during the build.
+
+### Middleware
+
+Middleware works self-hosted with zero configuration when deploying using `next start`. It requires access to the incoming request and is not supported when using a static export.
+
+### Environment Variables
+
+Next.js supports both build time and runtime environment variables. By default, environment variables are only available on the server. To expose an environment variable to the browser, it must be prefixed with `NEXT_PUBLIC_`.
+
+To read runtime environment variables, use `getServerSideProps` or incrementally adopt the App Router.
+
+### Caching and ISR
+
+Next.js can cache responses, generated static pages, build outputs, and other static assets like images, fonts, and scripts. Caching and revalidating pages use the same shared cache, stored on disk by default.
+
+#### Automatic Caching
+
+Next.js sets the `Cache-Control` header for immutable assets and dynamically rendered pages to prevent user-specific data from being cached.
+
+#### Static Assets
+
+You can host static assets on a different domain or CDN using the `assetPrefix` configuration in `next.config.js`.
+
+#### Configuring Caching
+
+Generated cache assets will be stored in memory and on disk. You can configure the Next.js cache location to share the cache across multiple containers or instances.
+
+### Build Cache
+
+Next.js generates an ID during `next build` to identify which version of your application is being served. Use the `generateBuildId` command in `next.config.js` to ensure consistent build IDs across containers.
+
+### Version Skew
+
+Next.js mitigates most instances of version skew and automatically reloads the application to retrieve new assets when detected.
+
+### Streaming and Suspense
+
+The Next.js App Router supports streaming responses when self-hosting. Configure your proxy to disable buffering to enable streaming.
+
+### Partial Prerendering
+
+Partial Prerendering works by default with Next.js and is not a CDN feature.
+
+### Usage with CDNs
+
+When using a CDN, the page will include `Cache-Control: private` response header for dynamic APIs, ensuring the resulting HTML page is marked as non-cachable.
+
+## Manual Graceful Shutdowns
+
+When self-hosting, you might want to run code when the server shuts down on `SIGTERM` or `SIGINT` signals. Set the env variable `NEXT_MANUAL_SIG_HANDLE` to `true` and register a handler for that signal inside your `_document.js` file.
+
+# Codemods
+
+Codemods are transformations that run on your codebase programmatically, allowing a large number of changes to be applied without manual intervention. Next.js provides Codemod transformations to help upgrade your codebase when an API is updated or deprecated.
+
+## Usage
+
+In your terminal, navigate to your project's folder, then run:
+
+```
+npx @next/codemod <transform> <path>
+```
+
+- `transform` - name of transform
+- `path` - files or directory to transform
+- `--dry` - Do a dry-run, no code will be edited
+- `--print` - Prints the changed output for comparison
+
+## Codemods
+
+### 15.0
+
+#### Transform App Router Route Segment Config `runtime` value from `experimental-edge` to `edge`
+
+**Transform:** `app-dir-runtime-config-experimental-edge`
+
+```
+npx @next/codemod@latest app-dir-runtime-config-experimental-edge .
+```
+
+Transforms Route Segment Config `runtime` value `experimental-edge` to `edge`.
+
+#### Migrate to async Dynamic APIs
+
+**Transform:** `next-async-request-api`
+
+```
+npx @next/codemod@latest next-async-request-api .
+```
+
+Transforms dynamic APIs (`cookies()`, `headers()`, `draftMode()`) to be properly awaited or wrapped with `React.use()`.
+
+#### Replace `geo` and `ip` properties of `NextRequest` with `@vercel/functions`
+
+**Transform:** `next-request-geo-ip`
+
+```
+npx @next/codemod@latest next-request-geo-ip .
+```
+
+Transforms `geo` and `ip` properties of `NextRequest` to use `@vercel/functions`.
+
+#### Transform `next/dynamic` imports accessing named exports to return an object with a `default` property
+
+**Transform:** `next-dynamic-access-named-export`
+
+```
+npx @next/codemod@latest next-dynamic-access-named-export .
+```
+
+Transforms dynamic imports using `next/dynamic` to ensure they return an object with a `default` property.
+
+### 14.0
+
+#### Migrate `ImageResponse` imports
+
+**Transform:** `next-og-import`
+
+```
+npx @next/codemod@latest next-og-import .
+```
+
+Moves imports from `next/server` to `next/og`.
+
+#### Use `viewport` export
+
+**Transform:** `metadata-to-viewport-export`
+
+```
+npx @next/codemod@latest metadata-to-viewport-export .
+```
+
+Migrates certain viewport metadata to `viewport` export.
+
+### 13.2
+
+#### Use Built-in Font
+
+**Transform:** `built-in-next-font`
+
+```
+npx @next/codemod@latest built-in-next-font .
+```
+
+Uninstalls `@next/font` package and transforms imports to the built-in `next/font`.
+
+### 13.0
+
+#### Rename Next Image Imports
+
+**Transform:** `next-image-to-legacy-image`
+
+```
+npx @next/codemod@latest next-image-to-legacy-image .
+```
+
+Renames `next/image` imports to `next/legacy/image` and `next/future/image` to `next/image`.
+
+#### Migrate to the New Image Component
+
+**Transform:** `next-image-experimental`
+
+```
+npx @next/codemod@latest next-image-experimental .
+```
+
+Migrates from `next/legacy/image` to the new `next/image`.
+
+#### Remove `<a>` Tags From Link Components
+
+**Transform:** `new-link`
+
+```
+npx @next/codemod@latest new-link .
+```
+
+Removes `<a>` tags inside Link Components or adds a `legacyBehavior` prop where auto-fixing can't be applied.
+
+### 11
+
+#### Migrate from CRA
+
+**Transform:** `cra-to-next`
+
+```
+npx @next/codemod cra-to-next
+```
+
+Migrates a Create React App project to Next.js.
+
+### 10
+
+#### Add React imports
+
+**Transform:** `add-missing-react-import`
+
+```
+npx @next/codemod add-missing-react-import
+```
+
+Transforms files that do not import `React` to include the import.
+
+### 9
+
+#### Transform Anonymous Components into Named Components
+
+**Transform:** `name-default-component`
+
+```
+npx @next/codemod name-default-component
+```
+
+Transforms anonymous components into named components for compatibility with Fast Refresh.
+
+### 8
+
+#### Transform AMP HOC into page config
+
+**Transform:** `withamp-to-config`
+
+```
+npx @next/codemod withamp-to-config
+```
+
+Transforms the `withAmp` HOC into Next.js page configuration.
+
+### 6
+
+#### Use `withRouter`
+
+**Transform:** `url-to-withrouter`
+
+```
+npx @next/codemod url-to-withrouter
+```
+
+Transforms the deprecated `url` property to use `withRouter`.
+
+# Version 15
+
+Upgrade your Next.js Application from Version 14 to 15.
+
+## Upgrading from 14 to 15
+
+To update to Next.js version 15, use the `upgrade` codemod:
+
+```bash
+npx @next/codemod@canary upgrade latest
+```
+
+For manual installation, ensure you install the latest Next & React RC:
+
+```bash
+npm i next@canary react@rc react-dom@rc eslint-config-next@rc
+```
+
+**Good to know:**
+- If you see a peer dependencies warning, update `react` and `react-dom` to the suggested versions, or use the `--force` or `--legacy-peer-deps` flag to ignore the warning. This won't be necessary once both Next.js 15 and React 19 are stable.
+- If using TypeScript, temporarily override the React types. Refer to the React 19 RC upgrade guide for more information.
+
+## React 19
+
+- Minimum versions of `react` and `react-dom` is now 19.
+- `useFormState` is replaced by `useActionState`, which is recommended and includes additional properties like reading the `pending` state directly.
+- `useFormStatus` now includes additional keys like `data`, `method`, and `action`. If not using React 19, only the `pending` key is available.
+
+## Async Request APIs (Breaking change)
+
+Previously synchronous Dynamic APIs that rely on runtime information are now **asynchronous**:
+
+- `cookies`
+- `headers`
+- `draftMode`
+- `params` in `layout.js`, `page.js`, `route.js`, `default.js`, `opengraph-image`, `twitter-image`, `icon`, and `apple-icon`.
+- `searchParams` in `page.js`
+
+A codemod is available to automate the migration, and the APIs can temporarily be accessed synchronously.
+
+### `cookies`
+
+#### Recommended Async Usage
+
+```tsx
+import { cookies } from 'next/headers'
+
+const cookieStore = await cookies()
+const token = cookieStore.get('token')
+```
+
+#### Temporary Synchronous Usage
+
+```tsx
+import { cookies, type UnsafeUnwrappedCookies } from 'next/headers'
+
+const cookieStore = cookies() as unknown as UnsafeUnwrappedCookies
+const token = cookieStore.get('token') // will log a warning in dev
+```
+
+### `headers`
+
+#### Recommended Async Usage
+
+```tsx
+import { headers } from 'next/headers'
+
+const headersList = await headers()
+const userAgent = headersList.get('user-agent')
+```
+
+#### Temporary Synchronous Usage
+
+```tsx
+import { headers, type UnsafeUnwrappedHeaders } from 'next/headers'
+
+const headersList = headers() as unknown as UnsafeUnwrappedHeaders
+const userAgent = headersList.get('user-agent') // will log a warning in dev
+```
+
+### `draftMode`
+
+#### Recommended Async Usage
+
+```tsx
+import { draftMode } from 'next/headers'
+
+const { isEnabled } = await draftMode()
+```
+
+#### Temporary Synchronous Usage
+
+```tsx
+import { draftMode, type UnsafeUnwrappedDraftMode } from 'next/headers'
+
+const { isEnabled } = draftMode() as unknown as UnsafeUnwrappedDraftMode // will log a warning in dev
+```
+
+### `params` & `searchParams`
+
+#### Asynchronous Layout
+
+```tsx
+type Params = Promise<{ slug: string }>
+
+export async function generateMetadata({ params }: { params: Params }) {
+  const { slug } = await params
+}
+
+export default async function Layout({ children, params }: { children: React.ReactNode; params: Params }) {
+  const { slug } = await params
+}
+```
+
+#### Synchronous Layout
+
+```tsx
+import { use } from 'react'
+
+type Params = Promise<{ slug: string }>
+
+export default function Layout(props: { children: React.ReactNode; params: Params }) {
+  const params = use(props.params)
+  const slug = params.slug
+}
+```
+
+#### Asynchronous Page
+
+```tsx
+type Params = Promise<{ slug: string }>
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export async function generateMetadata(props: { params: Params; searchParams: SearchParams }) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+  const slug = params.slug
+  const query = searchParams.query
+}
+
+export default async function Page(props: { params: Params; searchParams: SearchParams }) {
+  const params = await props.params
+  const searchParams = await props.searchParams
+  const slug = params.slug
+  const query = searchParams.query
+}
+```
+
+#### Synchronous Page
+
+```tsx
+import { use } from 'react'
+
+type Params = Promise<{ slug: string }>
+type SearchParams = { [key: string]: string | string[] | undefined }
+
+export default function Page(props: { params: Params; searchParams: SearchParams }) {
+  const params = use(props.params)
+  const searchParams = use(props.searchParams)
+  const slug = params.slug
+  const query = searchParams.query
+}
+```
+
+#### Route Handlers
+
+```tsx
+type Params = Promise<{ slug: string }>
+
+export async function GET(request: Request, segmentData: { params: Params }) {
+  const params = await segmentData.params
+  const slug = params.slug
+}
+```
+
+<AppOnly>
+
+## `runtime` configuration (Breaking change)
+
+The `runtime` segment configuration previously supported a value of `experimental-edge` in addition to `edge`. Update your `runtime` configuration to `edge`. A codemod is available to automate this.
+
+</AppOnly>
+
+## `fetch` requests
+
+`fetch` requests are no longer cached by default. To opt specific `fetch` requests into caching, pass the `cache: 'force-cache'` option.
+
+To opt all `fetch` requests in a layout or page into caching, use the `export const fetchCache = 'default-cache'` segment config option.
+
+## Route Handlers
+
+`GET` functions in Route Handlers are no longer cached by default. To opt `GET` methods into caching, use a route config option such as `export const dynamic = 'force-static'`.
+
+## Client-side Router Cache
+
+When navigating between pages via `<Link>` or `useRouter`, page segments are no longer reused from the client-side router cache. To opt page segments into caching, use the `staleTimes` config option.
+
+## `next/font`
+
+The `@next/font` package has been removed in favor of the built-in `next/font`. A codemod is available to safely and automatically rename your imports.
+
+## bundlePagesRouterDependencies
+
+`experimental.bundlePagesExternals` is now stable and renamed to `bundlePagesRouterDependencies`.
+
+## serverExternalPackages
+
+`experimental.serverComponentsExternalPackages` is now stable and renamed to `serverExternalPackages`.
+
+## Speed Insights
+
+Auto instrumentation for Speed Insights was removed in Next.js 15. Follow the Vercel Speed Insights Quickstart guide to continue using Speed Insights.
+
+## `NextRequest` Geolocation
+
+The `geo` and `ip` properties on `NextRequest` have been removed. A codemod is available to automate this migration. If using Vercel, use the `geolocation` and `ipAddress` functions from `@vercel/functions` instead.
+
+# Version 14
+
+Upgrade your Next.js Application from Version 13 to 14.
+
+## Upgrading from 13 to 14
+
+To update to Next.js version 14, run the following command using your preferred package manager:
+
+```bash
+npm i next@latest react@latest react-dom@latest eslint-config-next@latest
+```
+
+```bash
+yarn add next@latest react@latest react-dom@latest eslint-config-next@latest
+```
+
+```bash
+pnpm up next react react-dom eslint-config-next --latest
+```
+
+```bash
+bun add next@latest react@latest react-dom@latest eslint-config-next@latest
+```
+
+Good to know: If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their latest versions.
+
+### v14 Summary
+
+- The minimum Node.js version has been bumped from 16.14 to 18.17, since 16.x has reached end-of-life.
+- The `next export` command has been removed in favor of `output: 'export'` config. Please see the documentation for more information.
+- The `next/server` import for `ImageResponse` was renamed to `next/og`. A codemod is available to safely and automatically rename your imports.
+- The `@next/font` package has been fully removed in favor of the built-in `next/font`. A codemod is available to safely and automatically rename your imports.
+- The WASM target for `next-swc` has been removed.
+
+# App Router Incremental Adoption Guide
+
+This guide will help you:
+
+- Update your Next.js application from version 12 to version 13
+- Upgrade features that work in both the `pages` and the `app` directories
+- Incrementally migrate your existing application from `pages` to `app`
+
+## Upgrading
+
+### Node.js Version
+
+The minimum Node.js version is now **v18.17**. See the Node.js documentation for more information.
+
+### Next.js Version
+
+To update to Next.js version 13, run the following command using your preferred package manager:
+
+```bash
+npm install next@latest react@latest react-dom@latest
+```
+
+### ESLint Version
+
+If you're using ESLint, you need to upgrade your ESLint version:
+
+```bash
+npm install -D eslint-config-next@latest
+```
+
+> You may need to restart the ESLint server in VS Code for the ESLint changes to take effect. Open the Command Palette (`cmd+shift+p` on Mac; `ctrl+shift+p` on Windows) and search for `ESLint: Restart ESLint Server`.
+
+## Next Steps
+
+After you've updated, see the following sections for next steps:
+
+- Upgrade new features: A guide to help you upgrade to new features such as the improved Image and Link Components.
+- Migrate from the `pages` to `app` directory: A step-by-step guide to help you incrementally migrate from the `pages` to the `app` directory.
+
+## Upgrading New Features
+
+Next.js 13 introduced the new App Router with new features and conventions. The new Router is available in the `app` directory and co-exists with the `pages` directory.
+
+Upgrading to Next.js 13 does **not** require using the new App Router. You can continue using `pages` with new features that work in both directories, such as the updated Image component, Link component, Script component, and Font optimization.
+
+### `<Image/>` Component
+
+Next.js 12 introduced new improvements to the Image Component with a temporary import: `next/future/image`. These improvements included less client-side JavaScript, easier ways to extend and style images, better accessibility, and native browser lazy loading.
+
+In version 13, this new behavior is now the default for `next/image`.
+
+There are two codemods to help you migrate to the new Image Component:
+
+- `next-image-to-legacy-image` codemod: Safely and automatically renames `next/image` imports to `next/legacy/image`. Existing components will maintain the same behavior.
+- `next-image-experimental` codemod: Dangerously adds inline styles and removes unused props. This will change the behavior of existing components to match the new defaults. To use this codemod, you need to run the `next-image-to-legacy-image` codemod first.
+
+### `<Link>` Component
+
+The `<Link>` Component no longer requires manually adding an `<a>` tag as a child. This behavior was added as an experimental option in version 12.2 and is now the default. In Next.js 13, `<Link>` always renders `<a>` and allows you to forward props to the underlying tag.
+
+Example:
+
+```jsx
+import Link from 'next/link'
+
+// Next.js 12: `<a>` has to be nested otherwise it's excluded
+<Link href="/about">
+  <a>About</a>
+</Link>
+
+// Next.js 13: `<Link>` always renders `<a>` under the hood
+<Link href="/about">
+  About
+</Link>
+```
+
+To upgrade your links to Next.js 13, you can use the `new-link` codemod.
+
+### `<Script>` Component
+
+The behavior of `next/script` has been updated to support both `pages` and `app`, but some changes need to be made to ensure a smooth migration:
+
+- Move any `beforeInteractive` scripts you previously included in `_document.js` to the root layout file (`app/layout.tsx`).
+- The experimental `worker` strategy does not yet work in `app` and scripts denoted with this strategy will either have to be removed or modified to use a different strategy (e.g. `lazyOnload`).
+- `onLoad`, `onReady`, and `onError` handlers will not work in Server Components so make sure to move them to a Client Component or remove them altogether.
+
+### Font Optimization
+
+Previously, Next.js helped you optimize fonts by inlining font CSS. Version 13 introduces the new `next/font` module which gives you the ability to customize your font loading experience while still ensuring great performance and privacy. `next/font` is supported in both the `pages` and `app` directories.
+
+While inlining CSS still works in `pages`, it does not work in `app`. You should use `next/font` instead.
+
+## Migrating from `pages` to `app`
+
+Moving to the App Router may be the first time using React features that Next.js builds on top of such as Server Components, Suspense, and more. We recommend reducing the combined complexity of these updates by breaking down your migration into smaller steps. The `app` directory is intentionally designed to work simultaneously with the `pages` directory to allow for incremental page-by-page migration.
+
+- The `app` directory supports nested routes and layouts.
+- Use nested folders to define routes and a special `page.js` file to make a route segment publicly accessible.
+- Special file conventions are used to create UI for each route segment. The most common special files are `page.js` and `layout.js`.
+  - Use `page.js` to define UI unique to a route.
+  - Use `layout.js` to define UI that is shared across multiple routes.
+  - `.js`, `.jsx`, or `.tsx` file extensions can be used for special files.
+- You can colocate other files inside the `app` directory such as components, styles, tests, and more.
+- Data fetching functions like `getServerSideProps` and `getStaticProps` have been replaced with a new API inside `app`. `getStaticPaths` has been replaced with `generateStaticParams`.
+- `pages/_app.js` and `pages/_document.js` have been replaced with a single `app/layout.js` root layout.
+- `pages/_error.js` has been replaced with more granular `error.js` special files.
+- `pages/404.js` has been replaced with the `not-found.js` file.
+- `pages/api/*` API Routes have been replaced with the `route.js` (Route Handler) special file.
+
+### Step 1: Creating the `app` directory
+
+Update to the latest Next.js version (requires 13.4 or greater):
+
+```bash
+npm install next@latest
+```
+
+Then, create a new `app` directory at the root of your project (or `src/` directory).
+
+### Step 2: Creating a Root Layout
+
+Create a new `app/layout.tsx` file inside the `app` directory. This is a root layout that will apply to all routes inside `app`.
+
+```tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+- The `app` directory must include a root layout.
+- The root layout must define `<html>`, and `<body>` tags since Next.js does not automatically create them.
+- The root layout replaces the `pages/_app.tsx` and `pages/_document.tsx` files.
+- `.js`, `.jsx`, or `.tsx` extensions can be used for layout files.
+
+To manage `<head>` HTML elements, you can use the built-in SEO support:
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description: 'Welcome to Next.js',
+}
+```
+
+#### Migrating `_document.js` and `_app.js`
+
+If you have an existing `_app` or `_document` file, you can copy the contents (e.g. global styles) to the root layout (`app/layout.tsx`). Styles in `app/layout.tsx` will not apply to `pages/*`. You should keep `_app`/`_document` while migrating to prevent your `pages/*` routes from breaking. Once fully migrated, you can then safely delete them.
+
+If you are using any React Context providers, they will need to be moved to a Client Component.
+
+#### Migrating the `getLayout()` pattern to Layouts (Optional)
+
+Next.js recommended adding a property to Page components to achieve per-page layouts in the `pages` directory. This pattern can be replaced with native support for nested layouts in the `app` directory.
+
+### Step 3: Migrating `next/head`
+
+In the `pages` directory, the `next/head` React component is used to manage `<head>` HTML elements such as `title` and `meta`. In the `app` directory, `next/head` is replaced with the new built-in SEO support.
+
+**Before:**
+
+```tsx
+import Head from 'next/head'
+
+export default function Page() {
+  return (
+    <>
+      <Head>
+        <title>My page title</title>
+      </Head>
+    </>
+  )
+}
+```
+
+**After:**
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'My Page Title',
+}
+
+export default function Page() {
+  return '...'
+}
+```
+
+### Step 4: Migrating Pages
+
+Pages in the `app` directory are Server Components by default. This is different from the `pages` directory where pages are Client Components.
+
+We recommend breaking down the migration of a page into two main steps:
+
+- Step 1: Move the default exported Page Component into a new Client Component.
+- Step 2: Import the new Client Component into a new `page.js` file inside the `app` directory.
+
+**Step 1: Create a new Client Component**
+
+- Create a new separate file inside the `app` directory (i.e. `app/home-page.tsx` or similar) that exports a Client Component. To define Client Components, add the `'use client'` directive to the top of the file (before any imports).
+
+```tsx
+'use client'
+
+export default function HomePage({ recentPosts }) {
+  return (
+    <div>
+      {recentPosts.map((post) => (
+        <div key={post.id}>{post.title}</div>
+      ))}
+    </div>
+  )
+}
+```
+
+**Step 2: Create a new page**
+
+- Create a new `app/page.tsx` file inside the `app` directory. This is a Server Component by default.
+- Import the `home-page.tsx` Client Component into the page.
+
+```tsx
+import HomePage from './home-page'
+
+async function getPosts() {
+  const res = await fetch('https://...')
+  const posts = await res.json()
+  return posts
+}
+
+export default async function Page() {
+  const recentPosts = await getPosts()
+  return <HomePage recentPosts={recentPosts} />
+}
+```
+
+### Step 5: Migrating Routing Hooks
+
+In `app`, you should use the three new hooks imported from `next/navigation`: `useRouter()`, `usePathname()`, and `useSearchParams()`.
+
+- The new `useRouter` hook is imported from `next/navigation` and has different behavior to the `useRouter` hook in `pages` which is imported from `next/router`.
+- The new `useRouter` does not return the `pathname` string. Use the separate `usePathname` hook instead.
+- The new `useRouter` does not return the `query` object. Use the `useSearchParams` and `useParams` hooks instead.
+- These new hooks are only supported in Client Components.
+
+```tsx
+'use client'
+
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+}
+```
+
+### Step 6: Migrating Data Fetching Methods
+
+The `pages` directory uses `getServerSideProps` and `getStaticProps` to fetch data for pages. Inside the `app` directory, these previous data fetching functions are replaced with a simpler API built on top of `fetch()` and `async` React Server Components.
+
+```tsx
+export default async function Page() {
+  const staticData = await fetch(`https://...`, { cache: 'force-cache' })
+  const dynamicData = await fetch(`https://...`, { cache: 'no-store' })
+  const revalidatedData = await fetch(`https://...`, {
+    next: { revalidate: 10 },
+  })
+
+  return <div>...</div>
+}
+```
+
+#### Server-side Rendering (`getServerSideProps`)
+
+In the `app` directory, we can colocate our data fetching inside our React components using Server Components. This allows us to send less JavaScript to the client, while maintaining the rendered HTML from the server.
+
+```tsx
+async function getProjects() {
+  const res = await fetch(`https://...`, { cache: 'no-store' })
+  const projects = await res.json()
+  return projects
+}
+
+export default async function Dashboard() {
+  const projects = await getProjects()
+  return (
+    <ul>
+      {projects.map((project) => (
+        <li key={project.id}>{project.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+#### Accessing Request Object
+
+In the `app` directory, you can retrieve request-based data using the new read-only functions:
+
+- `headers`: Based on the Web Headers API, can be used inside Server Components to retrieve request headers.
+- `cookies`: Based on the Web Cookies API, can be used inside Server Components to retrieve cookies.
+
+```tsx
+import { cookies, headers } from 'next/headers'
+
+export default async function Page() {
+  const theme = (await cookies()).get('theme')
+  const authHeader = (await headers()).get('authorization')
+  return '...'
+}
+```
+
+#### Static Site Generation (`getStaticProps`)
+
+In the `app` directory, data fetching with `fetch()` will default to `cache: 'force-cache'`, which will cache the request data until manually invalidated.
+
+```tsx
+async function getProjects() {
+  const res = await fetch(`https://...`)
+  const projects = await res.json()
+  return projects
+}
+
+export default async function Index() {
+  const projects = await getProjects()
+  return projects.map((project) => <div>{project.name}</div>)
+}
+```
+
+#### Dynamic paths (`getStaticPaths`)
+
+In the `app` directory, `getStaticPaths` is replaced with `generateStaticParams`.
+
+```tsx
+export async function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }]
+}
+
+async function getPost(params) {
+  const res = await fetch(`https://.../posts/${params.id}`)
+  const post = await res.json()
+  return post
+}
+
+export default async function Post({ params }) {
+  const post = await getPost(params)
+  return <PostLayout post={post} />
+}
+```
+
+### Replacing `fallback`
+
+In the `app` directory, the `config.dynamicParams` property controls how params outside of `generateStaticParams` are handled:
+
+- **`true`**: (default) Dynamic segments not included in `generateStaticParams` are generated on demand.
+- **`false`**: Dynamic segments not included in `generateStaticParams` will return a 404.
+
+### Incremental Static Regeneration (`getStaticProps` with `revalidate`)
+
+In the `app` directory, data fetching with `fetch()` can use `revalidate`, which will cache the request for the specified amount of seconds.
+
+```tsx
+async function getPosts() {
+  const res = await fetch(`https://.../posts`, { next: { revalidate: 60 } })
+  const data = await res.json()
+  return data.posts
+}
+
+export default async function PostList() {
+  const posts = await getPosts()
+  return posts.map((post) => <div>{post.name}</div>)
+}
+```
+
+### API Routes
+
+API Routes continue to work in the `pages/api` directory without any changes. However, they have been replaced by Route Handlers in the `app` directory.
+
+```ts
+export async function GET(request: Request) {}
+```
+
+### Step 7: Styling
+
+In the `app` directory, global styles can be added to any layout, page, or component.
+
+If you're using Tailwind CSS, you'll need to add the `app` directory to your `tailwind.config.js` file:
+
+```js
+module.exports = {
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+}
+```
+
+You'll also need to import your global styles in your `app/layout.js` file:
+
+```jsx
+import '../styles/globals.css'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+## Codemods
+
+Next.js provides Codemod transformations to help upgrade your codebase when a feature is deprecated. See Codemods for more information.
+
+# Migrating from Create React App
+
+This guide will help you migrate an existing Create React App site to Next.js.
+
+## Why Switch?
+
+### Slow Initial Page Loading Time
+Create React App uses client-side React, leading to slow initial loading times due to:
+1. The need for the entire application bundle to download before data requests can be made.
+2. Application code growth with new features and dependencies.
+
+### No Automatic Code Splitting
+Manual code splitting can worsen performance. Next.js provides automatic code splitting through its router.
+
+### Network Waterfalls
+Sequential client-server requests can degrade performance. Next.js allows server-side data fetching to eliminate client-server waterfalls.
+
+### Fast and Intentional Loading States
+Next.js supports streaming through React Suspense, allowing intentional loading of UI parts without network waterfalls.
+
+### Choose the Data Fetching Strategy
+Next.js allows data fetching at build time, request time on the server, or on the client, enabling efficient caching.
+
+### Middleware
+Next.js Middleware runs code on the server before a request completes, useful for authentication and internationalization.
+
+### Built-in Optimizations
+Next.js optimizes images, fonts, and third-party scripts automatically.
+
+## Migration Steps
+
+### Step 1: Install the Next.js Dependency
+Install `next` as a dependency:
+```bash
+npm install next@latest
+```
+
+### Step 2: Create the Next.js Configuration File
+Create a `next.config.mjs` at the root of your project:
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  distDir: './build',
+}
+
+export default nextConfig
+```
+
+### Step 3: Create the Root Layout
+Create a new `app` directory in your `src` directory and a `layout.tsx` file:
+```tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="UTF-8" />
+        <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>React App</title>
+        <meta name="description" content="Web site created..." />
+      </head>
+      <body>
+        <div id="root">{children}</div>
+      </body>
+    </html>
+  )
+}
+```
+
+### Step 4: Metadata
+Remove default meta charset and viewport tags from `<head>`:
+```tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <title>React App</title>
+        <meta name="description" content="Web site created..." />
+      </head>
+      <body>
+        <div id="root">{children}</div>
+      </body>
+    </html>
+  )
+}
+```
+Move metadata into an exported `metadata` object:
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'React App',
+  description: 'Web site created with Next.js.',
+}
+```
+
+### Step 5: Styles
+Import global CSS in `app/layout.tsx`:
+```tsx
+import '../index.css'
+```
+For Tailwind, install `postcss` and `autoprefixer`:
+```bash
+npm install postcss autoprefixer
+```
+Create a `postcss.config.js`:
+```js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### Step 6: Create the Entrypoint Page
+Create a `[[...slug]]` directory in your `app` directory and a `page.tsx` file:
+```tsx
+export function generateStaticParams() {
+  return [{ slug: [''] }]
+}
+
+export default function Page() {
+  return '...' // Update this later
+}
+```
+Create a `client.tsx` file:
+```tsx
+'use client'
+
+import dynamic from 'next/dynamic'
+
+const App = dynamic(() => import('../../App'), { ssr: false })
+
+export function ClientOnly() {
+  return <App />
+}
+```
+Update your entrypoint page:
+```tsx
+import { ClientOnly } from './client'
+
+export function generateStaticParams() {
+  return [{ slug: [''] }]
+}
+
+export default function Page() {
+  return <ClientOnly />
+}
+```
+
+### Step 7: Update Static Image Imports
+Convert absolute image imports to relative:
+```tsx
+import logo from '../public/logo.png'
+```
+Use the image `src` property:
+```tsx
+<img src={logo.src} />
+```
+
+### Step 8: Migrate the Environment Variables
+Change `REACT_APP_` prefix to `NEXT_PUBLIC_` for client-side environment variables.
+
+### Step 9: Update Scripts in `package.json`
+Update your `scripts`:
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "npx serve@latest ./build"
+  }
+}
+```
+Add `.next` and `next-env.d.ts` to `.gitignore`:
+```txt
+.next
+next-env.d.ts
+```
+
+### Step 10: Clean Up
+Delete Create React App artifacts:
+- `public/index.html`
+- `src/index.tsx`
+- `src/react-app-env.d.ts`
+- `reportWebVitals` setup
+- Uninstall CRA dependencies (`react-scripts`)
+
+## Bundler Compatibility
+Next.js supports custom webpack configurations and Turbopack for improved local development performance.
+
+## Next Steps
+After migration, consider:
+- Migrating to Next.js App Router for automatic code splitting and server rendering.
+- Optimizing images with the `<Image>` component.
+- Optimizing fonts and third-party scripts.
+- Updating ESLint configuration for Next.js rules.
+
+# Migrating from Vite
+
+This guide will help you migrate an existing Vite application to Next.js.
+
+## Why Switch?
+
+Reasons to switch from Vite to Next.js include:
+
+### Slow Initial Page Loading Time
+
+Client-side applications often experience slow initial loading due to:
+
+1. The need for the entire application bundle to download before data requests can be made.
+2. Application code growth with new features and dependencies.
+
+### No Automatic Code Splitting
+
+Manual code splitting can worsen performance. Next.js provides automatic code splitting through its router.
+
+### Network Waterfalls
+
+Sequential client-server requests can lead to poor performance. Next.js allows server-side data fetching to eliminate client-server waterfalls.
+
+### Fast and Intentional Loading States
+
+Next.js supports streaming through React Suspense, allowing intentional loading of UI parts without network waterfalls.
+
+### Choose the Data Fetching Strategy
+
+Next.js allows data fetching at build time, request time on the server, or on the client, enabling efficient caching.
+
+### Middleware
+
+Next.js Middleware runs code on the server before a request completes, useful for authentication and internationalization.
+
+### Built-in Optimizations
+
+Next.js optimizes images, fonts, and third-party scripts automatically.
+
+## Migration Steps
+
+### Step 1: Install the Next.js Dependency
+
+Install `next` as a dependency:
+
+```bash
+npm install next@latest
+```
+
+### Step 2: Create the Next.js Configuration File
+
+Create a `next.config.mjs` at the root of your project:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  distDir: './dist',
+}
+
+export default nextConfig
+```
+
+### Step 3: Update TypeScript Configuration
+
+If using TypeScript, update `tsconfig.json`:
+
+1. Remove project reference to `tsconfig.node.json`.
+2. Add `./dist/types/**/*.ts` and `./next-env.d.ts` to the `include` array.
+3. Add `./node_modules` to the `exclude` array.
+4. Add `{ "name": "next" }` to the `plugins` array in `compilerOptions`.
+5. Set `esModuleInterop` to `true`.
+6. Set `jsx` to `preserve`.
+7. Set `allowJs` to `true`.
+8. Set `forceConsistentCasingInFileNames` to `true`.
+9. Set `incremental` to `true`.
+
+Example `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }]
+  },
+  "include": ["./src", "./dist/types/**/*.ts", "./next-env.d.ts"],
+  "exclude": ["./node_modules"]
+}
+```
+
+### Step 4: Create the Root Layout
+
+Create a root layout file in the `app` directory:
+
+1. Create a new `app` directory in your `src` directory.
+2. Create a `layout.tsx` file inside that `app` directory:
+
+```tsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <title>My App</title>
+        <meta name="description" content="My App is a..." />
+      </head>
+      <body>
+        <div id="root">{children}</div>
+      </body>
+    </html>
+  )
+}
+```
+
+3. Move metadata files into the `app` directory and remove their `<link>` tags from `<head>`.
+4. Use the Metadata API to manage metadata:
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'My App',
+  description: 'My App is a...',
+}
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <div id="root">{children}</div>
+      </body>
+    </html>
+  )
+}
+```
+
+### Step 5: Create the Entrypoint Page
+
+1. Create a `[[...slug]]` directory in your `app` directory.
+2. Create a `page.tsx` file inside the `app/[[...slug]]` directory:
+
+```tsx
+import '../../index.css'
+
+export function generateStaticParams() {
+  return [{ slug: [''] }]
+}
+
+export default function Page() {
+  return '...' // Update this later
+}
+```
+
+3. Create a `client.tsx` file for client-only rendering:
+
+```tsx
+'use client'
+
+import React from 'react'
+import dynamic from 'next/dynamic'
+
+const App = dynamic(() => import('../../App'), { ssr: false })
+
+export function ClientOnly() {
+  return <App />
+}
+```
+
+4. Update your entrypoint page to use the new component:
+
+```tsx
+import '../../index.css'
+import { ClientOnly } from './client'
+
+export function generateStaticParams() {
+  return [{ slug: [''] }]
+}
+
+export default function Page() {
+  return <ClientOnly />
+}
+```
+
+### Step 6: Update Static Image Imports
+
+1. Convert absolute import paths for images to relative imports:
+
+```tsx
+import logo from '../public/logo.png'
+```
+
+2. Use the image `src` property in your `<img>` tag:
+
+```tsx
+<img src={logo.src} />
+```
+
+### Step 7: Migrate the Environment Variables
+
+1. Change `VITE_` prefix to `NEXT_PUBLIC_`.
+2. Update `import.meta.env` usages to their Next.js equivalents.
+
+### Step 8: Update Scripts in `package.json`
+
+Update your `scripts` in `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  }
+}
+```
+
+Add `.next` and `next-env.d.ts` to your `.gitignore`:
+
+```txt
+.next
+next-env.d.ts
+dist
+```
+
+Run `npm run dev` to test your application.
+
+### Step 9: Clean Up
+
+Delete Vite-related artifacts:
+
+- `main.tsx`
+- `index.html`
+- `vite-env.d.ts`
+- `tsconfig.node.json`
+- `vite.config.ts`
+- Uninstall Vite dependencies
+
+## Next Steps
+
+You now have a functioning Next.js application as a single-page application. Consider migrating to Next.js features such as:
+
+- Next.js App Router for automatic code splitting and streaming server-rendering.
+- Optimize images with the `<Image>` component.
+- Optimize fonts with `next/font`.
+- Optimize third-party scripts with the `<Script>` component.
+- Update ESLint configuration for Next.js rules.
+
+# Upgrade Guide
+
+Learn how to upgrade to the latest versions of Next.js or migrate from the Pages Router to the App Router.
+
+# Next.js Examples
+
+## Description
+Examples of popular Next.js UI patterns and use cases.
+
+## Data Fetching
+- Using the `fetch` API
+- Using an ORM or database client
+- Reading search params on the server
+- Reading search params on the client
+
+## Revalidating Data
+- Using ISR to revalidate data after a certain time
+- Using ISR to revalidate data on-demand
+
+## Forms
+- Showing a pending state while submitting a form
+- Server-side form validation
+- Handling expected errors
+- Handling unexpected exceptions
+- Showing optimistic UI updates
+- Programmatic form submission
+
+## Server Actions
+- Passing additional values
+- Revalidating data
+- Redirecting
+- Setting cookies
+- Deleting cookies
+
+## Metadata
+- Creating an RSS feed
+- Creating an Open Graph image
+- Creating a sitemap
+- Creating a robots.txt file
+- Creating a custom 404 page
+- Creating a custom 500 page
+
+## Auth
+- Creating a sign-up form
+- Stateless, cookie-based session management
+- Stateful, database-backed session management
+- Managing authorization
+
+## Testing
+- Vitest
+- Jest
+- Playwright
+- Cypress
+
+## Deployment
+- Creating a Dockerfile
+- Creating a static export (SPA)
+- Configuring caching when self-hosting
+- Configuring Image Optimization when self-hosting
+
+# Building Your Application
+
+Next.js provides the building blocks to create flexible, full-stack web applications. The guides in Building Your Application explain how to use these features and how to customize your application's behavior.
+
+The sections and pages are organized sequentially, from basic to advanced, allowing you to follow them step-by-step when building your Next.js application. However, you can read them in any order or skip to the pages that apply to your use case.
+
+If you're new to Next.js, we recommend starting with the following sections, as they introduce fundamental Next.js and web concepts to help you get started:
+
+- Routing
+- Rendering
+- Data Fetching
+- Styling
+
+Afterward, you can explore deeper topics such as Optimizing and Configuring. Finally, once you're ready, check out the Deploying and Upgrading sections.
+
+# Directives
+
+Directives are used to modify the behavior of your Next.js application.
+
+## Available Directives
+
+1. **use client**: Indicates that a component should be rendered on the client side.
+2. **use server**: Indicates that a component should be rendered on the server side.
+3. **use strict**: Enforces strict mode for the component.
+4. **use layout**: Specifies a layout for the component.
+5. **use error**: Defines an error boundary for the component.
+
+These directives help in controlling the rendering and behavior of components within your application.
+
+# Use Cache
+
+Learn how to use the `use cache` directive to cache data in your Next.js application.
+
+## Overview
+
+The `use cache` directive designates a component, function, or file to be cached. It can be used at the top of a file to indicate that all functions in the file are cacheable, or inline at the top of a function to mark the function as cacheable. This is an experimental Next.js feature.
+
+Enable support for the `use cache` directive with the `dynamicIO` flag in your `next.config.ts` file:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+  },
+}
+
+export default nextConfig
+```
+
+Caching improves web application performance by storing results of computations or data fetches. In Next.js, caching optimizes rendering performance.
+
+## `use cache` Directive
+
+The `use cache` directive allows you to cache entire routes, components, and function return values. Mark an asynchronous function as cacheable by adding `use cache` at the top of the file or inside the function scope.
+
+```tsx
+// File level
+'use cache'
+
+export default async function Page() {
+  // ...
+}
+
+// Component level
+export async function MyComponent() {
+  'use cache'
+  return <></>
+}
+
+// Function level
+export async function getData() {
+  'use cache'
+  const data = await fetch('/api/data')
+  return data
+}
+```
+
+**Note**: Functions using the `use cache` directive must not have side effects, such as modifying state or manipulating the DOM.
+
+## Revalidating
+
+By default, the `use cache` directive sets a revalidation period of fifteen minutes with a near-infinite expiration duration. For more granular caching control, use the `cacheLife` and `cacheTag` APIs.
+
+### Basic Example
+
+Using the `cacheLife` function at the function level to set a revalidation period of one day:
+
+```tsx
+import { unstable_cacheLife as cacheLife } from 'next/cache'
+
+export async function MyComponent() {
+  async function getData() {
+    'use cache'
+    cacheLife('days')
+    const data = await fetch('/api/data')
+    return data
+  }
+
+  return // Use the data here
+}
+```
+
+### Cache Revalidation Process
+
+1. **Cache HIT**: If a request is made within the 15-minute window, the cached data is served.
+2. **Stale Data**: If the request happens after 15 minutes, the cached value is served but is considered stale. Next.js recomputes a new cache entry in the background.
+3. **Cache MISS**: If the cache entry expires and a subsequent request is made, Next.js treats this as a cache MISS, and the data is recomputed and fetched again.
+
+## Time-based Revalidation with `cacheLife`
+
+The `cacheLife` function allows you to define time-based revalidation periods based on cache profiles. Cache profiles are objects with the following properties:
+
+- `stale`: Duration the client should cache a value without checking the server.
+- `revalidate`: Frequency at which the cache should refresh on the server.
+- `expire`: Maximum duration for which a value can remain stale before switching to dynamic fetching.
+
+### Default Cache Profiles
+
+Next.js provides named cache profiles modeled on various timescales. If no cache profile is specified, the default profile is applied.
+
+| Profile   | Stale      | Revalidate   | Expire         | Description                                                          |
+|-----------|------------|--------------|----------------|----------------------------------------------------------------------|
+| default   | undefined  | 15 minutes   | INFINITE_CACHE | Default profile for infrequently updated content                     |
+| seconds   | undefined  | 1 second     | 1 minute       | For rapidly changing content requiring near real-time updates        |
+| minutes   | 5 minutes  | 1 minute     | 1 hour         | For content that updates frequently within an hour                   |
+| hours     | 5 minutes  | 1 hour       | 1 day          | For content that updates daily but can be slightly stale             |
+| days      | 5 minutes  | 1 day        | 1 week         | For content that updates weekly but can be a day old                 |
+| weeks     | 5 minutes  | 1 week       | 1 month        | For content that updates monthly but can be a week old               |
+| max       | 5 minutes  | 1 month      | INFINITE_CACHE | For very stable content that rarely needs updating                   |
+
+### Defining Reusable Cache Profiles
+
+To create a reusable cache profile, choose a name and define it in your `next.config.ts` file:
+
+```ts
+const nextConfig = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      biweekly: {
+        stale: 60 * 60 * 24 * 14, // 14 days
+        revalidate: 60 * 60 * 24, // 1 day
+        expire: 60 * 60 * 24 * 14, // 14 days
+      },
+    },
+  },
+}
+
+module.exports = nextConfig
+```
+
+### Overriding Default Cache Profiles
+
+You can override default named cache profiles by creating a new configuration with the same name:
+
+```ts
+const nextConfig = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      days: {
+        stale: 3600, // 1 hour
+        revalidate: 900, // 15 minutes
+        expire: 86400, // 1 day
+      },
+    },
+  },
+}
+
+module.exports = nextConfig
+```
+
+### Nested Usage of `use cache` and `cacheLife`
+
+When defining multiple caching behaviors, the outer cache will respect the shortest cache duration among inner caches if the outer cache does not have its own explicit `cacheLife` profile defined.
+
+## Revalidate On-Demand with `cacheTag`
+
+A `cacheTag` is used with `revalidateTag` to purge cache data on-demand. The `cacheTag` function takes a single string value or a string array.
+
+Example of using `cacheTag`:
+
+```tsx
+import {
+  unstable_cacheTag as cacheTag,
+  unstable_cacheLife as cacheLife,
+} from 'next/cache'
+
+export async function getData() {
+  'use cache'
+  cacheLife('weeks')
+  cacheTag('my-data')
+
+  const data = await fetch('/api/data')
+  return data
+}
+```
+
+You can purge the cache on-demand using `revalidateTag` in another function:
+
+```tsx
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export default async function submit() {
+  await addPost()
+  revalidateTag('my-data')
+}
+```
+
+## Examples
+
+### Caching Entire Routes with `use cache`
+
+To ensure your route remains static, avoid using `Suspense` boundaries. If you must use them, add the `use cache` directive to both the layout and page components.
+
+```tsx
+"use cache"
+import { unstable_cacheLife as cacheLife} from 'next/cache'
+cacheLife('minutes')
+
+export default Layout({children}: {children: ReactNode}) {
+  return <div>{children}</div>
+}
+```
+
+### Caching Component Output with `use cache`
+
+Use `use cache` at the component level to cache fetches or computations performed within that component.
+
+```tsx
+import { unstable_cacheLife as cacheLife } from 'next/cache'
+
+interface BookingsProps {
+  type: string
+}
+
+export async function Bookings({ type = 'massage' }: BookingsProps) {
+  'use cache'
+  cacheLife('minutes')
+
+  async function getBookingsData() {
+    const data = await fetch(`/api/bookings?type=${encodeURIComponent(type)}`)
+    return data
+  }
+  return //...
+}
+```
+
+### Caching Function Output with `use cache`
+
+Add `use cache` to any asynchronous function to cache network requests or slow computations.
+
+```tsx
+import { unstable_cacheLife as cacheLife } from 'next/cache'
+
+export async function getData() {
+  'use cache'
+  cacheLife('minutes')
+
+  const data = await fetch('/api/data')
+  return data
+}
+```
+
+# use client
+
+Learn how to use the `use client` directive to render a component on the client.
+
+The `use client` directive designates a component to be rendered on the client side and should be used when creating interactive user interfaces (UI) that require client-side JavaScript capabilities, such as state management, event handling, and access to browser APIs. This is a React feature.
+
+## Usage
+
+To designate a component as a Client Component, add the `use client` directive at the top of the file, before any imports:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+## Nesting Client Components within Server Components
+
+Combining Server and Client Components allows you to build applications that are both performant and interactive:
+
+1. **Server Components**: Use for static content, data fetching, and SEO-friendly elements.
+2. **Client Components**: Use for interactive elements that require state, effects, or browser APIs.
+3. **Component composition**: Nest Client Components within Server Components as needed for a clear separation of server and client logic.
+
+In the following example:
+
+- `Header` is a Server Component handling static content.
+- `Counter` is a Client Component enabling interactivity within the page.
+
+```tsx
+import Header from './header'
+import Counter from './counter' // This is a Client Component
+
+export default function Page() {
+  return (
+    <div>
+      <Header />
+      <Counter />
+    </div>
+  )
+}
+```
+
+```jsx
+import Header from './header'
+import Counter from './counter' // This is a Client Component
+
+export default function Page() {
+  return (
+    <div>
+      <Header />
+      <Counter />
+    </div>
+  )
+}
+```
+
+## Reference
+
+See the React documentation for more information on `use client`.
+
+# Use Server
+
+Learn how to use the `use server` directive to execute code on the server.
+
+The `use server` directive designates a function or file to be executed on the server side. It can be used at the top of a file to indicate that all functions in the file are server-side, or inline at the top of a function to mark the function as a Server Function. This is a React feature.
+
+## Using `use server` at the top of a file
+
+The following example shows a file with a `use server` directive at the top. All functions in the file are executed on the server.
+
+```tsx
+'use server'
+import { db } from '@/lib/db' // Your database client
+
+export async function createUser(data: { name: string; email: string }) {
+  const user = await db.user.create({ data })
+  return user
+}
+```
+
+```jsx
+'use server'
+import { db } from '@/lib/db' // Your database client
+
+export async function createUser(data) {
+  const user = await db.user.create({ data })
+  return user
+}
+```
+
+### Using Server Functions in a Client Component
+
+To use Server Functions in Client Components, create your Server Functions in a dedicated file using the `use server` directive at the top of the file. These Server Functions can then be imported into Client and Server Components and executed.
+
+Assuming you have a `fetchUsers` Server Function in `actions.ts`:
+
+```tsx
+'use server'
+import { db } from '@/lib/db' // Your database client
+
+export async function fetchUsers() {
+  const users = await db.user.findMany()
+  return users
+}
+```
+
+```jsx
+'use server'
+import { db } from '@/lib/db' // Your database client
+
+export async function fetchUsers() {
+  const users = await db.user.findMany()
+  return users
+}
+```
+
+Then you can import the `fetchUsers` Server Function into a Client Component and execute it on the client-side.
+
+```tsx
+'use client'
+import { fetchUsers } from '../actions'
+
+export default function MyButton() {
+  return <button onClick={() => fetchUsers()}>Fetch Users</button>
+}
+```
+
+```jsx
+'use client'
+import { fetchUsers } from '../actions'
+
+export default function MyButton() {
+  return <button onClick={() => fetchUsers()}>Fetch Users</button>
+}
+```
+
+## Using `use server` inline
+
+In the following example, `use server` is used inline at the top of a function to mark it as a Server Function:
+
+```tsx
+import { db } from '@/lib/db' // Your database client
+
+export default function UserList() {
+  async function fetchUsers() {
+    'use server'
+    const users = await db.user.findMany()
+    return users
+  }
+
+  return <button onClick={() => fetchUsers()}>Fetch Users</button>
+}
+```
+
+```jsx
+import { db } from '@/lib/db' // Your database client
+
+export default function UserList() {
+  async function fetchUsers() {
+    'use server'
+    const users = await db.user.findMany()
+    return users
+  }
+
+  return <button onClick={() => fetchUsers()}>Fetch Users</button>
+}
+```
+
+## Security considerations
+
+When using the `use server` directive, ensure that all server-side logic is secure and that sensitive data remains protected.
+
+### Authentication and authorization
+
+Always authenticate and authorize users before performing sensitive server-side operations.
+
+```tsx
+'use server'
+
+import { db } from '@/lib/db' // Your database client
+import { authenticate } from '@/lib/auth' // Your authentication library
+
+export async function createUser(
+  data: { name: string; email: string },
+  token: string
+) {
+  const user = authenticate(token)
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+  const newUser = await db.user.create({ data })
+  return newUser
+}
+```
+
+```jsx
+'use server'
+
+import { db } from '@/lib/db' // Your database client
+import { authenticate } from '@/lib/auth' // Your authentication library
+
+export async function createUser(data, token) {
+  const user = authenticate(token)
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+  const newUser = await db.user.create({ data })
+  return newUser
+}
+```
+
+## Reference
+
+See the React documentation for more information on `use server`.
+
+# Font Module
+
+Optimizing loading web fonts with the built-in `next/font` loaders.
+
+This API reference will help you understand how to use `next/font/google` and `next/font/local`. For features and usage, please see the Optimizing Fonts page.
+
+## Font Function Arguments
+
+For usage, review Google Fonts and Local Fonts.
+
+| Key                                         | `font/google`       | `font/local`        | Type                       | Required          |
+| ------------------------------------------- | ------------------- | ------------------- | -------------------------- | ----------------- |
+| `src`                                       | Yes                 | Yes                 | String or Array of Objects | Yes               |
+| `weight`                                    | Required/Optional   | Required/Optional   | String or Array            | Yes               |
+| `style`                                     | -                   | -                   | String or Array            | Optional          |
+| `subsets`                                   | -                   | -                   | Array of Strings           | Optional          |
+| `axes`                                      | -                   | -                   | Array of Strings           | Optional          |
+| `display`                                   | -                   | -                   | String                     | Optional          |
+| `preload`                                   | -                   | -                   | Boolean                    | Optional          |
+| `fallback`                                   | -                   | -                   | Array of Strings           | Optional          |
+| `adjustFontFallback`                        | -                   | -                   | Boolean or String          | Optional          |
+| `variable`                                  | -                   | -                   | String                     | Optional          |
+| `declarations`                              | -                   | -                   | Array of Objects           | Optional          |
+
+### `src`
+
+The path of the font file as a string or an array of objects (with type `Array<{path: string, weight?: string, style?: string}>`) relative to the directory where the font loader function is called. 
+
+Used in `next/font/local` - Required.
+
+Examples:
+- `src:'./fonts/my-font.woff2'`
+- `src:[{path: './inter/Inter-Thin.ttf', weight: '100'},...]`
+- If called in `app/page.tsx` using `src:'../styles/fonts/my-font.ttf'`, then `my-font.ttf` is in `styles/fonts` at the project root.
+
+### `weight`
+
+The font weight with the following possibilities:
+- A string with possible values of the weights available for the specific font or a range of values if it's a variable font.
+- An array of weight values if the font is not a variable google font. 
+
+Used in `next/font/google` and `next/font/local` - Required if the font is not variable.
+
+Examples:
+- `weight: '400'`
+- `weight: '100 900'`
+- `weight: ['100','400','900']`
+
+### `style`
+
+The font style with the following possibilities:
+- A string value with default value of `'normal'`.
+- An array of style values if the font is not a variable google font.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `style: 'italic'`
+- `style: ['italic','normal']`
+
+### `subsets`
+
+The font subsets defined by an array of string values. Fonts specified via `subsets` will have a link preload tag injected into the head when the `preload` option is true, which is the default.
+
+Used in `next/font/google` - Optional.
+
+Examples:
+- `subsets: ['latin']`
+
+### `axes`
+
+Some variable fonts have extra axes that can be included. 
+
+Used in `next/font/google` - Optional.
+
+Examples:
+- `axes: ['slnt']`
+
+### `display`
+
+The font display with possible string values of `'auto'`, `'block'`, `'swap'`, `'fallback'` or `'optional'` with default value of `'swap'`.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `display: 'optional'`
+
+### `preload`
+
+A boolean value that specifies whether the font should be preloaded or not. The default is `true`.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `preload: false`
+
+### `fallback`
+
+The fallback font to use if the font cannot be loaded. An array of strings of fallback fonts with no default.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `fallback: ['system-ui', 'arial']`
+
+### `adjustFontFallback`
+
+- For `next/font/google`: A boolean value that sets whether an automatic fallback font should be used to reduce Cumulative Layout Shift. The default is `true`.
+- For `next/font/local`: A string or boolean `false` value that sets whether an automatic fallback font should be used. The default is `'Arial'`.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `adjustFontFallback: false`
+- `adjustFontFallback: 'Times New Roman'`
+
+### `variable`
+
+A string value to define the CSS variable name to be used if the style is applied with the CSS variable method.
+
+Used in `next/font/google` and `next/font/local` - Optional.
+
+Examples:
+- `variable: '--my-font'`
+
+### `declarations`
+
+An array of font face descriptor key-value pairs that define the generated `@font-face` further.
+
+Used in `next/font/local` - Optional.
+
+Examples:
+- `declarations: [{ prop: 'ascent-override', value: '90%' }]`
+
+## Applying Styles
+
+You can apply the font styles in three ways:
+- `className`
+- `style`
+- CSS Variables
+
+### `className`
+
+Returns a read-only CSS `className` for the loaded font to be passed to an HTML element.
+
+```tsx
+<p className={inter.className}>Hello, Next.js!</p>
+```
+
+### `style`
+
+Returns a read-only CSS `style` object for the loaded font to be passed to an HTML element.
+
+```tsx
+<p style={inter.style}>Hello World</p>
+```
+
+### CSS Variables
+
+To set your styles in an external style sheet and specify additional options, use the CSS variable method.
+
+```tsx
+import { Inter } from 'next/font/google'
+import styles from '../styles/component.module.css'
+
+const inter = Inter({
+  variable: '--font-inter',
+})
+```
+
+To use the font, set the `className` of the parent container to the font loader's `variable` value and the `className` of the text to the `styles` property from the external CSS file.
+
+```tsx
+<main className={inter.variable}>
+  <p className={styles.text}>Hello World</p>
+</main>
+```
+
+Define the `text` selector class in the `component.module.css` CSS file as follows:
+
+```css
+.text {
+  font-family: var(--font-inter);
+  font-weight: 200;
+  font-style: italic;
+}
+```
+
+## Using a font definitions file
+
+Create a `fonts.ts` file in a `styles` folder at the root of your app directory.
+
+```ts
+import { Inter, Lora, Source_Sans_3 } from 'next/font/google'
+import localFont from 'next/font/local'
+
+const inter = Inter()
+const lora = Lora()
+const sourceCodePro400 = Source_Sans_3({ weight: '400' })
+const sourceCodePro700 = Source_Sans_3({ weight: '700' })
+const greatVibes = localFont({ src: './GreatVibes-Regular.ttf' })
+
+export { inter, lora, sourceCodePro400, sourceCodePro700, greatVibes }
+```
+
+You can now use these definitions in your code as follows:
+
+```tsx
+import { inter, lora, sourceCodePro700, greatVibes } from '../styles/fonts'
+
+export default function Page() {
+  return (
+    <div>
+      <p className={inter.className}>Hello world using Inter font</p>
+      <p style={lora.style}>Hello world using Lora font</p>
+      <p className={sourceCodePro700.className}>
+        Hello world using Source_Sans_3 font with weight 700
+      </p>
+      <p className={greatVibes.className}>My title in Great Vibes font</p>
+    </div>
+  )
+}
+```
+
+To make it easier to access the font definitions, define a path alias in your `tsconfig.json` or `jsconfig.json` files as follows:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/fonts": ["./styles/fonts"]
+    }
+  }
+}
+```
+
+You can now import any font definition as follows:
+
+```tsx
+import { greatVibes, sourceCodePro400 } from '@/fonts'
+```
+
+## Version Changes
+
+| Version   | Changes                                                               |
+| --------- | --------------------------------------------------------------------- |
+| `v13.2.0` | `@next/font` renamed to `next/font`. Installation no longer required. |
+| `v13.0.0` | `@next/font` was added.                                               |
+
+# Form
+
+Learn how to use the `<Form>` component to handle form submissions and search params updates with client-side navigation.
+
+The `<Form>` component extends the HTML `<form>` element to provide prefetching of loading UI, client-side navigation on submission, and progressive enhancement. It's useful for forms that update URL search params, reducing boilerplate code.
+
+## Basic Usage
+
+```tsx
+import Form from 'next/form'
+
+export default function Page() {
+  return (
+    <Form action="/search">
+      <input name="query" />
+      <button type="submit">Submit</button>
+    </Form>
+  )
+}
+```
+
+```jsx
+import Form from 'next/form'
+
+export default function Search() {
+  return (
+    <Form action="/search">
+      <input name="query" />
+      <button type="submit">Submit</button>
+    </Form>
+  )
+}
+```
+
+## Reference
+
+The behavior of the `<Form>` component depends on whether the `action` prop is a string or a function.
+
+- When `action` is a **string**, the `<Form>` behaves like a native HTML form using a **`GET`** method. The form data is encoded into the URL as search params, and when submitted, it navigates to the specified URL. Next.js:
+  - Prefetches the path when the form becomes visible, preloading shared UI, resulting in faster navigation.
+  - Performs client-side navigation instead of a full page reload, retaining shared UI and client-side state.
+  
+- When `action` is a **function** (Server Action), `<Form>` behaves like a React form, executing the action upon submission.
+
+### `action` (string) Props
+
+When `action` is a string, the `<Form>` component supports the following props:
+
+| Prop      | Example            | Type                            | Required |
+| --------- | ------------------ | ------------------------------- | -------- |
+| `action`  | `action="/search"` | `string` (URL or relative path) | Yes      |
+| `replace` | `replace={false}`  | `boolean`                       | -        |
+| `scroll`  | `scroll={true}`    | `boolean`                       | -        |
+
+- **`action`**: The URL or path to navigate to when the form is submitted. An empty string will navigate to the same route with updated search params.
+- **`replace`**: Replaces the current history state instead of pushing a new one. Default is `false`.
+- **`scroll`**: Controls the scroll behavior during navigation. Defaults to `true`.
+
+### `action` (function) Props
+
+When `action` is a function, the `<Form>` component supports the following prop:
+
+| Prop     | Example             | Type                       | Required |
+| -------- | ------------------- | -------------------------- | -------- |
+| `action` | `action={myAction}` | `function` (Server Action) | Yes      |
+
+- **`action`**: The Server Action to be called when the form is submitted.
+
+> **Good to know**: When `action` is a function, the `replace` and `scroll` props are ignored.
+
+### Caveats
+
+- **`formAction`**: Can be used in a `<button>` or `<input type="submit">` to override the `action` prop. This approach doesn't support prefetching.
+- **`onSubmit`**: Can handle form submission logic, but calling `event.preventDefault()` will override `<Form>` behavior.
+- **`method`, `encType`, `target`**: Not supported as they override `<Form>` behavior. Use the HTML `<form>` element instead.
+- **`<input type="file">`**: Submitting this input type with a string action will match browser behavior by submitting the filename instead of the file object.
+
+## Examples
+
+### Search Form
+
+Create a search form that navigates to a search results page:
+
+```tsx
+import Form from 'next/form'
+
+export default function Page() {
+  return (
+    <Form action="/search">
+      <input name="query" />
+      <button type="submit">Submit</button>
+    </Form>
+  )
+}
+```
+
+When the user submits the form, the data will be encoded into the URL as search params, e.g., `/search?query=abc`.
+
+On the results page, access the query using the `searchParams` prop to fetch data.
+
+```tsx
+import { getSearchResults } from '@/lib/search'
+
+export default async function SearchPage({ searchParams }) {
+  const results = await getSearchResults(searchParams.query)
+  return <div>...</div>
+}
+```
+
+### Mutations with Server Actions
+
+Perform mutations by passing a function to the `action` prop.
+
+```tsx
+import Form from 'next/form'
+import { createPost } from '@/posts/actions'
+
+export default function Page() {
+  return (
+    <Form action={createPost}>
+      <input name="title" />
+      <button type="submit">Create Post</button>
+    </Form>
+  )
+}
+```
+
+After a mutation, redirect to the new resource using the `redirect` function.
+
+```tsx
+'use server'
+import { redirect } from 'next/navigation'
+
+export async function createPost(formData) {
+  // Create a new post
+  redirect(`/posts/${data.id}`)
+}
+```
+
+In the new page, fetch data using the `params` prop.
+
+```tsx
+import { getPost } from '@/posts/data'
+
+export default async function PostPage({ params }) {
+  const data = await getPost(params.id)
+  return <div><h1>{data.title}</h1></div>
+}
+```
+
+# Optimize Images in your Next.js Application using the built-in `next/image` Component
+
+This API reference will help you understand how to use props and configuration options available for the Image Component. For features and usage, please see the Image Component page.
+
+```jsx
+import Image from 'next/image'
+
+export default function Page() {
+  return (
+    <Image
+      src="/profile.png"
+      width={500}
+      height={500}
+      alt="Picture of the author"
+    />
+  )
+}
+```
+
+## Props
+
+Here's a summary of the props available for the Image Component:
+
+| Prop                                      | Example                                  | Type            | Status     |
+| ----------------------------------------- | ---------------------------------------- | --------------- | ---------- |
+| `src`                                     | `src="/profile.png"`                     | String          | Required   |
+| `width`                                   | `width={500}`                            | Integer (px)    | Required   |
+| `height`                                  | `height={500}`                           | Integer (px)    | Required   |
+| `alt`                                     | `alt="Picture of the author"`            | String          | Required   |
+| `loader`                                  | `loader={imageLoader}`                   | Function        | -          |
+| `fill`                                    | `fill={true}`                            | Boolean         | -          |
+| `sizes`                                   | `sizes="(max-width: 768px) 100vw, 33vw"` | String          | -          |
+| `quality`                                 | `quality={80}`                           | Integer (1-100) | -          |
+| `priority`                                | `priority={true}`                        | Boolean         | -          |
+| `placeholder`                             | `placeholder="blur"`                     | String          | -          |
+| `style`                                   | `style={{objectFit: "contain"}}`         | Object          | -          |
+| `onLoadingComplete`                       | `onLoadingComplete={img => done()}`     | Function        | Deprecated |
+| `onLoad`                                  | `onLoad={event => done()}`              | Function        | -          |
+| `onError`                                 | `onError={event => fail()}`             | Function        | -          |
+| `loading`                                 | `loading="lazy"`                         | String          | -          |
+| `blurDataURL`                             | `blurDataURL="data:image/jpeg..."`       | String          | -          |
+| `overrideSrc`                             | `overrideSrc="/seo.png"`                 | String          | -          |
+
+## Required Props
+
+The Image Component requires the following properties: `src`, `alt`, `width`, and `height` (or `fill`).
+
+```jsx
+import Image from 'next/image'
+
+export default function Page() {
+  return (
+    <div>
+      <Image
+        src="/profile.png"
+        width={500}
+        height={500}
+        alt="Picture of the author"
+      />
+    </div>
+  )
+}
+```
+
+### `src`
+
+Must be one of the following:
+
+- A statically imported image file
+- A path string (absolute external URL or internal path)
+
+### `width`
+
+Represents the intrinsic image width in pixels. Required, except for statically imported images or images with the `fill` property.
+
+### `height`
+
+Represents the intrinsic image height in pixels. Required, except for statically imported images or images with the `fill` property.
+
+### `alt`
+
+Describes the image for screen readers and search engines. Should contain text that could replace the image without changing the meaning of the page. If the image is purely decorative, the `alt` property should be an empty string (`alt=""`).
+
+## Optional Props
+
+### `loader`
+
+A custom function used to resolve image URLs.
+
+### `fill`
+
+A boolean that causes the image to fill the parent element. The parent element must assign `position: "relative"`, `position: "fixed"`, or `position: "absolute"` style.
+
+### `sizes`
+
+A string that provides information about how wide the image will be at different breakpoints.
+
+### `quality`
+
+The quality of the optimized image, an integer between `1` and `100`. Defaults to `75`.
+
+### `priority`
+
+When true, the image will be considered high priority and preload. Lazy loading is automatically disabled for images using priority.
+
+### `placeholder`
+
+A placeholder to use while the image is loading. Possible values are `blur`, `empty`, or `data:image/...`. Defaults to `empty`.
+
+### `style`
+
+Allows passing CSS styles to the underlying image element.
+
+### `onLoad`
+
+A callback function invoked once the image is completely loaded.
+
+### `onError`
+
+A callback function invoked if the image fails to load.
+
+### `loading`
+
+The loading behavior of the image. Defaults to `lazy`.
+
+### `blurDataURL`
+
+A Data URL to be used as a placeholder image before the `src` image successfully loads.
+
+### `unoptimized`
+
+When true, the source image will be served as-is instead of changing quality, size, or format. Defaults to `false`.
+
+### `overrideSrc`
+
+Overrides the `src` attribute generated for SEO purposes.
+
+### `decoding`
+
+A hint to the browser indicating if it should wait for the image to be decoded before presenting other content updates. Defaults to `async`.
+
+## Configuration Options
+
+### `localPatterns`
+
+Configure `localPatterns` in your `next.config.js` file to allow specific paths to be optimized.
+
+### `remotePatterns`
+
+Configuration required to use external images to protect your application from malicious users.
+
+### `domains`
+
+Deprecated since Next.js 14 in favor of strict `remotePatterns`.
+
+### `loaderFile`
+
+If using a cloud provider to optimize images, configure the `loaderFile` in your `next.config.js`.
+
+## Advanced
+
+### `deviceSizes`
+
+Specify a list of device width breakpoints using the `deviceSizes` property in `next.config.js`.
+
+### `imageSizes`
+
+Specify a list of image widths using the `images.imageSizes` property in your `next.config.js`.
+
+### `formats`
+
+Configure the default image formats for the Image Optimization API.
+
+## Caching Behavior
+
+Images are optimized dynamically upon request and stored in the cache. The cache status can be determined by reading the value of the `x-nextjs-cache` response header.
+
+### `minimumCacheTTL`
+
+Configure the Time to Live (TTL) in seconds for cached optimized images.
+
+### `disableStaticImages`
+
+Disable the feature that allows importing static files.
+
+### `dangerouslyAllowSVG`
+
+Allow serving SVG images with the default Image Optimization API.
+
+### `contentDispositionType`
+
+Set the `Content-Disposition` header for added protection.
+
+## Animated Images
+
+The default loader will automatically bypass Image Optimization for animated images.
+
+## Responsive Images
+
+The default generated `srcset` contains `1x` and `2x` images. You can render a responsive image using various methods.
+
+### Theme Detection CSS
+
+Create a component that wraps two `<Image>` components to display a different image for light and dark mode.
+
+### getImageProps
+
+Call `getImageProps()` to get the props that would be passed to the underlying `<img>` element.
+
+## Known Browser Bugs
+
+This `next/image` component uses browser native lazy loading, which may fallback to eager loading for older browsers. 
+
+## Version History
+
+| Version    | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v15.0.0`  | `decoding` prop added. `contentDispositionType` configuration default changed to `attachment`.                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `v14.2.0`  | `overrideSrc` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `v14.1.0`  | `getImageProps()` is stable.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `v14.0.0`  | `onLoadingComplete` prop and `domains` config deprecated.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `v13.4.14` | `placeholder` prop support for `data:/image...`                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `v13.2.0`  | `contentDispositionType` configuration added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `v13.0.6`  | `ref` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `v13.0.0`  | The `next/image` import was renamed to `next/legacy/image`. The `next/future/image` import was renamed to `next/image`.                                                                                                                                                                                                                                                                                                                                                                                     |
+| `v12.3.0`  | `remotePatterns` and `unoptimized` configuration is stable.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `v12.2.0`  | Experimental `remotePatterns` and experimental `unoptimized` configuration added.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `v12.1.1`  | `style` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `v12.1.0`  | `dangerouslyAllowSVG` and `contentSecurityPolicy` configuration added.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `v12.0.9`  | `lazyRoot` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `v12.0.0`  | `formats` configuration added.<br/>AVIF support added.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `v11.1.0`  | `onLoadingComplete` and `lazyBoundary` props added.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `v11.0.0`  | `src` prop support for static import.<br/>`placeholder` prop added.<br/>`blurDataURL` prop added.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `v10.0.5`  | `loader` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `v10.0.1`  | `layout` prop added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `v10.0.0`  | `next/image` introduced.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+# Components
+
+API Reference for Next.js built-in components.
+
+The content of this documentation is shared between the app and pages router. Use the `<PagesOnly>Content</PagesOnly>` component to add content specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Enable fast client-side navigation with the built-in `next/link` component
+
+`<Link>` is a React component that extends the HTML `<a>` element to provide prefetching and client-side navigation between routes. It is the primary way to navigate between routes in Next.js.
+
+## Basic usage
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/dashboard">Dashboard</Link>
+}
+```
+
+```jsx
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/dashboard">Dashboard</Link>
+}
+```
+
+## Reference
+
+The following props can be passed to the `<Link>` component:
+
+| Prop                                | Example                 | Type              | Required |
+| ----------------------------------- | ----------------------- | ----------------- | -------- |
+| `href`                              | `href="/dashboard"`     | String or Object  | Yes      |
+| `replace`                           | `replace={false}`       | Boolean           | -        |
+| `scroll`                            | `scroll={false}`        | Boolean           | -        |
+| `prefetch`                          | `prefetch={false}`      | Boolean           | -        |
+| `legacyBehavior`                    | `legacyBehavior={true}` | Boolean           | -        |
+| `passHref`                          | `passHref={true}`       | Boolean           | -        |
+| `shallow`                           | `shallow={false}`       | Boolean           | -        |
+| `locale`                            | `locale="fr"`           | String or Boolean | -        |
+
+> **Good to know**: `<a>` tag attributes such as `className` or `target="_blank"` can be added to `<Link>` as props and will be passed to the underlying `<a>` element.
+
+### `href` (required)
+
+The path or URL to navigate to.
+
+```tsx
+import Link from 'next/link'
+
+// Navigate to /about?name=test
+export default function Page() {
+  return (
+    <Link
+      href={{
+        pathname: '/about',
+        query: { name: 'test' },
+      }}
+    >
+      About
+    </Link>
+  )
+}
+```
+
+### `replace`
+
+**Defaults to `false`.** When `true`, `next/link` will replace the current history state instead of adding a new URL into the browser's history stack.
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <Link href="/dashboard" replace>
+      Dashboard
+    </Link>
+  )
+}
+```
+
+### `scroll`
+
+**Defaults to `true`.** The default scrolling behavior of `<Link>` in Next.js is to maintain scroll position. When `scroll = {false}`, Next.js will not attempt to scroll to the first Page element.
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <Link href="/dashboard" scroll={false}>
+      Dashboard
+    </Link>
+  )
+}
+```
+
+### `prefetch`
+
+Prefetching happens when a `<Link />` component enters the user's viewport. Prefetching is only enabled in production.
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <Link href="/dashboard" prefetch={false}>
+      Dashboard
+    </Link>
+  )
+}
+```
+
+### `legacyBehavior`
+
+An `<a>` element is no longer required as a child of `<Link>`. Add the `legacyBehavior` prop to use the legacy behavior.
+
+### `passHref`
+
+Forces `Link` to send the `href` property to its child. Defaults to `false`.
+
+### `shallow`
+
+Update the path of the current page without rerunning `getStaticProps`, `getServerSideProps`, or `getInitialProps`. Defaults to `false`.
+
+```tsx
+import Link from 'next/link'
+
+export default function Home() {
+  return (
+    <Link href="/dashboard" shallow={false}>
+      Dashboard
+    </Link>
+  )
+}
+```
+
+### `locale`
+
+The active locale is automatically prepended. `locale` allows for providing a different locale.
+
+```tsx
+import Link from 'next/link'
+
+export default function Home() {
+  return (
+    <>
+      <Link href="/dashboard">Dashboard (with locale)</Link>
+      <Link href="/dashboard" locale={false}>
+        Dashboard (without locale)
+      </Link>
+      <Link href="/dashboard" locale="fr">
+        Dashboard (French)
+      </Link>
+    </>
+  )
+}
+```
+
+## Examples
+
+### Linking to dynamic segments
+
+```tsx
+import Link from 'next/link'
+
+interface Post {
+  id: number
+  title: string
+  slug: string
+}
+
+export default function PostList({ posts }: { posts: Post[] }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>
+          <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+```
+
+### Checking active links
+
+```tsx
+'use client'
+
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+
+export function Links() {
+  const pathname = usePathname()
+
+  return (
+    <nav>
+      <Link className={`link ${pathname === '/' ? 'active' : ''}`} href="/">
+        Home
+      </Link>
+      <Link
+        className={`link ${pathname === '/about' ? 'active' : ''}`}
+        href="/about"
+      >
+        About
+      </Link>
+    </nav>
+  )
+}
+```
+
+### Scrolling to an `id`
+
+```jsx
+<Link href="/dashboard#settings">Settings</Link>
+```
+
+### If the child is a custom component that wraps an `<a>` tag
+
+```tsx
+import Link from 'next/link'
+import styled from 'styled-components'
+
+const RedLink = styled.a`
+  color: red;
+`
+
+function NavLink({ href, name }) {
+  return (
+    <Link href={href} passHref legacyBehavior>
+      <RedLink>{name}</RedLink>
+    </Link>
+  )
+}
+
+export default NavLink
+```
+
+### Nesting a functional component
+
+```tsx
+import Link from 'next/link'
+import React from 'react'
+
+const MyButton = React.forwardRef(({ onClick, href }, ref) => {
+  return (
+    <a href={href} onClick={onClick} ref={ref}>
+      Click Me
+    </a>
+  )
+})
+
+MyButton.displayName = 'MyButton'
+
+export default function Page() {
+  return (
+    <Link href="/about" passHref legacyBehavior>
+      <MyButton />
+    </Link>
+  )
+}
+```
+
+### Passing a URL Object
+
+```tsx
+import Link from 'next/link'
+
+function Home() {
+  return (
+    <ul>
+      <li>
+        <Link
+          href={{
+            pathname: '/about',
+            query: { name: 'test' },
+          }}
+        >
+          About us
+        </Link>
+      </li>
+      <li>
+        <Link
+          href={{
+            pathname: '/blog/[slug]',
+            query: { slug: 'my-post' },
+          }}
+        >
+          Blog Post
+        </Link>
+      </li>
+    </ul>
+  )
+}
+
+export default Home
+```
+
+### Replace the URL instead of push
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <Link href="/about" replace>
+      About us
+    </Link>
+  )
+}
+```
+
+### Disable scrolling to the top of the page
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return (
+    <Link href="/#hashid" scroll={false}>
+      Disables scrolling to the top
+    </Link>
+  )
+}
+```
+
+### Prefetching links in Middleware
+
+```ts
+import { NextResponse } from 'next/server'
+
+export function middleware(request: Request) {
+  const nextUrl = request.nextUrl
+  if (nextUrl.pathname === '/dashboard') {
+    if (request.cookies.authToken) {
+      return NextResponse.rewrite(new URL('/auth/dashboard', request.url))
+    } else {
+      return NextResponse.rewrite(new URL('/public/dashboard', request.url))
+    }
+  }
+}
+```
+
+```tsx
+'use client'
+
+import Link from 'next/link'
+import useIsAuthed from './hooks/useIsAuthed'
+
+export default function Page() {
+  const isAuthed = useIsAuthed()
+  const path = isAuthed ? '/auth/dashboard' : '/public/dashboard'
+  return (
+    <Link as="/dashboard" href={path}>
+      Dashboard
+    </Link>
+  )
+}
+```
+
+## Version history
+
+| Version   | Changes                                                                                                                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v13.0.0` | No longer requires a child `<a>` tag. A codemod is provided to automatically update your codebase.                                                                                           |
+| `v10.0.0` | `href` props pointing to a dynamic route are automatically resolved and no longer require an `as` prop.                                                                                         |
+| `v8.0.0`  | Improved prefetching performance.                                                                                                                                                               |
+| `v1.0.0`  | `next/link` introduced.                                                                                                                                                                         |
+
+# Optimize Third-Party Scripts in Next.js
+
+Optimize third-party scripts in your Next.js application using the built-in `next/script` Component.
+
+This API reference will help you understand how to use props available for the Script Component. For features and usage, please see the Optimizing Scripts page.
+
+```tsx
+import Script from 'next/script'
+
+export default function Dashboard() {
+  return (
+    <>
+      <Script src="https://example.com/script.js" />
+    </>
+  )
+}
+```
+
+```jsx
+import Script from 'next/script'
+
+export default function Dashboard() {
+  return (
+    <>
+      <Script src="https://example.com/script.js" />
+    </>
+  )
+}
+```
+
+## Props
+
+Here's a summary of the props available for the Script Component:
+
+| Prop                    | Example                           | Type     | Required                              |
+| ----------------------- | --------------------------------- | -------- | ------------------------------------- |
+| src                     | `src="http://example.com/script"` | String   | Required unless inline script is used |
+| strategy                | `strategy="lazyOnload"`           | String   | -                                     |
+| onLoad                  | `onLoad={onLoadFunc}`             | Function | -                                     |
+| onReady                 | `onReady={onReadyFunc}`           | Function | -                                     |
+| onError                 | `onError={onErrorFunc}`           | Function | -                                     |
+
+## Required Props
+
+### `src`
+
+A path string specifying the URL of an external script. This can be either an absolute external URL or an internal path. The `src` property is required unless an inline script is used.
+
+## Optional Props
+
+### `strategy`
+
+The loading strategy of the script. There are four different strategies that can be used:
+
+- `beforeInteractive`: Load before any Next.js code and before any page hydration occurs.
+- `afterInteractive`: (default) Load early but after some hydration on the page occurs.
+- `lazyOnload`: Load during browser idle time.
+- `worker`: (experimental) Load in a web worker.
+
+### `beforeInteractive`
+
+Scripts that load with the `beforeInteractive` strategy are injected into the initial HTML from the server, downloaded before any Next.js module, and executed in the order they are placed before any hydration occurs on the page.
+
+**This strategy should only be used for critical scripts that need to be fetched before any part of the page becomes interactive.**
+
+```tsx
+import Script from 'next/script'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Script
+          src="https://example.com/script.js"
+          strategy="beforeInteractive"
+        />
+      </body>
+    </html>
+  )
+}
+```
+
+### `afterInteractive`
+
+Scripts that use the `afterInteractive` strategy are injected into the HTML client-side and will load after some (or all) hydration occurs on the page. This is the default strategy of the Script component.
+
+```jsx
+import Script from 'next/script'
+
+export default function Page() {
+  return (
+    <>
+      <Script src="https://example.com/script.js" strategy="afterInteractive" />
+    </>
+  )
+}
+```
+
+### `lazyOnload`
+
+Scripts that use the `lazyOnload` strategy are injected into the HTML client-side during browser idle time and will load after all resources on the page have been fetched.
+
+```jsx
+import Script from 'next/script'
+
+export default function Page() {
+  return (
+    <>
+      <Script src="https://example.com/script.js" strategy="lazyOnload" />
+    </>
+  )
+}
+```
+
+### `worker`
+
+Scripts that use the `worker` strategy are off-loaded to a web worker. This strategy can be used for any script but is an advanced use case.
+
+To use `worker` as a strategy, the `nextScriptWorkers` flag must be enabled in `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    nextScriptWorkers: true,
+  },
+}
+```
+
+### `onLoad`
+
+`onLoad` can be used to execute code after a script has finished loading.
+
+```tsx
+'use client'
+
+import Script from 'next/script'
+
+export default function Page() {
+  return (
+    <>
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"
+        onLoad={() => {
+          console.log(_.sample([1, 2, 3, 4]))
+        }}
+      />
+    </>
+  )
+}
+```
+
+### `onReady`
+
+`onReady` can be used to execute code after the script has finished loading and every time the component is mounted.
+
+```tsx
+'use client'
+
+import { useRef } from 'react'
+import Script from 'next/script'
+
+export default function Page() {
+  const mapRef = useRef()
+
+  return (
+    <>
+      <div ref={mapRef}></div>
+      <Script
+        id="google-maps"
+        src="https://maps.googleapis.com/maps/api/js"
+        onReady={() => {
+          new google.maps.Map(mapRef.current, {
+            center: { lat: -34.397, lng: 150.644 },
+            zoom: 8,
+          })
+        }}
+      />
+    </>
+  )
+}
+```
+
+### `onError`
+
+`onError` can be used to catch when a script fails to load.
+
+```tsx
+'use client'
+
+import Script from 'next/script'
+
+export default function Page() {
+  return (
+    <>
+      <Script
+        src="https://example.com/script.js"
+        onError={(e) => {
+          console.error('Script failed to load', e)
+        }}
+      />
+    </>
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                                                                   |
+| --------- | ------------------------------------------------------------------------- |
+| v13.0.0  | `beforeInteractive` and `afterInteractive` modified to support `app`.    |
+| v12.2.4  | `onReady` prop added.                                                     |
+| v12.2.2  | Allow `next/script` with `beforeInteractive` in `_document`.             |
+| v11.0.0  | `next/script` introduced.                                                 |
+
+# Favicon, Icon, and Apple Icon
+
+## Overview
+
+The `favicon`, `icon`, or `apple-icon` file conventions allow you to set icons for your application, useful for web browser tabs, phone home screens, and search engine results.
+
+## Setting App Icons
+
+There are two methods to set app icons:
+
+- Using image files (.ico, .jpg, .png)
+- Using code to generate an icon (.js, .ts, .tsx)
+
+## Image Files (.ico, .jpg, .png)
+
+To set an app icon using an image file, place a `favicon`, `icon`, or `apple-icon` image file within your `/app` directory. The `favicon` image must be located in the root of `app/`. Next.js will evaluate the file and automatically add the appropriate tags to your app's `<head>` element.
+
+| File Convention             | Supported File Types                    | Valid Locations |
+| --------------------------- | --------------------------------------- | --------------- |
+| favicon                     | .ico                                    | app/            |
+| icon                        | .ico, .jpg, .jpeg, .png, .svg         | app/**/*        |
+| apple-icon                  | .jpg, .jpeg, .png                      | app/**/*        |
+
+### Favicon
+
+Add a `favicon.ico` image file to the root `/app` route segment.
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="any" />
+```
+
+### Icon
+
+Add an `icon.(ico|jpg|jpeg|png|svg)` image file.
+
+```html
+<link rel="icon" href="/icon?<generated>" type="image/<generated>" sizes="<generated>" />
+```
+
+### Apple Icon
+
+Add an `apple-icon.(jpg|jpeg|png)` image file.
+
+```html
+<link rel="apple-touch-icon" href="/apple-icon?<generated>" type="image/<generated>" sizes="<generated>" />
+```
+
+**Notes:**
+- Multiple icons can be set by adding a number suffix to the file name (e.g., `icon1.png`, `icon2.png`).
+- Favicons can only be set in the root `/app` segment; use `icon` for more granularity.
+- The appropriate `<link>` tags and attributes are determined by the icon type and file metadata.
+- `sizes="any"` is used for `.svg` files or when the image size is undetermined.
+
+## Generate Icons Using Code (.js, .ts, .tsx)
+
+You can also programmatically generate icons using code by creating an `icon` or `apple-icon` route that exports a function.
+
+| File Convention | Supported File Types |
+| --------------- | -------------------- |
+| icon            | .js, .ts, .tsx       |
+| apple-icon      | .js, .ts, .tsx       |
+
+The easiest way to generate an icon is to use the `ImageResponse` API from `next/og`.
+
+```tsx
+import { ImageResponse } from 'next/og'
+
+export const size = {
+  width: 32,
+  height: 32,
+}
+export const contentType = 'image/png'
+
+export default function Icon() {
+  return new ImageResponse(
+    (
+      <div style={{ fontSize: 24, background: 'black', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+        A
+      </div>
+    ),
+    { ...size }
+  )
+}
+```
+
+```html
+<link rel="icon" href="/icon?<generated>" type="image/png" sizes="32x32" />
+```
+
+**Notes:**
+- Generated icons are statically optimized by default unless using Dynamic APIs or uncached data.
+- You cannot generate a `favicon` icon; use `icon` or a `favicon.ico` file instead.
+- App icons are cached by default unless using a Dynamic API or dynamic config option.
+
+### Props
+
+The default export function can receive the following props:
+
+#### `params` (optional)
+
+An object containing dynamic route parameters.
+
+```tsx
+export default function Icon({ params }: { params: { slug: string } }) {
+  // ...
+}
+```
+
+| Route                           | URL         | `params`                  |
+| ------------------------------- | ----------- | ------------------------- |
+| app/shop/icon.js               | /shop       | undefined                 |
+| app/shop/[slug]/icon.js        | /shop/1     | { slug: '1' }            |
+| app/shop/[tag]/[item]/icon.js  | /shop/1/2   | { tag: '1', item: '2' }  |
+
+### Returns
+
+The function should return a `Blob`, `ArrayBuffer`, `TypedArray`, `DataView`, `ReadableStream`, or `Response`.
+
+**Note:** `ImageResponse` satisfies this return type.
+
+### Config Exports
+
+You can configure the icon's metadata by exporting `size` and `contentType` variables.
+
+| Option                        | Type                                                                                                            |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| size                          | { width: number; height: number }                                                                             |
+| contentType                   | string - image MIME type                                                                                       |
+
+#### Size
+
+```tsx
+export const size = { width: 32, height: 32 }
+```
+
+```html
+<link rel="icon" sizes="32x32" />
+```
+
+#### Content Type
+
+```tsx
+export const contentType = 'image/png'
+```
+
+```html
+<link rel="icon" type="image/png" />
+```
+
+#### Route Segment Config
+
+`icon` and `apple-icon` are specialized Route Handlers that can use the same route segment configuration options as Pages and Layouts.
+
+## Version History
+
+| Version   | Changes                                      |
+| --------- | -------------------------------------------- |
+| v13.3.0  | favicon, icon, and apple-icon introduced     |
+
+# Metadata Files API Reference
+
+This section covers **Metadata file conventions**. File-based metadata can be defined by adding special metadata files to route segments.
+
+Each file convention can be defined using a static file (e.g., opengraph-image.jpg) or a dynamic variant that uses code to generate the file (e.g., opengraph-image.js).
+
+Once a file is defined, Next.js will automatically serve the file (with hashes in production for caching) and update the relevant head elements with the correct metadata, such as the asset's URL, file type, and image size.
+
+**Good to know**:
+- Special Route Handlers like sitemap.ts, opengraph-image.tsx, and icon.tsx, as well as other metadata files, are cached by default.
+- If using along with middleware.ts, configure the matcher to exclude the metadata files.
+
+# manifest.json
+
+API Reference for manifest.json file.
+
+Add or generate a `manifest.(json|webmanifest)` file that matches the Web Manifest Specification in the root of the app directory to provide information about your web application for the browser.
+
+## Static Manifest file
+
+```json
+{
+  "name": "My Next.js Application",
+  "short_name": "Next.js App",
+  "description": "An application built with Next.js",
+  "start_url": "/"
+  // ...
+}
+```
+
+## Generate a Manifest file
+
+Add a `manifest.js` or `manifest.ts` file that returns a `Manifest` object.
+
+Good to know: `manifest.js` is a special Route Handler that is cached by default unless it uses a Dynamic API or dynamic config option.
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Next.js App',
+    short_name: 'Next.js App',
+    description: 'Next.js App',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#fff',
+    theme_color: '#fff',
+    icons: [
+      {
+        src: '/favicon.ico',
+        sizes: 'any',
+        type: 'image/x-icon',
+      },
+    ],
+  }
+}
+```
+
+```js
+export default function manifest() {
+  return {
+    name: 'Next.js App',
+    short_name: 'Next.js App',
+    description: 'Next.js App',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#fff',
+    theme_color: '#fff',
+    icons: [
+      {
+        src: '/favicon.ico',
+        sizes: 'any',
+        type: 'image/x-icon',
+      },
+    ],
+  }
+}
+```
+
+### Manifest Object
+
+The manifest object contains an extensive list of options that may be updated due to new web standards. For information on all the current options, refer to the `MetadataRoute.Manifest` type in your code editor if using TypeScript or see the MDN docs.
+
+# opengraph-image and twitter-image
+
+## Overview
+
+The `opengraph-image` and `twitter-image` file conventions allow you to set Open Graph and Twitter images for a route segment, enhancing how links to your site appear on social networks and messaging apps.
+
+## Setting Images
+
+There are two methods to set Open Graph and Twitter images:
+
+- Using image files (.jpg, .png, .gif)
+- Using code to generate images (.js, .ts, .tsx)
+
+## Image Files (.jpg, .png, .gif)
+
+To set a route segment's shared image, place an `opengraph-image` or `twitter-image` image file in the segment. Next.js will evaluate the file and add the appropriate tags to your app's `<head>` element.
+
+| File Convention                                 | Supported File Types            |
+| ----------------------------------------------- | ------------------------------- |
+| opengraph-image                                 | .jpg, .jpeg, .png, .gif        |
+| twitter-image                                   | .jpg, .jpeg, .png, .gif        |
+| opengraph-image.alt                             | .txt                            |
+| twitter-image.alt                               | .txt                            |
+
+**Note**: The `twitter-image` file size must not exceed 5MB, and the `opengraph-image` file size must not exceed 8MB. Exceeding these limits will cause the build to fail.
+
+### `opengraph-image`
+
+Add an `opengraph-image.(jpg|jpeg|png|gif)` image file to any route segment.
+
+```html
+<meta property="og:image" content="<generated>" />
+<meta property="og:image:type" content="<generated>" />
+<meta property="og:image:width" content="<generated>" />
+<meta property="og:image:height" content="<generated>" />
+```
+
+### `twitter-image`
+
+Add a `twitter-image.(jpg|jpeg|png|gif)` image file to any route segment.
+
+```html
+<meta name="twitter:image" content="<generated>" />
+<meta name="twitter:image:type" content="<generated>" />
+<meta name="twitter:image:width" content="<generated>" />
+<meta name="twitter:image:height" content="<generated>" />
+```
+
+### `opengraph-image.alt.txt`
+
+Add an accompanying `opengraph-image.alt.txt` file in the same route segment as the `opengraph-image.(jpg|jpeg|png|gif)` image for its alt text.
+
+```txt
+About Acme
+```
+
+```html
+<meta property="og:image:alt" content="About Acme" />
+```
+
+### `twitter-image.alt.txt`
+
+Add an accompanying `twitter-image.alt.txt` file in the same route segment as the `twitter-image.(jpg|jpeg|png|gif)` image for its alt text.
+
+```txt
+About Acme
+```
+
+```html
+<meta property="twitter:image:alt" content="About Acme" />
+```
+
+## Generate Images Using Code (.js, .ts, .tsx)
+
+You can programmatically generate images using code by creating an `opengraph-image` or `twitter-image` route that exports a function.
+
+| File Convention   | Supported File Types |
+| ----------------- | -------------------- |
+| opengraph-image    | .js, .ts, .tsx      |
+| twitter-image      | .js, .ts, .tsx      |
+
+**Note**: Generated images are statically optimized by default unless they use Dynamic APIs or uncached data. You can generate multiple images in the same file using `generateImageMetadata`. 
+
+The easiest way to generate an image is to use the `ImageResponse` API from `next/og`.
+
+### Example
+
+```tsx
+import { ImageResponse } from 'next/og'
+
+export const runtime = 'edge'
+export const alt = 'About Acme'
+export const size = { width: 1200, height: 630 }
+export const contentType = 'image/png'
+
+export default async function Image() {
+  const interSemiBold = fetch(new URL('./Inter-SemiBold.ttf', import.meta.url)).then((res) => res.arrayBuffer())
+
+  return new ImageResponse(
+    (
+      <div style={{ fontSize: 128, background: 'white', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        About Acme
+      </div>
+    ),
+    {
+      ...size,
+      fonts: [{ name: 'Inter', data: await interSemiBold, style: 'normal', weight: 400 }],
+    }
+  )
+}
+```
+
+### Props
+
+The default export function receives the following props:
+
+#### `params` (optional)
+
+An object containing the dynamic route parameters from the root segment down to the segment where `opengraph-image` or `twitter-image` is located.
+
+### Returns
+
+The default export function should return a `Blob`, `ArrayBuffer`, `TypedArray`, `DataView`, `ReadableStream`, or `Response`.
+
+**Note**: `ImageResponse` satisfies this return type.
+
+### Config Exports
+
+You can configure the image's metadata by exporting `alt`, `size`, and `contentType` variables.
+
+#### `alt`
+
+```tsx
+export const alt = 'My images alt text'
+```
+
+```html
+<meta property="og:image:alt" content="My images alt text" />
+```
+
+#### `size`
+
+```tsx
+export const size = { width: 1200, height: 630 }
+```
+
+```html
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+```
+
+#### `contentType`
+
+```tsx
+export const contentType = 'image/png'
+```
+
+```html
+<meta property="og:image:type" content="image/png" />
+```
+
+### Route Segment Config
+
+`opengraph-image` and `twitter-image` are specialized Route Handlers that can use the same route segment configuration options as Pages and Layouts.
+
+## Examples
+
+### Using External Data
+
+This example uses the `params` object and external data to generate the image.
+
+```tsx
+import { ImageResponse } from 'next/og'
+
+export const alt = 'About Acme'
+export const size = { width: 1200, height: 630 }
+export const contentType = 'image/png'
+
+export default async function Image({ params }) {
+  const post = await fetch(`https://.../posts/${params.slug}`).then((res) => res.json())
+
+  return new ImageResponse(
+    (
+      <div style={{ fontSize: 48, background: 'white', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {post.title}
+      </div>
+    ),
+    { ...size }
+  )
+}
+```
+
+### Using Edge Runtime with Local Assets
+
+This example uses the Edge runtime to fetch a local image and passes it as an `ArrayBuffer`.
+
+```tsx
+import { ImageResponse } from 'next/og'
+
+export const runtime = 'edge'
+
+export default async function Image() {
+  const logoSrc = await fetch(new URL('./logo.png', import.meta.url)).then((res) => res.arrayBuffer())
+
+  return new ImageResponse(
+    (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src={logoSrc} height="100" />
+      </div>
+    )
+  )
+}
+```
+
+### Using Node.js Runtime with Local Assets
+
+This example uses the Node.js runtime to fetch a local image.
+
+```tsx
+import { ImageResponse } from 'next/og'
+import { join } from 'node:path'
+import { readFile } from 'node:fs/promises'
+
+export default async function Image() {
+  const logoData = await readFile(join(process.cwd(), 'logo.png'))
+  const logoSrc = Uint8Array.from(logoData).buffer
+
+  return new ImageResponse(
+    (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src={logoSrc} height="100" />
+      </div>
+    )
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                                           |
+| --------- | ------------------------------------------------- |
+| v13.3.0  | opengraph-image and twitter-image introduced.     |
+
+# robots.txt
+
+Add or generate a `robots.txt` file that matches the Robots Exclusion Standard in the root of the `app` directory to tell search engine crawlers which URLs they can access on your site.
+
+## Static `robots.txt`
+
+```txt
+User-Agent: *
+Allow: /
+Disallow: /private/
+
+Sitemap: https://acme.com/sitemap.xml
+```
+
+## Generate a Robots file
+
+Add a `robots.js` or `robots.ts` file that returns a `Robots` object.
+
+**Note**: `robots.js` is a special Route Handler that is cached by default unless it uses a Dynamic API or dynamic config option.
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: '/private/',
+    },
+    sitemap: 'https://acme.com/sitemap.xml',
+  }
+}
+```
+
+```js
+export default function robots() {
+  return {
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: '/private/',
+    },
+    sitemap: 'https://acme.com/sitemap.xml',
+  }
+}
+```
+
+Output:
+
+```txt
+User-Agent: *
+Allow: /
+Disallow: /private/
+
+Sitemap: https://acme.com/sitemap.xml
+```
+
+### Customizing specific user agents
+
+You can customize how individual search engine bots crawl your site by passing an array of user agents to the `rules` property. For example:
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: 'Googlebot',
+        allow: ['/'],
+        disallow: '/private/',
+      },
+      {
+        userAgent: ['Applebot', 'Bingbot'],
+        disallow: ['/'],
+      },
+    ],
+    sitemap: 'https://acme.com/sitemap.xml',
+  }
+}
+```
+
+```js
+export default function robots() {
+  return {
+    rules: [
+      {
+        userAgent: 'Googlebot',
+        allow: ['/'],
+        disallow: ['/private/'],
+      },
+      {
+        userAgent: ['Applebot', 'Bingbot'],
+        disallow: ['/'],
+      },
+    ],
+    sitemap: 'https://acme.com/sitemap.xml',
+  }
+}
+```
+
+Output:
+
+```txt
+User-Agent: Googlebot
+Allow: /
+Disallow: /private/
+
+User-Agent: Applebot
+Disallow: /
+
+User-Agent: Bingbot
+Disallow: /
+
+Sitemap: https://acme.com/sitemap.xml
+```
+
+### Robots object
+
+```tsx
+type Robots = {
+  rules:
+    | {
+        userAgent?: string | string[]
+        allow?: string | string[]
+        disallow?: string | string[]
+        crawlDelay?: number
+      }
+    | Array<{
+        userAgent: string | string[]
+        allow?: string | string[]
+        disallow?: string | string[]
+        crawlDelay?: number
+      }>
+  sitemap?: string | string[]
+  host?: string
+}
+```
+
+## Version History
+
+| Version   | Changes              |
+| --------- | -------------------- |
+| `v13.3.0` | `robots` introduced. |
+
+# sitemap.xml
+
+API Reference for the sitemap.xml file.
+
+`sitemap.(xml|js|ts)` is a special file that matches the Sitemaps XML format to help search engine crawlers index your site more efficiently.
+
+## Sitemap files (.xml)
+
+For smaller applications, create a `sitemap.xml` file in the root of your `app` directory.
+
+```xml
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://acme.com</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>1</priority>
+  </url>
+  <url>
+    <loc>https://acme.com/about</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://acme.com/blog</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+```
+
+## Generating a sitemap using code (.js, .ts)
+
+Use the `sitemap.(js|ts)` file convention to programmatically generate a sitemap by exporting a default function that returns an array of URLs. If using TypeScript, a `Sitemap` type is available.
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://acme.com',
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 1,
+    },
+    {
+      url: 'https://acme.com/about',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://acme.com/blog',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
+  ]
+}
+```
+
+```js
+export default function sitemap() {
+  return [
+    {
+      url: 'https://acme.com',
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 1,
+    },
+    {
+      url: 'https://acme.com/about',
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: 'https://acme.com/blog',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
+  ]
+}
+```
+
+Output:
+
+```xml
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://acme.com</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>1</priority>
+  </url>
+  <url>
+    <loc>https://acme.com/about</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://acme.com/blog</loc>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+```
+
+## Image Sitemaps
+
+Use the `images` property to create image sitemaps.
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://example.com',
+      lastModified: '2021-01-01',
+      changeFrequency: 'weekly',
+      priority: 0.5,
+      images: ['https://example.com/image.jpg'],
+    },
+  ]
+}
+```
+
+Output:
+
+```xml
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+>
+  <url>
+    <loc>https://example.com</loc>
+    <image:image>
+      <image:loc>https://example.com/image.jpg</image:loc>
+    </image:image>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+```
+
+## Video Sitemaps
+
+Use the `videos` property to create video sitemaps.
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://example.com',
+      lastModified: '2021-01-01',
+      changeFrequency: 'weekly',
+      priority: 0.5,
+      videos: [
+        {
+          title: 'example',
+          thumbnail_loc: 'https://example.com/image.jpg',
+          description: 'this is the description',
+        },
+      ],
+    },
+  ]
+}
+```
+
+Output:
+
+```xml
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+>
+  <url>
+    <loc>https://example.com</loc>
+    <video:video>
+      <video:title>example</video:title>
+      <video:thumbnail_loc>https://example.com/image.jpg</video:thumbnail_loc>
+      <video:description>this is the description</video:description>
+    </video:video>
+    <lastmod>2021-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+```
+
+## Generate a localized Sitemap
+
+```ts
+import type { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://acme.com',
+      lastModified: new Date(),
+      alternates: {
+        languages: {
+          es: 'https://acme.com/es',
+          de: 'https://acme.com/de',
+        },
+      },
+    },
+    {
+      url: 'https://acme.com/about',
+      lastModified: new Date(),
+      alternates: {
+        languages: {
+          es: 'https://acme.com/es/about',
+          de: 'https://acme.com/de/about',
+        },
+      },
+    },
+    {
+      url: 'https://acme.com/blog',
+      lastModified: new Date(),
+      alternates: {
+        languages: {
+          es: 'https://acme.com/es/blog',
+          de: 'https://acme.com/de/blog',
+        },
+      },
+    },
+  ]
+}
+```
+
+Output:
+
+```xml
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://acme.com</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://acme.com/es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://acme.com/de"/>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+  </url>
+  <url>
+    <loc>https://acme.com/about</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://acme.com/es/about"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://acme.com/de/about"/>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+  </url>
+  <url>
+    <loc>https://acme.com/blog</loc>
+    <xhtml:link rel="alternate" hreflang="es" href="https://acme.com/es/blog"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://acme.com/de/blog"/>
+    <lastmod>2023-04-06T15:02:24.021Z</lastmod>
+  </url>
+</urlset>
+```
+
+## Generating multiple sitemaps
+
+For large web applications, you may need to split a sitemap into multiple files.
+
+You can create multiple sitemaps by:
+
+- Nesting `sitemap.(xml|js|ts)` inside multiple route segments, e.g., `app/sitemap.xml` and `app/products/sitemap.xml`.
+- Using the `generateSitemaps` function.
+
+Example using `generateSitemaps`:
+
+```ts
+import type { MetadataRoute } from 'next'
+import { BASE_URL } from '@/app/lib/constants'
+
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }]
+}
+
+export default async function sitemap({ id }): Promise<MetadataRoute.Sitemap> {
+  const start = id * 50000
+  const end = start + 50000
+  const products = await getProducts(
+    `SELECT id, date FROM products WHERE id BETWEEN ${start} AND ${end}`
+  )
+  return products.map((product) => ({
+    url: `${BASE_URL}/product/${product.id}`,
+    lastModified: product.date,
+  }))
+}
+```
+
+Your generated sitemaps will be available at `/.../sitemap/[id]`. For example, `/product/sitemap/1.xml`.
+
+## Returns
+
+The default function exported from `sitemap.(xml|ts|js)` should return an array of objects with the following properties:
+
+```tsx
+type Sitemap = Array<{
+  url: string
+  lastModified?: string | Date
+  changeFrequency?:
+    | 'always'
+    | 'hourly'
+    | 'daily'
+    | 'weekly'
+    | 'monthly'
+    | 'yearly'
+    | 'never'
+  priority?: number
+  alternates?: {
+    languages?: Languages<string>
+  }
+}>
+```
+
+## Version History
+
+- `v14.2.0`: Add localizations support.
+- `v13.4.14`: Add `changeFrequency` and `priority` attributes to sitemaps.
+- `v13.3.0`: `sitemap` introduced.
+
+# default.js
+
+## Description
+API Reference for the default.js file.
+
+## Overview
+The `default.js` file is used to render a fallback within Parallel Routes when Next.js cannot recover a slot's active state after a full-page load.
+
+During soft navigation, Next.js tracks the active state (subpage) for each slot. However, for hard navigations (full-page load), Next.js cannot recover the active state. In this case, a `default.js` file can be rendered for subpages that don't match the current URL.
+
+### Folder Structure Example
+The `@team` slot has a `settings` page, but `@analytics` does not.
+
+When navigating to `/settings`, the `@team` slot will render the `settings` page while maintaining the currently active page for the `@analytics` slot.
+
+On refresh, Next.js will render a `default.js` for `@analytics`. If `default.js` doesn't exist, a `404` is rendered instead.
+
+Additionally, since `children` is an implicit slot, you also need to create a `default.js` file to render a fallback for `children` when Next.js cannot recover the active state of the parent page.
+
+## Reference
+
+### `params` (optional)
+A promise that resolves to an object containing the dynamic route parameters from the root segment down to the slot's subpages. 
+
+Example:
+```tsx
+export default async function Default({
+  params,
+}: {
+  params: Promise<{ artist: string }>
+}) {
+  const artist = (await params).artist
+}
+```
+
+```jsx
+export default async function Default({ params }) {
+  const artist = (await params).artist
+}
+```
+
+| Example                                    | URL          | `params`                                     |
+| ------------------------------------------ | ------------ | -------------------------------------------- |
+| `app/[artist]/@sidebar/default.js`         | `/zack`      | `Promise<{ artist: 'zack' }>`                |
+| `app/[artist]/[album]/@sidebar/default.js` | `/zack/next` | `Promise<{ artist: 'zack', album: 'next' }>` |
+
+- Since the `params` prop is a promise, you must use `async/await` or React's `use` function to access the values.
+  - In version 14 and earlier, `params` was a synchronous prop. To help with backwards compatibility, you can still access it synchronously in Next.js 15, but this behavior will be deprecated in the future.
+
+# error.js
+
+## Description
+API reference for the error.js special file.
+
+## Overview
+An **error** file allows you to handle unexpected runtime errors and display fallback UI.
+
+## Example Code
+
+### TypeScript Example
+```tsx
+'use client' // Error boundaries must be Client Components
+
+import { useEffect } from 'react'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+### JavaScript Example
+```jsx
+'use client' // Error boundaries must be Client Components
+
+import { useEffect } from 'react'
+
+export default function Error({ error, reset }) {
+  useEffect(() => {
+    console.error(error)
+  }, [error])
+
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  )
+}
+```
+
+## How `error.js` Works
+`error.js` wraps a route segment and its nested children in a React Error Boundary. When an error occurs within the boundary, the `error` component serves as the fallback UI.
+
+## Props
+
+### `error`
+An instance of an Error object forwarded to the `error.js` Client Component.
+
+- **error.message**: 
+  - Errors from Client Components show the original message.
+  - Errors from Server Components show a generic message with an identifier to prevent leaking sensitive details.
+
+- **error.digest**: 
+  An automatically generated hash of the error, useful for matching server-side logs.
+
+### `reset`
+The `reset()` function allows users to attempt recovery from the error. Executing this function tries to re-render the error boundary's contents.
+
+## Global Error Handling
+
+### `global-error.js`
+You can handle errors in the root layout or template using `app/global-error.js`. This file replaces the root layout when active and must define its own `<html>` and `<body>` tags.
+
+#### TypeScript Example
+```tsx
+'use client' // Error boundaries must be Client Components
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </body>
+    </html>
+  )
+}
+```
+
+#### JavaScript Example
+```jsx
+'use client' // Error boundaries must be Client Components
+
+export default function GlobalError({ error, reset }) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </body>
+    </html>
+  )
+}
+```
+
+## Additional Information
+- `global-error.js` is only enabled in production. In development, an error overlay will show instead.
+
+## Not Found Handling
+The `not-found` file shows UI when calling the `notFound()` function within a route segment.
+
+## Version History
+- **v13.1.0**: `global-error` introduced.
+- **v13.0.0**: `error` introduced.
+
+# File Conventions
+
+## Overview
+
+This document outlines the conventions for special files in Next.js, which are essential for the framework's functionality.
+
+## Special Files
+
+1. **pages/**: This directory contains the application's routes. Each file corresponds to a route based on its file name.
+
+2. **public/**: Static assets like images and fonts should be placed here. Files in this directory can be accessed directly via the base URL.
+
+3. **api/**: This folder is used for API routes. Each file in this directory is treated as an API endpoint.
+
+4. **_app.js**: This file is used to initialize pages. It can be used to persist layout between page changes and keep state when navigating.
+
+5. **_document.js**: This file is used to augment the application's HTML and can be used to modify the `<html>` and `<body>` tags.
+
+6. **_error.js**: This file is used to handle errors in the application. It allows for custom error pages.
+
+7. **.env**: Environment variables can be defined in this file. It is used to configure the application without hardcoding sensitive information.
+
+8. **next.config.js**: This file is used to customize the Next.js configuration. It allows for various settings and optimizations.
+
+## Naming Conventions
+
+- Use camelCase for file names.
+- Use descriptive names that reflect the content or purpose of the file.
+- Avoid using special characters or spaces in file names.
+
+## Best Practices
+
+- Keep the directory structure organized and intuitive.
+- Regularly review and refactor files to maintain clarity and efficiency.
+- Document any custom configurations or conventions used in the project.
+
+## Conclusion
+
+Following these conventions will help maintain a clean and efficient codebase in Next.js applications.
+
+# instrumentation.js
+
+API reference for the instrumentation.js file.
+
+The `instrumentation.js|ts` file is used to integrate observability tools into your application, allowing you to track performance and behavior, and debug issues in production.
+
+To use it, place the file in the **root** of your application or inside a `src` folder if using one.
+
+## Exports
+
+### `register` (optional)
+
+The file exports a `register` function that is called **once** when a new Next.js server instance is initiated. `register` can be an async function.
+
+```ts
+import { registerOTel } from '@vercel/otel'
+
+export function register() {
+  registerOTel('next-app')
+}
+```
+
+```js
+import { registerOTel } from '@vercel/otel'
+
+export function register() {
+  registerOTel('next-app')
+}
+```
+
+### `onRequestError` (optional)
+
+You can optionally export an `onRequestError` function to track **server** errors to any custom observability provider.
+
+- If you're running any async tasks in `onRequestError`, make sure they're awaited. `onRequestError` will be triggered when the Next.js server captures the error.
+- The `error` instance might not be the original error instance thrown, as it may be processed by React if encountered during Server Components rendering. If this happens, you can use the `digest` property on an error to identify the actual error type.
+
+```ts
+import { type Instrumentation } from 'next'
+
+export const onRequestError: Instrumentation.onRequestError = async (
+  err,
+  request,
+  context
+) => {
+  await fetch('https://.../report-error', {
+    method: 'POST',
+    body: JSON.stringify({
+      message: err.message,
+      request,
+      context,
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
+```
+
+```js
+export async function onRequestError(err, request, context) {
+  await fetch('https://.../report-error', {
+    method: 'POST',
+    body: JSON.stringify({
+      message: err.message,
+      request,
+      context,
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
+```
+
+#### Parameters
+
+The function accepts three parameters: `error`, `request`, and `context`.
+
+```ts
+export function onRequestError(
+  error: { digest: string } & Error,
+  request: {
+    path: string // resource path, e.g. /blog?name=foo
+    method: string // request method. e.g. GET, POST, etc
+    headers: { [key: string]: string }
+  },
+  context: {
+    routerKind: 'Pages Router' | 'App Router' // the router type
+    routePath: string // the route file path, e.g. /app/blog/[dynamic]
+    routeType: 'render' | 'route' | 'action' | 'middleware' // the context in which the error occurred
+    renderSource:
+      | 'react-server-components'
+      | 'react-server-components-payload'
+      | 'server-rendering'
+    revalidateReason: 'on-demand' | 'stale' | undefined // undefined is a normal request without revalidation
+    renderType: 'dynamic' | 'dynamic-resume' // 'dynamic-resume' for PPR
+  }
+): void | Promise<void>
+```
+
+- `error`: The caught error itself (type is always `Error`), and a `digest` property which is the unique ID of the error.
+- `request`: Read-only request information associated with the error.
+- `context`: The context in which the error occurred. This can be the type of router (App or Pages Router), and/or (Server Components (`'render'`), Route Handlers (`'route'`), Server Actions (`'action'`), or Middleware (`'middleware'`)).
+
+### Specifying the runtime
+
+The `instrumentation.js` file works in both the Node.js and Edge runtime; however, you can use `process.env.NEXT_RUNTIME` to target a specific runtime.
+
+```js
+export function register() {
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    return require('./register.edge')
+  } else {
+    return require('./register.node')
+  }
+}
+
+export function onRequestError() {
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    return require('./on-request-error.edge')
+  } else {
+    return require('./on-request-error.node')
+  }
+}
+```
+
+## Version History
+
+- `v15.0.0-RC`: `onRequestError` introduced, `instrumentation` stable
+- `v14.0.4`: Turbopack support for `instrumentation`
+- `v13.2.0`: `instrumentation` introduced as an experimental feature
+
+# layout.js
+
+## Overview
+
+The `layout` file is used to define a layout in your Next.js application.
+
+### Example Layouts
+
+**Dashboard Layout (TypeScript)**
+
+```tsx
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <section>{children}</section>
+}
+```
+
+**Dashboard Layout (JavaScript)**
+
+```jsx
+export default function DashboardLayout({ children }) {
+  return <section>{children}</section>
+}
+```
+
+**Root Layout (TypeScript)**
+
+```tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+**Root Layout (JavaScript)**
+
+```jsx
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+## Reference
+
+### Props
+
+#### `children` (required)
+
+Layout components should accept and use a `children` prop. During rendering, `children` will be populated with the route segments the layout is wrapping.
+
+#### `params` (optional)
+
+A promise that resolves to an object containing the dynamic route parameters from the root segment down to that layout.
+
+**Example Layout with Params (TypeScript)**
+
+```tsx
+export default async function Layout({
+  params,
+}: {
+  params: Promise<{ team: string }>
+}) {
+  const team = (await params).team
+}
+```
+
+**Example Layout with Params (JavaScript)**
+
+```jsx
+export default async function Layout({ params }) {
+  const team = (await params).team
+}
+```
+
+**Example Route and Params**
+
+- `app/dashboard/[team]/layout.js` - URL: `/dashboard/1`, `params`: `Promise<{ team: '1' }>`
+- `app/shop/[tag]/[item]/layout.js` - URL: `/shop/1/2`, `params`: `Promise<{ tag: '1', item: '2' }>`
+- `app/blog/[...slug]/layout.js` - URL: `/blog/1/2`, `params`: `Promise<{ slug: ['1', '2'] }}`
+
+### Root Layouts
+
+The `app` directory must include a root `app/layout.js`.
+
+**Root Layout Example (TypeScript)**
+
+```tsx
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+**Root Layout Example (JavaScript)**
+
+```jsx
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+- The root layout must define `<html>` and `<body>` tags.
+- Do not manually add `<head>` tags; use the Metadata API instead.
+- Route groups can create multiple root layouts, but navigating across them will cause a full page load.
+
+## Caveats
+
+### Layouts do not receive `searchParams`
+
+Layouts do not receive the `searchParams` prop. Use the Page `searchParams` prop or the `useSearchParams` hook in a Client Component within the layout.
+
+### Layouts cannot access `pathname`
+
+Layouts cannot access `pathname`. Extract logic that depends on pathname into a Client Component.
+
+**Example Layout with Client Component (TypeScript)**
+
+```tsx
+import { ClientComponent } from '@/app/ui/ClientComponent'
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ClientComponent />
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+**Example Layout with Client Component (JavaScript)**
+
+```jsx
+import { ClientComponent } from '@/app/ui/ClientComponent'
+
+export default function Layout({ children }) {
+  return (
+    <>
+      <ClientComponent />
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+## Examples
+
+### Displaying Content Based on `params`
+
+**Example Dashboard Layout (TypeScript)**
+
+```tsx
+export default async function DashboardLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ team: string }>
+}) {
+  const { team } = await params
+
+  return (
+    <section>
+      <header>
+        <h1>Welcome to {team}'s Dashboard</h1>
+      </header>
+      <main>{children}</main>
+    </section>
+  )
+}
+```
+
+**Example Dashboard Layout (JavaScript)**
+
+```jsx
+export default async function DashboardLayout({ children, params }) {
+  const { team } = await params
+
+  return (
+    <section>
+      <header>
+        <h1>Welcome to {team}'s Dashboard</h1>
+      </header>
+      <main>{children}</main>
+    </section>
+  )
+}
+```
+
+### Reading `params` in Client Components
+
+**Example Page Component (TypeScript)**
+
+```tsx
+'use client'
+
+import { use } from 'react'
+
+export function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
+}
+```
+
+**Example Page Component (JavaScript)**
+
+```js
+'use client'
+
+import { use } from 'react'
+
+export function Page({ params }) {
+  const { slug } = use(params)
+}
+```
+
+## Version History
+
+- `v15.0.0-RC`: `params` is now a promise.
+- `v13.0.0`: `layout` introduced.
+
+# loading.js
+
+## API Reference for the loading.js File
+
+A **loading** file can create instant loading states built on Suspense.
+
+By default, this file is a Server Component but can also be used as a Client Component through the `"use client"` directive.
+
+```tsx
+export default function Loading() {
+  // Or a custom loading skeleton component
+  return <p>Loading...</p>
+}
+```
+
+```jsx
+export default function Loading() {
+  // Or a custom loading skeleton component
+  return <p>Loading...</p>
+}
+```
+
+Loading UI components do not accept any parameters.
+
+**Good to know**:
+- While designing loading UI, you may find it helpful to use the React Developer Tools to manually toggle Suspense boundaries.
+
+## Version History
+
+| Version   | Changes               |
+| --------- | --------------------- |
+| `v13.0.0` | `loading` introduced. |
+
+# mdx-components.js
+
+API reference for the mdx-components.js file.
+
+The `mdx-components.js|tsx` file is **required** to use `@next/mdx` with App Router and will not work without it. Additionally, you can use it to customize styles.
+
+Use the file `mdx-components.tsx` (or `.js`) in the root of your project to define MDX Components. For example, at the same level as `pages` or `app`, or inside `src` if applicable.
+
+```tsx
+import type { MDXComponents } from 'mdx/types'
+
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    ...components,
+  }
+}
+```
+
+```js
+export function useMDXComponents(components) {
+  return {
+    ...components,
+  }
+}
+```
+
+## Exports
+
+### `useMDXComponents` function
+
+The file must export a single function, either as a default export or named `useMDXComponents`.
+
+```tsx
+import type { MDXComponents } from 'mdx/types'
+
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    ...components,
+  }
+}
+```
+
+```js
+export function useMDXComponents(components) {
+  return {
+    ...components,
+  }
+}
+```
+
+## Params
+
+### `components`
+
+When defining MDX Components, the export function accepts a single parameter, `components`. This parameter is an instance of `MDXComponents`.
+
+- The key is the name of the HTML element to override.
+- The value is the component to render instead.
+
+Good to know: Remember to pass all other components (i.e. `...components`) that do not have overrides.
+
+## Version History
+
+| Version   | Changes              |
+| --------- | -------------------- |
+| `v13.1.2` | MDX Components added |
+
+# middleware.js
+
+## Description
+API reference for the middleware.js file.
+
+The `middleware.js|ts` file is used to write Middleware and run code on the server before a request is completed. You can modify the response by rewriting, redirecting, modifying the request or response headers, or responding directly based on the incoming request.
+
+Middleware executes before routes are rendered and is useful for implementing custom server-side logic like authentication, logging, or handling redirects.
+
+Use the file `middleware.ts` (or .js) in the root of your project to define Middleware, at the same level as `app` or `pages`, or inside `src` if applicable.
+
+### Example Code
+
+```tsx
+import { NextResponse, NextRequest } from 'next/server'
+
+// This function can be marked `async` if using `await` inside
+export function middleware(request: NextRequest) {
+  return NextResponse.redirect(new URL('/home', request.url))
+}
+
+export const config = {
+  matcher: '/about/:path*',
+}
+```
+
+```js
+import { NextResponse } from 'next/server'
+
+// This function can be marked `async` if using `await` inside
+export function middleware(request) {
+  return NextResponse.redirect(new URL('/home', request.url))
+}
+
+export const config = {
+  matcher: '/about/:path*',
+}
+```
+
+## Exports
+
+### Middleware function
+The file must export a single function, either as a default export or named `middleware`. Multiple middleware from the same file are not supported.
+
+```js
+// Example of default export
+export default function middleware(request) {
+  // Middleware logic
+}
+```
+
+### Config object (optional)
+A config object can be exported alongside the Middleware function, including the `matcher` to specify paths where the Middleware applies.
+
+#### Matcher
+The `matcher` option allows you to target specific paths for the Middleware to run on. You can specify these paths in several ways:
+
+- Single path: Use a string, like `'/about'`.
+- Multiple paths: Use an array, such as `matcher: ['/about', '/contact']`.
+
+`matcher` supports complex path specifications through regular expressions, enabling precise control over which paths to include or exclude.
+
+The `matcher` option also accepts an array of objects with the following keys:
+
+- `source`: The path or pattern used to match the request paths.
+- `regexp` (optional): A regular expression string for fine-tuning the matching.
+- `locale` (optional): A boolean that, when set to `false`, ignores locale-based routing.
+- `has` (optional): Specifies conditions based on the presence of specific request elements.
+- `missing` (optional): Focuses on conditions where certain request elements are absent.
+
+```js
+export const config = {
+  matcher: [
+    {
+      source: '/api/*',
+      regexp: '^/api/(.*)',
+      locale: false,
+      has: [
+        { type: 'header', key: 'Authorization', value: 'Bearer Token' },
+        { type: 'query', key: 'userId', value: '123' },
+      ],
+      missing: [{ type: 'cookie', key: 'session', value: 'active' }],
+    },
+  ],
+}
+```
+
+## Params
+
+### `request`
+The default export function accepts a single parameter, `request`, which is an instance of `NextRequest`, representing the incoming HTTP request.
+
+```tsx
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  // Middleware logic goes here
+}
+```
+
+```js
+export function middleware(request) {
+  // Middleware logic goes here
+}
+```
+
+**Good to know**: `NextRequest` represents incoming HTTP requests in Next.js Middleware, while `NextResponse` is used to manipulate and send back HTTP responses.
+
+## NextResponse
+Middleware can use the `NextResponse` object, which extends the Web Response API. By returning a `NextResponse` object, you can manipulate cookies, set headers, implement redirects, and rewrite paths.
+
+**Good to know**: For redirects, you can also use `Response.redirect` instead of `NextResponse.redirect`.
+
+## Runtime
+Middleware only supports the Edge runtime. The Node.js runtime cannot be used.
+
+## Version History
+
+| Version   | Changes                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------- |
+| `v13.1.0` | Advanced Middleware flags added                                                               |
+| `v13.0.0` | Middleware can modify request headers, response headers, and send responses                   |
+| `v12.2.0` | Middleware is stable, please see the upgrade guide                                            |
+| `v12.0.9` | Enforce absolute URLs in Edge Runtime                                                        |
+| `v12.0.0` | Middleware (Beta) added                                                                       |
+
+# not-found.js
+
+## Description
+The **not-found** file is used to render UI when the `notFound` function is thrown within a route segment. It serves a custom UI, returning a `200` HTTP status code for streamed responses and `404` for non-streamed responses.
+
+## Example Implementations
+
+### TypeScript Example
+```tsx
+import Link from 'next/link'
+
+export default function NotFound() {
+  return (
+    <div>
+      <h2>Not Found</h2>
+      <p>Could not find requested resource</p>
+      <Link href="/">Return Home</Link>
+    </div>
+  )
+}
+```
+
+### JavaScript Example
+```jsx
+import Link from 'next/link'
+
+export default function NotFound() {
+  return (
+    <div>
+      <h2>Not Found</h2>
+      <p>Could not find requested resource</p>
+      <Link href="/">Return Home</Link>
+    </div>
+  )
+}
+```
+
+## Important Note
+The root `app/not-found.js` file handles unmatched URLs for the entire application, displaying the UI exported by this file for any unhandled URLs.
+
+## Props
+`not-found.js` components do not accept any props.
+
+## Data Fetching
+By default, `not-found` is a Server Component. It can be marked as `async` to fetch and display data:
+
+### TypeScript Async Example
+```tsx
+import Link from 'next/link'
+import { headers } from 'next/headers'
+
+export default async function NotFound() {
+  const headersList = await headers()
+  const domain = headersList.get('host')
+  const data = await getSiteData(domain)
+  return (
+    <div>
+      <h2>Not Found: {data.name}</h2>
+      <p>Could not find requested resource</p>
+      <p>
+        View <Link href="/blog">all posts</Link>
+      </p>
+    </div>
+  )
+}
+```
+
+### JavaScript Async Example
+```jsx
+import Link from 'next/link'
+import { headers } from 'next/headers'
+
+export default async function NotFound() {
+  const headersList = await headers()
+  const domain = headersList.get('host')
+  const data = await getSiteData(domain)
+  return (
+    <div>
+      <h2>Not Found: {data.name}</h2>
+      <p>Could not find requested resource</p>
+      <p>
+        View <Link href="/blog">all posts</Link>
+      </p>
+    </div>
+  )
+}
+```
+
+If Client Component hooks like `usePathname` are needed, data must be fetched on the client-side.
+
+## Version History
+- **v13.3.0**: Root `app/not-found` handles global unmatched URLs.
+- **v13.0.0**: `not-found` introduced.
+
+# page.js
+
+## Description
+
+API reference for the page.js file.
+
+The `page` file is used to define a page in your Next.js application.
+
+```tsx
+export default function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  return <h1>My Page</h1>
+}
+```
+
+```jsx
+export default function Page({ params, searchParams }) {
+  return <h1>My Page</h1>
+}
+```
+
+## Reference
+
+### Props
+
+#### `params` (optional)
+
+A promise that resolves to an object containing the dynamic route parameters from the root segment down to that page.
+
+```tsx
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const slug = (await params).slug
+}
+```
+
+```jsx
+export default async function Page({ params }) {
+  const slug = (await params).slug
+}
+```
+
+Example Route | URL | `params`
+--- | --- | ---
+`app/shop/[slug]/page.js` | `/shop/1` | `Promise<{ slug: '1' }>`
+`app/shop/[category]/[item]/page.js` | `/shop/1/2` | `Promise<{ category: '1', item: '2' }>`
+`app/shop/[...slug]/page.js` | `/shop/1/2` | `Promise<{ slug: ['1', '2'] }>` 
+
+- Since the `params` prop is a promise, use `async/await` or React's `use` function to access the values.
+- In version 14 and earlier, `params` was a synchronous prop. This behavior is deprecated in Next.js 15.
+
+#### `searchParams` (optional)
+
+A promise that resolves to an object containing the search parameters of the current URL.
+
+```tsx
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const filters = (await searchParams).filters
+}
+```
+
+```jsx
+export default async function Page({ searchParams }) {
+  const filters = (await searchParams).filters
+}
+```
+
+Example URL | `searchParams`
+--- | ---
+`/shop?a=1` | `Promise<{ a: '1' }>`
+`/shop?a=1&b=2` | `Promise<{ a: '1', b: '2' }>`
+`/shop?a=1&a=2` | `Promise<{ a: ['1', '2'] }>` 
+
+- Since the `searchParams` prop is a promise, use `async/await` or React's `use` function to access the values.
+- In version 14 and earlier, `searchParams` was a synchronous prop. This behavior is deprecated in Next.js 15.
+- `searchParams` is a Dynamic API whose values cannot be known ahead of time, opting the page into dynamic rendering at request time.
+- `searchParams` is a plain JavaScript object, not a `URLSearchParams` instance.
+
+## Examples
+
+### Displaying content based on `params`
+
+Using dynamic route segments, you can display or fetch specific content for the page based on the `params` prop.
+
+```tsx
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  return <h1>Blog Post: {slug}</h1>
+}
+```
+
+```jsx
+export default async function Page({ params }) {
+  const { slug } = await params
+  return <h1>Blog Post: {slug}</h1>
+}
+```
+
+### Handling filtering with `searchParams`
+
+You can use the `searchParams` prop to handle filtering, pagination, or sorting based on the query string of the URL.
+
+```tsx
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const { page = '1', sort = 'asc', query = '' } = await searchParams
+
+  return (
+    <div>
+      <h1>Product Listing</h1>
+      <p>Search query: {query}</p>
+      <p>Current page: {page}</p>
+      <p>Sort order: {sort}</p>
+    </div>
+  )
+}
+```
+
+```jsx
+export default async function Page({ searchParams }) {
+  const { page = '1', sort = 'asc', query = '' } = await searchParams
+
+  return (
+    <div>
+      <h1>Product Listing</h1>
+      <p>Search query: {query}</p>
+      <p>Current page: {page}</p>
+      <p>Sort order: {sort}</p>
+    </div>
+  )
+}
+```
+
+### Reading `searchParams` and `params` in Client Components
+
+To use `searchParams` and `params` in a Client Component, you can use React's `use` function to read the promise:
+
+```tsx
+'use client'
+
+import { use } from 'react'
+
+export function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const { slug } = use(params)
+  const { query } = use(searchParams)
+}
+```
+
+```js
+'use client'
+
+import { use } from 'react'
+
+export function Page({ params, searchParams }) {
+  const { slug } = use(params)
+  const { query } = use(searchParams)
+}
+```
+
+## Version History
+
+Version | Changes
+--- | ---
+`v15.0.0-RC` | `params` and `searchParams` are now promises. A codemod is available.
+`v13.0.0` | `page` introduced.
+
+# Route Segment Config
+
+Learn about how to configure options for Next.js route segments.
+
+The options outlined on this page are disabled if the `dynamicIO` flag is on, and will eventually be deprecated in the future.
+
+The Route Segment options allow you to configure the behavior of a Page, Layout, or Route Handler by directly exporting the following variables:
+
+| Option                                  | Type                                                                                                                      | Default                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| experimental_ppr                        | `boolean`                                                                                                                 |                            |
+| dynamic                                 | `'auto' | 'force-dynamic' | 'error' | 'force-static'`                                                                  | `'auto'`                   |
+| dynamicParams                           | `boolean`                                                                                                                 | `true`                     |
+| revalidate                              | `false | 0 | number`                                                                                                    | `false`                    |
+| fetchCache                              | `'auto' | 'default-cache' | 'only-cache' | 'force-cache' | 'force-no-store' | 'default-no-store' | 'only-no-store'` | `'auto'`                   |
+| runtime                                 | `'nodejs' | 'edge'`                                                                                                      | `'nodejs'`                 |
+| preferredRegion                         | `'auto' | 'global' | 'home' | string | string[]`                                                                      | `'auto'`                   |
+| maxDuration                             | `number`                                                                                                                  | Set by deployment platform |
+
+## Options
+
+### experimental_ppr
+
+Enable Partial Prerendering (PPR) for a layout or page.
+
+```tsx
+export const experimental_ppr = true
+```
+
+```jsx
+export const experimental_ppr = true
+```
+
+### dynamic
+
+Change the dynamic behavior of a layout or page to fully static or fully dynamic.
+
+```tsx
+export const dynamic = 'auto'
+```
+
+```js
+export const dynamic = 'auto'
+```
+
+- **'auto'** (default): Caches as much as possible without preventing components from opting into dynamic behavior.
+- **'force-dynamic'**: Forces dynamic rendering, rendering routes for each user at request time.
+- **'error'**: Forces static rendering and caches data, causing an error if any components use Dynamic APIs or uncached data.
+- **'force-static'**: Forces static rendering and caches data, returning empty values for cookies, headers, and useSearchParams.
+
+### dynamicParams
+
+Control behavior when a dynamic segment is visited that was not generated with generateStaticParams.
+
+```tsx
+export const dynamicParams = true
+```
+
+```js
+export const dynamicParams = true
+```
+
+- **true** (default): Dynamic segments not included in generateStaticParams are generated on demand.
+- **false**: Returns a 404 for dynamic segments not included in generateStaticParams.
+
+### revalidate
+
+Set the default revalidation time for a layout or page.
+
+```tsx
+export const revalidate = false
+```
+
+```js
+export const revalidate = false
+```
+
+- **false** (default): Caches any fetch requests that set their cache option to 'force-cache'.
+- **0**: Ensures a layout or page is always dynamically rendered.
+- **number**: Sets the default revalidation frequency to n seconds.
+
+### fetchCache
+
+Override the default behavior of fetch requests in a layout or page.
+
+```tsx
+export const fetchCache = 'auto'
+```
+
+```js
+export const fetchCache = 'auto'
+```
+
+- **'auto'** (default): Caches fetch requests before Dynamic APIs and does not cache after.
+- **'default-cache'**: Sets the cache option to 'force-cache' if no option is provided.
+- **'only-cache'**: Ensures all fetch requests opt into caching.
+- **'force-cache'**: Sets the cache option of all fetch requests to 'force-cache'.
+- **'default-no-store'**: Sets the cache option to 'no-store' if no option is provided.
+- **'only-no-store'**: Ensures all fetch requests opt out of caching.
+- **'force-no-store'**: Sets the cache option of all fetch requests to 'no-store'.
+
+### runtime
+
+Recommended to use Node.js for rendering and Edge for Middleware.
+
+```tsx
+export const runtime = 'nodejs'
+```
+
+```js
+export const runtime = 'nodejs'
+```
+
+### preferredRegion
+
+```tsx
+export const preferredRegion = 'auto'
+```
+
+```js
+export const preferredRegion = 'auto'
+```
+
+### maxDuration
+
+Set execution limits for server-side logic.
+
+```tsx
+export const maxDuration = 5
+```
+
+```js
+export const maxDuration = 5
+```
+
+### generateStaticParams
+
+Define the list of route segment parameters that will be statically generated at build time.
+
+## Version History
+
+| Version      |                                                                                                                                                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v15.0.0-RC  | `export const runtime = "experimental-edge"` deprecated. A codemod is available. |
+
+# route.js
+
+API reference for the route.js special file.
+
+Route Handlers allow you to create custom request handlers for a given route using the Web Request and Response APIs.
+
+```ts
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+```js
+export async function GET() {
+  return Response.json({ message: 'Hello World' })
+}
+```
+
+## Reference
+
+### HTTP Methods
+
+A route file allows you to create custom request handlers for a given route. The following HTTP methods are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+
+```ts
+export async function GET(request: Request) {}
+
+export async function HEAD(request: Request) {}
+
+export async function POST(request: Request) {}
+
+export async function PUT(request: Request) {}
+
+export async function DELETE(request: Request) {}
+
+export async function PATCH(request: Request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request: Request) {}
+```
+
+```js
+export async function GET(request) {}
+
+export async function HEAD(request) {}
+
+export async function POST(request) {}
+
+export async function PUT(request) {}
+
+export async function DELETE(request) {}
+
+export async function PATCH(request) {}
+
+// If `OPTIONS` is not defined, Next.js will automatically implement `OPTIONS` and set the appropriate Response `Allow` header depending on the other methods defined in the Route Handler.
+export async function OPTIONS(request) {}
+```
+
+### Parameters
+
+#### `request` (optional)
+
+The `request` object is a NextRequest object, which is an extension of the Web Request API. NextRequest gives you further control over the incoming request, including easily accessing cookies and an extended, parsed, URL object `nextUrl`.
+
+```ts
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const url = request.nextUrl
+}
+```
+
+```js
+export async function GET(request) {
+  const url = request.nextUrl
+}
+```
+
+#### `context` (optional)
+
+- **`params`**: a promise that resolves to an object containing the dynamic route parameters for the current route.
+
+```ts
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ team: string }> }
+) {
+  const team = (await params).team
+}
+```
+
+```js
+export async function GET(request, { params }) {
+  const team = (await params).team
+}
+```
+
+Example                          | URL            | `params`                           
+-------------------------------- | -------------- | ---------------------------------- 
+`app/dashboard/[team]/route.js`  | `/dashboard/1` | `Promise<{ team: '1' }>`           
+`app/shop/[tag]/[item]/route.js` | `/shop/1/2`    | `Promise<{ tag: '1', item: '2' }>` 
+`app/blog/[...slug]/route.js`    | `/blog/1/2`    | `Promise<{ slug: ['1', '2'] }>`    
+
+## Examples
+
+### Handling cookies
+
+```ts
+import { cookies } from 'next/headers'
+
+export async function GET(request: NextRequest) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+```js
+import { cookies } from 'next/headers'
+
+export async function GET(request) {
+  const cookieStore = await cookies()
+
+  const a = cookieStore.get('a')
+  const b = cookieStore.set('b', '1')
+  const c = cookieStore.delete('c')
+}
+```
+
+## Version History
+
+Version      | Changes                                                                                                                 
+------------ | ----------------------------------------------------------------------------------------------------------------------- 
+`v15.0.0-RC` | `context.params` is now a promise. A codemod is available                                                              
+`v15.0.0-RC` | The default caching for `GET` handlers was changed from static to dynamic                                              
+`v13.2.0`    | Route Handlers are introduced.                                                                                         
+
+# template.js
+
+## Description
+API Reference for the template.js file.
+
+A **template** file is similar to a layout in that it wraps a layout or page. Unlike layouts that persist across routes and maintain state, templates are given a unique key, meaning children Client Components reset their state on navigation.
+
+```tsx
+export default function Template({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+```
+
+```jsx
+export default function Template({ children }) {
+  return <div>{children}</div>
+}
+```
+
+While less common, you might choose to use a template over a layout if you want:
+
+- Features that rely on `useEffect` (e.g logging page views) and `useState` (e.g a per-page feedback form).
+- To change the default framework behavior. For example, Suspense Boundaries inside layouts only show the fallback the first time the Layout is loaded and not when switching pages. For templates, the fallback is shown on each navigation.
+
+## Props
+
+### `children` (required)
+Template accepts a `children` prop. For example:
+
+```jsx
+<Layout>
+  <Template key={routeParam}>{children}</Template>
+</Layout>
+```
+
+**Good to know**:
+- By default, `template` is a Server Component, but can also be used as a Client Component through the `"use client"` directive.
+- When a user navigates between routes that share a `template`, a new instance of the component is mounted, DOM elements are recreated, state is not preserved in Client Components, and effects are re-synchronized.
+
+## Version History
+
+| Version   | Changes                |
+| --------- | ---------------------- |
+| `v13.0.0` | `template` introduced. |
+
+# cacheTag
+
+Learn how to use the cacheTag function to manage cache invalidation in your Next.js application.
+
+Version: experimental
+
+## Overview
+
+The `cacheTag` function allows you to tag cached data for on-demand invalidation. By associating tags with cache entries, you can selectively purge or revalidate specific parts of your cache without affecting other cached data.
+
+## Usage
+
+To use `cacheTag`, enable the `dynamicIO` flag in your `next.config.js` and import `cacheTag` from `next/cache`:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+  },
+}
+
+export default nextConfig
+```
+
+```tsx
+import { unstable_cacheTag as cacheTag } from 'next/cache'
+
+export async function getData() {
+  'use cache'
+  cacheTag('my-data')
+  const data = await fetch('/api/data')
+  return data
+}
+```
+
+## Combining with `revalidateTag`
+
+Use `cacheTag` in conjunction with `revalidateTag` to purge tagged cache entries on-demand. This is useful for scenarios like updating data after a mutation or an external event.
+
+```tsx
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export default async function submit() {
+  await addPost()
+  revalidateTag('my-data')
+}
+```
+
+## Examples
+
+### Tagging cached data
+
+Tag your cached data by calling `cacheTag` within a cached function or component:
+
+```tsx
+import {
+  unstable_cacheTag as cacheTag,
+  unstable_cacheLife as cacheLife,
+} from 'next/cache'
+
+interface BookingsProps {
+  type: string
+}
+
+export async function Bookings({ type = 'massage' }: BookingsProps) {
+  'use cache'
+  cacheLife('minutes')
+  cacheTag('bookings-data')
+
+  async function getBookingsData() {
+    const data = await fetch(`/api/bookings?type=${encodeURIComponent(type)}`)
+    return data
+  }
+
+  return //...
+}
+```
+
+### Tagging using data
+
+You can use the data returned from an async function to tag the cache entry.
+
+```tsx
+import {
+  unstable_cacheTag as cacheTag,
+  unstable_cacheLife as cacheLife,
+} from 'next/cache'
+
+interface BookingsProps {
+  type: string
+}
+
+export async function Bookings({ type = 'massage' }: BookingsProps) {
+  async function getBookingsData() {
+    'use cache'
+    cacheLife('minutes')
+    const data = await fetch(`/api/bookings?type=${encodeURIComponent(type)}`)
+    cacheTag('bookings-data', data.id)
+    return data
+  }
+  return //...
+}
+```
+
+### Invalidating tagged cache
+
+Invalidate the cache for a specific tag when needed:
+
+```tsx
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export async function updateBookings() {
+  await updateBookingData()
+  revalidateTag('bookings-data')
+}
+```
+
+## Notes
+
+- **Idempotent Tags**: Applying the same tag multiple times has no additional effect.
+- **Multiple Tags**: You can assign multiple tags to a single cache entry by passing an array to `cacheTag`.
+
+```tsx
+cacheTag(['tag-one', 'tag-two'])
+```
+
+## Related API References
+
+- app/api-reference/next-config-js/dynamicIO
+- app/api-reference/directives/use-cache
+- app/api-reference/functions/revalidateTag
+
+# connection
+
+API Reference for the connection function.
+
+The `connection()` function allows you to indicate rendering should wait for an incoming user request before continuing.
+
+It's useful when a component doesn’t use Dynamic APIs, but you want it to be dynamically rendered at runtime and not statically rendered at build time. This usually occurs when you access external information that you intentionally want to change the result of a render, such as `Math.random()` or `new Date()`.
+
+```ts
+import { connection } from 'next/server'
+
+export default async function Page() {
+  await connection()
+  // Everything below will be excluded from prerendering
+  const rand = Math.random()
+  return <span>{rand}</span>
+}
+```
+
+```jsx
+import { connection } from 'next/server'
+
+export default async function Page() {
+  await connection()
+  // Everything below will be excluded from prerendering
+  const rand = Math.random()
+  return <span>{rand}</span>
+}
+```
+
+## Reference
+
+### Type
+
+```jsx
+function connection(): Promise<void>
+```
+
+### Parameters
+
+- The function does not accept any parameters.
+
+### Returns
+
+- The function returns a `void` Promise. It is not meant to be consumed.
+
+## Good to know
+
+- `connection` replaces unstable_noStore to better align with the future of Next.js.
+- The function is only necessary when dynamic rendering is required and common Dynamic APIs are not used.
+
+### Version History
+
+| Version      | Changes                  |
+| ------------ | ------------------------ |
+| `v15.0.0-RC` | `connection` introduced. |
+
+# Cookies
+
+`cookies` is an **async** function that allows you to read the HTTP incoming request cookies in Server Components, and read/write outgoing request cookies in Server Actions or Route Handlers.
+
+```tsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const theme = cookieStore.get('theme')
+  return '...'
+}
+```
+
+```js
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const theme = cookieStore.get('theme')
+  return '...'
+}
+```
+
+## Reference
+
+### Methods
+
+- `get('name')`: Returns an object with the name and value of the specified cookie.
+- `getAll()`: Returns a list of all cookies with a matching name.
+- `has('name')`: Returns a boolean indicating if the specified cookie exists.
+- `set(name, value, options)`: Sets the outgoing request cookie.
+- `delete(name)`: Deletes the specified cookie.
+- `clear()`: Deletes all cookies.
+- `toString()`: Returns a string representation of the cookies.
+
+### Options
+
+When setting a cookie, the following properties from the `options` object are supported:
+
+- `name`: Specifies the name of the cookie.
+- `value`: Specifies the value to be stored in the cookie.
+- `expires`: Defines the exact date when the cookie will expire.
+- `maxAge`: Sets the cookie’s lifespan in seconds.
+- `domain`: Specifies the domain where the cookie is available.
+- `path`: Limits the cookie's scope to a specific path within the domain.
+- `secure`: Ensures the cookie is sent only over HTTPS connections.
+- `httpOnly`: Restricts the cookie to HTTP requests, preventing client-side access.
+- `sameSite`: Controls the cookie's cross-site request behavior.
+- `priority`: Specifies the cookie's priority.
+- `encode('value')`: Specifies a function to encode a cookie's value.
+- `partitioned`: Indicates whether the cookie is partitioned.
+
+## Good to know
+
+- `cookies` is an **asynchronous** function that returns a promise. Use `async/await` or React's `use` function to access cookies.
+- In version 14 and earlier, `cookies` was synchronous. It can still be accessed synchronously in Next.js 15, but this behavior will be deprecated.
+- `cookies` is a Dynamic API whose returned values cannot be known ahead of time. Using it in a layout or page opts a route into dynamic rendering.
+- The `.delete` method can only be called in a Server Action or Route Handler, and must belong to the same domain and protocol as the cookie you want to delete.
+- HTTP does not allow setting cookies after streaming starts, so use `.set` in a Server Action or Route Handler.
+
+## Examples
+
+### Getting a cookie
+
+Use the `cookies().get('name')` method to get a single cookie:
+
+```tsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const theme = cookieStore.get('theme')
+  return '...'
+}
+```
+
+```jsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const theme = cookieStore.get('theme')
+  return '...'
+}
+```
+
+### Getting all cookies
+
+Use the `cookies().getAll()` method to get all cookies with a matching name. If `name` is unspecified, it returns all available cookies.
+
+```tsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  return cookieStore.getAll().map((cookie) => (
+    <div key={cookie.name}>
+      <p>Name: {cookie.name}</p>
+      <p>Value: {cookie.value}</p>
+    </div>
+  ))
+}
+```
+
+```jsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  return cookieStore.getAll().map((cookie) => (
+    <div key={cookie.name}>
+      <p>Name: {cookie.name}</p>
+      <p>Value: {cookie.value}</p>
+    </div>
+  ))
+}
+```
+
+### Setting a cookie
+
+Use the `cookies().set(name, value, options)` method in a Server Action or Route Handler to set a cookie. The `options` object is optional.
+
+```tsx
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function create(data) {
+  const cookieStore = await cookies()
+
+  cookieStore.set('name', 'lee')
+  // or
+  cookieStore.set('name', 'lee', { secure: true })
+  // or
+  cookieStore.set({
+    name: 'name',
+    value: 'lee',
+    httpOnly: true,
+    path: '/',
+  })
+}
+```
+
+```js
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function create(data) {
+  const cookieStore = await cookies()
+
+  cookieStore.set('name', 'lee')
+  // or
+  cookieStore.set('name', 'lee', { secure: true })
+  // or
+  cookieStore.set({
+    name: 'name',
+    value: 'lee',
+    httpOnly: true,
+    path: '/',
+  })
+}
+```
+
+### Checking if a cookie exists
+
+Use the `cookies().has(name)` method to check if a cookie exists:
+
+```tsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const hasCookie = cookieStore.has('theme')
+  return '...'
+}
+```
+
+```jsx
+import { cookies } from 'next/headers'
+
+export default async function Page() {
+  const cookieStore = await cookies()
+  const hasCookie = cookieStore.has('theme')
+  return '...'
+}
+```
+
+### Deleting cookies
+
+There are three ways to delete a cookie.
+
+Using the `delete()` method:
+
+```tsx
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).delete('name')
+}
+```
+
+```js
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).delete('name')
+}
+```
+
+Setting a new cookie with the same name and an empty value:
+
+```tsx
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).set('name', '')
+}
+```
+
+```js
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).set('name', '')
+}
+```
+
+Setting the `maxAge` to 0 will immediately expire a cookie. `maxAge` accepts a value in seconds.
+
+```tsx
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).set('name', 'value', { maxAge: 0 })
+}
+```
+
+```js
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function delete(data) {
+  (await cookies()).set('name', 'value', { maxAge: 0 })
+}
+```
+
+## Version History
+
+- `v15.0.0-RC`: `cookies` is now an async function. A codemod is available.
+- `v13.0.0`: `cookies` introduced.
+
+# draftMode
+
+## Description
+API Reference for the draftMode function.
+
+## Related
+Next Steps: Learn how to use Draft Mode with this step-by-step guide. Links: app/building-your-application/configuring/draft-mode
+
+## Overview
+`draftMode` is an **async** function that allows you to enable and disable Draft Mode, as well as check if Draft Mode is enabled in a Server Component.
+
+### Example Usage
+
+```tsx
+import { draftMode } from 'next/headers'
+
+export default async function Page() {
+  const { isEnabled } = await draftMode()
+}
+```
+
+```jsx
+import { draftMode } from 'next/headers'
+
+export default async function Page() {
+  const { isEnabled } = await draftMode()
+}
+```
+
+## Reference
+
+### Methods and Properties
+
+- `isEnabled`: A boolean value that indicates if Draft Mode is enabled.
+- `enable()`: Enables Draft Mode in a Route Handler by setting a cookie (`__prerender_bypass`).
+- `disable()`: Disables Draft Mode in a Route Handler by deleting a cookie.
+
+## Good to Know
+
+- `draftMode` is an **asynchronous** function that returns a promise. Use `async/await` or React's `use` function.
+- In version 14 and earlier, `draftMode` was synchronous. It can still be accessed synchronously in Next.js 15, but this will be deprecated.
+- A new bypass cookie value is generated each time you run `next build` to prevent guessing.
+- To test Draft Mode locally over HTTP, ensure your browser allows third-party cookies and local storage access.
+
+## Examples
+
+### Enabling Draft Mode
+
+To enable Draft Mode, create a new Route Handler and call the `enable()` method:
+
+```tsx
+import { draftMode } from 'next/headers'
+
+export async function GET(request: Request) {
+  const draft = await draftMode()
+  draft().enable()
+  return new Response('Draft mode is enabled')
+}
+```
+
+```js
+import { draftMode } from 'next/headers'
+
+export async function GET(request) {
+  const draft = await draftMode()
+  draft().enable()
+  return new Response('Draft mode is enabled')
+}
+```
+
+### Disabling Draft Mode
+
+By default, the Draft Mode session ends when the browser is closed. To disable Draft Mode manually, call the `disable()` method in your Route Handler:
+
+```tsx
+import { draftMode } from 'next/headers'
+
+export async function GET(request: Request) {
+  const draft = await draftMode()
+  draft().disable()
+  return new Response('Draft mode is disabled')
+}
+```
+
+```js
+import { draftMode } from 'next/headers'
+
+export async function GET(request) {
+  const draft = await draftMode()
+  draft().disable()
+  return new Response('Draft mode is disabled')
+}
+```
+
+Send a request to invoke the Route Handler. If using the `<Link>` component, pass `prefetch={false}` to prevent accidentally deleting the cookie on prefetch.
+
+### Checking if Draft Mode is Enabled
+
+You can check if Draft Mode is enabled in a Server Component with the `isEnabled` property:
+
+```tsx
+import { draftMode } from 'next/headers'
+
+export default async function Page() {
+  const { isEnabled } = await draftMode()
+  return (
+    <main>
+      <h1>My Blog Post</h1>
+      <p>Draft Mode is currently {isEnabled ? 'Enabled' : 'Disabled'}</p>
+    </main>
+  )
+}
+```
+
+```jsx
+import { draftMode } from 'next/headers'
+
+export default async function Page() {
+  const { isEnabled } = await draftMode()
+  return (
+    <main>
+      <h1>My Blog Post</h1>
+      <p>Draft Mode is currently {isEnabled ? 'Enabled' : 'Disabled'}</p>
+    </main>
+  )
+}
+```
+
+## Version History
+
+- `v15.0.0-RC`: `draftMode` is now an async function. A codemod is available.
+- `v13.4.0`: `draftMode` introduced.
+
+# fetch
+
+API reference for the extended fetch function.
+
+Next.js extends the Web `fetch()` API to allow each request on the server to set its own persistent caching and revalidation semantics.
+
+In the browser, the `cache` option indicates how a fetch request will interact with the browser's HTTP cache. With this extension, `cache` indicates how a server-side fetch request will interact with the framework's persistent Data Cache.
+
+You can call `fetch` with `async` and `await` directly within Server Components.
+
+```tsx
+export default async function Page() {
+  let data = await fetch('https://api.vercel.app/blog')
+  let posts = await data.json()
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+```jsx
+export default async function Page() {
+  let data = await fetch('https://api.vercel.app/blog')
+  let posts = await data.json()
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+## `fetch(url, options)`
+
+Since Next.js extends the Web `fetch()` API, you can use any of the native options available.
+
+### `options.cache`
+
+Configure how the request should interact with Next.js Data Cache.
+
+```ts
+fetch(`https://...`, { cache: 'force-cache' | 'no-store' })
+```
+
+- **`no-store`** (default): Next.js fetches the resource from the remote server on every request without looking in the cache, and it will not update the cache with the downloaded resource.
+- **`force-cache`**: Next.js looks for a matching request in its Data Cache.
+  - If there is a match and it is fresh, it will be returned from the cache.
+  - If there is no match or a stale match, Next.js will fetch the resource from the remote server and update the cache with the downloaded resource.
+
+### `options.next.revalidate`
+
+```ts
+fetch(`https://...`, { next: { revalidate: false | 0 | number } })
+```
+
+Set the cache lifetime of a resource (in seconds).
+
+- **`false`** - Cache the resource indefinitely. Semantically equivalent to `revalidate: Infinity`. The HTTP cache may evict older resources over time.
+- **`0`** - Prevent the resource from being cached.
+- **`number`** - (in seconds) Specify the resource should have a cache lifetime of at most `n` seconds.
+
+Good to know:
+- If an individual `fetch()` request sets a `revalidate` number lower than the default `revalidate` of a route, the whole route revalidation interval will be decreased.
+- If two fetch requests with the same URL in the same route have different `revalidate` values, the lower value will be used.
+- It is not necessary to set the `cache` option if `revalidate` is set to a number.
+- Conflicting options such as `{ revalidate: 3600, cache: 'no-store' }` will cause an error.
+
+### `options.next.tags`
+
+```ts
+fetch(`https://...`, { next: { tags: ['collection'] } })
+```
+
+Set the cache tags of a resource. Data can then be revalidated on-demand using revalidateTag. The max length for a custom tag is 256 characters and the max tag items is 64.
+
+## Troubleshooting
+
+### Fetch `cache: 'no-store'` not showing fresh data in development
+
+Next.js caches fetch responses in Server Components across Hot Module Replacement (HMR) in local development for faster responses and to reduce costs for billed API calls.
+
+By default, the HMR cache applies to all fetch requests, including those with the `cache: 'no-store'` option. This means uncached requests will not show fresh data between HMR refreshes. However, the cache will be cleared on navigation or full-page reloads.
+
+See the serverComponentsHmrCache docs for more information.
+
+## Version History
+
+| Version   | Changes             |
+| --------- | ------------------- |
+| `v13.0.0` | `fetch` introduced. |
+
+# generateImageMetadata
+
+Learn how to generate multiple images in a single Metadata API special file.
+
+You can use `generateImageMetadata` to generate different versions of one image or return multiple images for one route segment. This is useful for when you want to avoid hard-coding metadata values, such as for icons.
+
+## Parameters
+
+`generateImageMetadata` function accepts the following parameters:
+
+### `params` (optional)
+
+An object containing the dynamic route parameters from the root segment down to the segment `generateImageMetadata` is called from.
+
+```tsx
+export function generateImageMetadata({
+  params,
+}: {
+  params: { slug: string }
+}) {
+  // ...
+}
+```
+
+```jsx
+export function generateImageMetadata({ params }) {
+  // ...
+}
+```
+
+| Route                           | URL         | `params`                  |
+| ------------------------------- | ----------- | ------------------------- |
+| `app/shop/icon.js`              | `/shop`     | `undefined`               |
+| `app/shop/[slug]/icon.js`       | `/shop/1`   | `{ slug: '1' }`           |
+| `app/shop/[tag]/[item]/icon.js` | `/shop/1/2` | `{ tag: '1', item: '2' }` |
+
+## Returns
+
+The `generateImageMetadata` function should return an array of objects containing the image's metadata such as `alt` and `size`. Each item must include an `id` value which will be passed to the props of the image generating function.
+
+| Image Metadata Object | Type                                |
+| --------------------- | ----------------------------------- |
+| `id`                  | `string` (required)                 |
+| `alt`                 | `string`                            |
+| `size`                | `{ width: number; height: number }` |
+| `contentType`         | `string`                            |
+
+```tsx
+import { ImageResponse } from 'next/og'
+
+export function generateImageMetadata() {
+  return [
+    {
+      contentType: 'image/png',
+      size: { width: 48, height: 48 },
+      id: 'small',
+    },
+    {
+      contentType: 'image/png',
+      size: { width: 72, height: 72 },
+      id: 'medium',
+    },
+  ]
+}
+
+export default function Icon({ id }: { id: string }) {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 88,
+          background: '#000',
+          color: '#fafafa',
+        }}
+      >
+        Icon {id}
+      </div>
+    )
+  )
+}
+```
+
+```jsx
+import { ImageResponse } from 'next/og'
+
+export function generateImageMetadata() {
+  return [
+    {
+      contentType: 'image/png',
+      size: { width: 48, height: 48 },
+      id: 'small',
+    },
+    {
+      contentType: 'image/png',
+      size: { width: 72, height: 72 },
+      id: 'medium',
+    },
+  ]
+}
+
+export default function Icon({ id }) {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 88,
+          background: '#000',
+          color: '#fafafa',
+        }}
+      >
+        Icon {id}
+      </div>
+    )
+  )
+}
+```
+
+### Examples
+
+#### Using external data
+
+This example uses the `params` object and external data to generate multiple Open Graph images for a route segment.
+
+```tsx
+import { ImageResponse } from 'next/og'
+import { getCaptionForImage, getOGImages } from '@/app/utils/images'
+
+export async function generateImageMetadata({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const images = await getOGImages(params.id)
+
+  return images.map((image, idx) => ({
+    id: idx,
+    size: { width: 1200, height: 600 },
+    alt: image.text,
+    contentType: 'image/png',
+  }))
+}
+
+export default async function Image({
+  params,
+  id,
+}: {
+  params: { id: string }
+  id: number
+}) {
+  const productId = (await params).id
+  const imageId = id
+  const text = await getCaptionForImage(productId, imageId)
+
+  return new ImageResponse(
+    (
+      <div
+        style={
+          {
+            // ...
+          }
+        }
+      >
+        {text}
+      </div>
+    )
+  )
+}
+```
+
+```jsx
+import { ImageResponse } from 'next/og'
+import { getCaptionForImage, getOGImages } from '@/app/utils/images'
+
+export async function generateImageMetadata({ params }) {
+  const images = await getOGImages(params.id)
+
+  return images.map((image, idx) => ({
+    id: idx,
+    size: { width: 1200, height: 600 },
+    alt: image.text,
+    contentType: 'image/png',
+  }))
+}
+
+export default async function Image({ params, id }) {
+  const productId = (await params).id
+  const imageId = id
+  const text = await getCaptionForImage(productId, imageId)
+
+  return new ImageResponse(
+    (
+      <div
+        style={
+          {
+            // ...
+          }
+        }
+      >
+        {text}
+      </div>
+    )
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                             |
+| --------- | ----------------------------------- |
+| `v13.3.0` | `generateImageMetadata` introduced. |
+
+# generateMetadata
+
+Learn how to add Metadata to your Next.js application for improved search engine optimization (SEO) and web shareability.
+
+## Config-based Metadata Options
+
+This section covers all Config-based Metadata options with `generateMetadata` and the static metadata object.
+
+### Static Metadata
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '...',
+}
+```
+
+### Dynamic Metadata
+
+```tsx
+export async function generateMetadata({ params }) {
+  return {
+    title: '...',
+  }
+}
+```
+
+**Note**:
+- The `metadata` object and `generateMetadata` function exports are only supported in Server Components.
+- You cannot export both the `metadata` object and `generateMetadata` function from the same route segment.
+
+## The `metadata` Object
+
+To define static metadata, export a `Metadata` object from a `layout.js` or `page.js` file.
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '...',
+  description: '...',
+}
+
+export default function Page() {}
+```
+
+Refer to the Metadata Fields for a complete list of supported options.
+
+## `generateMetadata` Function
+
+Dynamic metadata can be set by exporting a `generateMetadata` function that returns a `Metadata` object.
+
+```tsx
+import type { Metadata, ResolvingMetadata } from 'next'
+
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const id = (await params).id
+  const product = await fetch(`https://.../${id}`).then((res) => res.json())
+  const previousImages = (await parent).openGraph?.images || []
+
+  return {
+    title: product.title,
+    openGraph: {
+      images: ['/some-specific-page-image.jpg', ...previousImages],
+    },
+  }
+}
+
+export default function Page({ params, searchParams }: Props) {}
+```
+
+### Parameters
+
+`generateMetadata` accepts the following parameters:
+
+- `props` - An object containing the parameters of the current route:
+  - `params` - An object containing dynamic route parameters.
+  - `searchParams` - An object containing the current URL's search params.
+  - `parent` - A promise of the resolved metadata from parent route segments.
+
+### Returns
+
+`generateMetadata` should return a `Metadata` object containing one or more metadata fields.
+
+**Note**:
+- If metadata doesn't depend on runtime information, it should be defined using the static `metadata` object rather than `generateMetadata`.
+- `fetch` requests are automatically memoized for the same data across various components.
+- `searchParams` are only available in `page.js` segments.
+
+## Metadata Fields
+
+### `title`
+
+The `title` attribute sets the document title.
+
+#### String
+
+```jsx
+export const metadata = {
+  title: 'Next.js',
+}
+```
+
+#### Template Object
+
+```tsx
+export const metadata: Metadata = {
+  title: {
+    template: '...',
+    default: '...',
+    absolute: '...',
+  },
+}
+```
+
+##### Default
+
+`title.default` provides a fallback title for child route segments.
+
+##### Template
+
+`title.template` adds a prefix or suffix to titles defined in child route segments.
+
+##### Absolute
+
+`title.absolute` provides a title that ignores `title.template` set in parent segments.
+
+### `description`
+
+```jsx
+export const metadata = {
+  description: 'The React Framework for the Web',
+}
+```
+
+### Basic Fields
+
+```jsx
+export const metadata = {
+  generator: 'Next.js',
+  applicationName: 'Next.js',
+  referrer: 'origin-when-cross-origin',
+  keywords: ['Next.js', 'React', 'JavaScript'],
+  authors: [{ name: 'Seb' }, { name: 'Josh', url: 'https://nextjs.org' }],
+  creator: 'Jiachi Liu',
+  publisher: 'Sebastian Markbåge',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+}
+```
+
+### `metadataBase`
+
+`metadataBase` sets a base URL prefix for metadata fields requiring a fully qualified URL.
+
+```jsx
+export const metadata = {
+  metadataBase: new URL('https://acme.com'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en-US': '/en-US',
+      'de-DE': '/de-DE',
+    },
+  },
+}
+```
+
+### `openGraph`
+
+```jsx
+export const metadata = {
+  openGraph: {
+    title: 'Next.js',
+    description: 'The React Framework for the Web',
+    url: 'https://nextjs.org',
+    siteName: 'Next.js',
+    images: [
+      {
+        url: 'https://nextjs.org/og.png',
+        width: 800,
+        height: 600,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+}
+```
+
+### `robots`
+
+```tsx
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
+```
+
+### `icons`
+
+```jsx
+export const metadata = {
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/shortcut-icon.png',
+  },
+}
+```
+
+### `manifest`
+
+```jsx
+export const metadata = {
+  manifest: 'https://nextjs.org/manifest.json',
+}
+```
+
+### `twitter`
+
+```jsx
+export const metadata = {
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Next.js',
+    description: 'The React Framework for the Web',
+    images: ['https://nextjs.org/og.png'],
+  },
+}
+```
+
+### `verification`
+
+```jsx
+export const metadata = {
+  verification: {
+    google: 'google',
+    yandex: 'yandex',
+  },
+}
+```
+
+### `other`
+
+Use the `other` option to render any custom metadata tag.
+
+```jsx
+export const metadata = {
+  other: {
+    custom: 'meta',
+  },
+}
+```
+
+## Unsupported Metadata
+
+The following metadata types do not currently have built-in support but can still be rendered in the layout or page itself.
+
+| Metadata                      | Recommendation                                                                                                                                                                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<meta http-equiv="...">`     | Use appropriate HTTP Headers via redirect, Middleware, or Security Headers. |
+| `<base>`                      | Render the tag in the layout or page itself.                                                                                                                                                                                                       |
+| `<noscript>`                  | Render the tag in the layout or page itself.                                                                                                                                                                                                       |
+| `<style>`                     | Learn more about styling in Next.js.                                                                                                                                                            |
+| `<script>`                    | Learn more about using scripts in Next.js.                                                                                                                                                          |
+| `<link rel="stylesheet" />`   | Import stylesheets directly in the layout or page itself.                                                                                                                                                                                        |
+
+## Types
+
+You can add type safety to your metadata by using the `Metadata` type.
+
+### `metadata` Object
+
+```tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Next.js',
+}
+```
+
+### `generateMetadata` Function
+
+#### Regular Function
+
+```tsx
+import type { Metadata } from 'next'
+
+export function generateMetadata(): Metadata {
+  return {
+    title: 'Next.js',
+  }
+}
+```
+
+#### Async Function
+
+```tsx
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Next.js',
+  }
+}
+```
+
+#### With Segment Props
+
+```tsx
+import type { Metadata } from 'next'
+
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export function generateMetadata({ params, searchParams }: Props): Metadata {
+  return {
+    title: 'Next.js',
+  }
+}
+```
+
+#### With Parent Metadata
+
+```tsx
+import type { Metadata, ResolvingMetadata } from 'next'
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  return {
+    title: 'Next.js',
+  }
+}
+```
+
+#### JavaScript Projects
+
+For JavaScript projects, you can use JSDoc to add type safety.
+
+```js
+/** @type {import("next").Metadata} */
+export const metadata = {
+  title: 'Next.js',
+}
+```
+
+## Version History
+
+| Version   | Changes                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v13.2.0` | `viewport`, `themeColor`, and `colorScheme` deprecated in favor of the viewport configuration. |
+| `v13.2.0` | `metadata` and `generateMetadata` introduced.                                                                                                           |
+
+# generateSitemaps
+
+Learn how to use the `generateSitemaps` function to create multiple sitemaps for your application.
+
+## Returns
+
+The `generateSitemaps` function returns an array of objects with an `id` property.
+
+## URLs
+
+In production, generated sitemaps are available at `/.../sitemap/[id].xml`. For example, `/product/sitemap/1.xml`.
+
+In development, view the generated sitemap at `/.../sitemap.xml/[id]`. For example, `/product/sitemap.xml/1`. This difference is temporary and will follow the production format.
+
+## Example
+
+To split a sitemap using `generateSitemaps`, return an array of objects with the sitemap `id`. Use the `id` to generate unique sitemaps.
+
+```ts
+import { BASE_URL } from '@/app/lib/constants'
+
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }]
+}
+
+export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
+  const start = id * 50000
+  const end = start + 50000
+  const products = await getProducts(
+    `SELECT id, date FROM products WHERE id BETWEEN ${start} AND ${end}`
+  )
+  return products.map((product) => ({
+    url: `${BASE_URL}/product/${product.id}`,
+    lastModified: product.date,
+  }))
+}
+```
+
+```js
+import { BASE_URL } from '@/app/lib/constants'
+
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }]
+}
+
+export default async function sitemap({ id }) {
+  const start = id * 50000
+  const end = start + 50000
+  const products = await getProducts(
+    `SELECT id, date FROM products WHERE id BETWEEN ${start} AND ${end}`
+  )
+  return products.map((product) => ({
+    url: `${BASE_URL}/product/${id}`,
+    lastModified: product.date,
+  }))
+}
+```
+
+Next Steps: Learn how to create sitemaps for your Next.js application. Related link: app/api-reference/file-conventions/metadata/sitemap.
+
+# generateStaticParams
+
+The `generateStaticParams` function can be used with dynamic route segments to statically generate routes at build time instead of on-demand at request time.
+
+```jsx
+// Return a list of `params` to populate the [slug] dynamic segment
+export async function generateStaticParams() {
+  const posts = await fetch('https://.../posts').then((res) => res.json())
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+
+// Multiple versions of this page will be statically generated
+// using the `params` returned by `generateStaticParams`
+export default async function Page({ params }) {
+  const { slug } = await params
+  // ...
+}
+```
+
+**Good to know**:
+- Use the `dynamicParams` segment config option to control behavior for dynamic segments not generated with `generateStaticParams`.
+- Return an empty array from `generateStaticParams` or use `export const dynamic = 'force-static'` to revalidate paths at runtime.
+- During `next dev`, `generateStaticParams` is called when navigating to a route.
+- During `next build`, `generateStaticParams` runs before generating corresponding Layouts or Pages.
+- During revalidation (ISR), `generateStaticParams` will not be called again.
+- `generateStaticParams` replaces the `getStaticPaths` function in the Pages Router.
+
+## Parameters
+
+`options.params` (optional)
+
+If multiple dynamic segments in a route use `generateStaticParams`, the child `generateStaticParams` function is executed for each set of `params` the parent generates.
+
+The `params` object contains populated `params` from the parent `generateStaticParams`, which can be used to generate the `params` in a child segment.
+
+## Returns
+
+`generateStaticParams` should return an array of objects where each object represents the populated dynamic segments of a single route.
+
+- Each property in the object is a dynamic segment to be filled in for the route.
+- The property name is the segment's name, and the property value is what that segment should be filled in with.
+
+Example Route | `generateStaticParams` Return Type
+--------------|-----------------------------------
+`/product/[id]` | `{ id: string }[]`
+`/products/[category]/[product]` | `{ category: string, product: string }[]`
+`/products/[...slug]` | `{ slug: string[] }[]`
+
+## Single Dynamic Segment
+
+```tsx
+export function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }, { id: '3' }]
+}
+
+// Three versions of this page will be statically generated
+// using the `params` returned by `generateStaticParams`
+// - /product/1
+// - /product/2
+// - /product/3
+export default async function Page({ params }) {
+  const { id } = await params
+  // ...
+}
+```
+
+## Multiple Dynamic Segments
+
+```tsx
+export function generateStaticParams() {
+  return [
+    { category: 'a', product: '1' },
+    { category: 'b', product: '2' },
+    { category: 'c', product: '3' },
+  ]
+}
+
+// Three versions of this page will be statically generated
+// using the `params` returned by `generateStaticParams`
+// - /products/a/1
+// - /products/b/2
+// - /products/c/3
+export default async function Page({ params }) {
+  const { category, product } = await params
+  // ...
+}
+```
+
+## Catch-all Dynamic Segment
+
+```tsx
+export function generateStaticParams() {
+  return [{ slug: ['a', '1'] }, { slug: ['b', '2'] }, { slug: ['c', '3'] }]
+}
+
+// Three versions of this page will be statically generated
+// using the `params` returned by `generateStaticParams`
+// - /product/a/1
+// - /product/b/2
+// - /product/c/3
+export default async function Page({ params }) {
+  const { slug } = await params
+  // ...
+}
+```
+
+## Examples
+
+### Static Rendering
+
+#### All paths at build time
+
+To statically render all paths at build time, supply the full list of paths to `generateStaticParams`:
+
+```tsx
+export async function generateStaticParams() {
+  const posts = await fetch('https://.../posts').then((res) => res.json())
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+```
+
+#### Subset of paths at build time
+
+To statically render a subset of paths at build time, return a partial list of paths:
+
+```tsx
+export async function generateStaticParams() {
+  const posts = await fetch('https://.../posts').then((res) => res.json())
+
+  // Render the first 10 posts at build time
+  return posts.slice(0, 10).map((post) => ({
+    slug: post.slug,
+  }))
+}
+```
+
+Then, use the `dynamicParams` segment config option to control behavior for dynamic segments not generated with `generateStaticParams`.
+
+```jsx
+// All posts besides the top 10 will be a 404
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  const posts = await fetch('https://.../posts').then((res) => res.json())
+  const topPosts = posts.slice(0, 10)
+
+  return topPosts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+```
+
+#### All paths at runtime
+
+To statically render all paths the first time they're visited, return an empty array or utilize `export const dynamic = 'force-static'`:
+
+```jsx
+export async function generateStaticParams() {
+  return []
+}
+```
+
+**Good to know:** Always return an array from `generateStaticParams`, even if empty. Otherwise, the route will be dynamically rendered.
+
+```jsx
+export const dynamic = 'force-static'
+```
+
+### Disable rendering for unspecified paths
+
+To prevent unspecified paths from being statically rendered at runtime, add the `export const dynamicParams = false` option in a route segment. This will serve only paths provided by `generateStaticParams`, and unspecified routes will 404 or match in the case of catch-all routes.
+
+### Multiple Dynamic Segments in a Route
+
+You can generate params for dynamic segments above the current layout or page, but not below. For example, given the `app/products/[category]/[product]` route:
+
+- `app/products/[category]/[product]/page.js` can generate params for both `[category]` and `[product]`.
+- `app/products/[category]/layout.js` can only generate params for `[category]`.
+
+#### Generate params from the bottom up
+
+Generate multiple dynamic segments from the child route segment.
+
+```tsx
+export async function generateStaticParams() {
+  const products = await fetch('https://.../products').then((res) => res.json())
+
+  return products.map((product) => ({
+    category: product.category.slug,
+    product: product.id,
+  }))
+}
+
+export default function Page({ params }) {
+  // ...
+}
+```
+
+#### Generate params from the top down
+
+Generate the parent segments first and use the result to generate the child segments.
+
+```tsx
+export async function generateStaticParams() {
+  const products = await fetch('https://.../products').then((res) => res.json())
+
+  return products.map((product) => ({
+    category: product.category.slug,
+  }))
+}
+
+export default function Layout({ params }) {
+  // ...
+}
+```
+
+A child route segment's `generateStaticParams` function is executed once for each segment a parent `generateStaticParams` generates.
+
+The child `generateStaticParams` function can use the `params` returned from the parent `generateStaticParams` function to dynamically generate its own segments.
+
+```tsx
+export async function generateStaticParams({ params: { category } }) {
+  const products = await fetch(`https://.../products?category=${category}`).then((res) => res.json())
+
+  return products.map((product) => ({
+    product: product.id,
+  }))
+}
+
+export default function Page({ params }) {
+  // ...
+}
+```
+
+**Good to know**: `fetch` requests are automatically memoized for the same data across all `generate`-prefixed functions, Layouts, Pages, and Server Components. React `cache` can be used if `fetch` is unavailable.
+
+## Version History
+
+Version | Changes
+--------|--------
+`v13.0.0` | `generateStaticParams` introduced.
+
+# generateViewport
+
+## Description
+API Reference for the generateViewport function.
+
+## Overview
+You can customize the initial viewport of the page with the static `viewport` object or the dynamic `generateViewport` function.
+
+**Good to know**:
+- The `viewport` object and `generateViewport` function exports are **only supported in Server Components**.
+- You cannot export both the `viewport` object and `generateViewport` function from the same route segment.
+- If you're migrating `metadata` exports, use the metadata-to-viewport-export codemod to update your changes.
+
+## The `viewport` object
+To define the viewport options, export a `viewport` object from a `layout.jsx` or `page.jsx` file.
+
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  themeColor: 'black',
+}
+
+export default function Page() {}
+```
+
+```jsx
+export const viewport = {
+  themeColor: 'black',
+}
+
+export default function Page() {}
+```
+
+## `generateViewport` function
+`generateViewport` should return a `Viewport` object containing one or more viewport fields.
+
+```tsx
+export function generateViewport({ params }) {
+  return {
+    themeColor: '...',
+  }
+}
+```
+
+```jsx
+export function generateViewport({ params }) {
+  return {
+    themeColor: '...',
+  }
+}
+```
+
+**Good to know**:
+- If the viewport doesn't depend on runtime information, it should be defined using the static `viewport` object rather than `generateViewport`.
+
+## Viewport Fields
+
+### `themeColor`
+Learn more about `theme-color`.
+
+**Simple theme color**
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  themeColor: 'black',
+}
+```
+
+```jsx
+export const viewport = {
+  themeColor: 'black',
+}
+```
+
+```html
+<meta name="theme-color" content="black" />
+```
+
+**With media attribute**
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'cyan' },
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
+}
+```
+
+```jsx
+export const viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'cyan' },
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
+}
+```
+
+```html
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="cyan" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="black" />
+```
+
+### `width`, `initialScale`, `maximumScale`, and `userScalable`
+**Good to know**: The `viewport` meta tag is automatically set, and manual configuration is usually unnecessary as the default is sufficient.
+
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+```
+
+```jsx
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+```
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+```
+
+### `colorScheme`
+Learn more about `color-scheme`.
+
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  colorScheme: 'dark',
+}
+```
+
+```jsx
+export const viewport = {
+  colorScheme: 'dark',
+}
+```
+
+```html
+<meta name="color-scheme" content="dark" />
+```
+
+## Types
+You can add type safety to your viewport object by using the `Viewport` type.
+
+### `viewport` object
+```tsx
+import type { Viewport } from 'next'
+
+export const viewport: Viewport = {
+  themeColor: 'black',
+}
+```
+
+### `generateViewport` function
+
+#### Regular function
+```tsx
+import type { Viewport } from 'next'
+
+export function generateViewport(): Viewport {
+  return {
+    themeColor: 'black',
+  }
+}
+```
+
+#### With segment props
+```tsx
+import type { Viewport } from 'next'
+
+type Props = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export function generateViewport({ params, searchParams }: Props): Viewport {
+  return {
+    themeColor: 'black',
+  }
+}
+
+export default function Page({ params, searchParams }: Props) {}
+```
+
+#### JavaScript Projects
+For JavaScript projects, you can use JSDoc to add type safety.
+```js
+/** @type {import("next").Viewport} */
+export const viewport = {
+  themeColor: 'black',
+}
+```
+
+## Version History
+| Version   | Changes                                       |
+| --------- | --------------------------------------------- |
+| `v14.0.0` | `viewport` and `generateViewport` introduced. |
+
+# headers
+
+`headers` is an **async** function that allows you to **read** the HTTP incoming request headers from a Server Component.
+
+```tsx
+import { headers } from 'next/headers'
+
+export default async function Page() {
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent')
+}
+```
+
+```jsx
+import { headers } from 'next/headers'
+
+export default async function Page() {
+  const headersList = await headers()
+  const userAgent = headersList.get('user-agent')
+}
+```
+
+## Reference
+
+### Parameters
+
+`headers` does not take any parameters.
+
+### Returns
+
+`headers` returns a **read-only** Web Headers object.
+
+- `Headers.entries()`: Returns an iterator allowing to go through all key/value pairs contained in this object.
+- `Headers.forEach()`: Executes a provided function once for each key/value pair in this Headers object.
+- `Headers.get()`: Returns a String sequence of all the values of a header within a Headers object with a given name.
+- `Headers.has()`: Returns a boolean stating whether a Headers object contains a certain header.
+- `Headers.keys()`: Returns an iterator allowing you to go through all keys of the key/value pairs contained in this object.
+- `Headers.values()`: Returns an iterator allowing you to go through all values of the key/value pairs contained in this object.
+
+## Good to know
+
+- `headers` is an **asynchronous** function that returns a promise. You must use `async/await` or React's `use` function.
+  - In version 14 and earlier, `headers` was a synchronous function. To help with backwards compatibility, you can still access it synchronously in Next.js 15, but this behavior will be deprecated in the future.
+- Since `headers` is read-only, you cannot `set` or `delete` the outgoing request headers.
+- `headers` is a Dynamic API whose returned values cannot be known ahead of time. Using it will opt a route into dynamic rendering.
+
+## Examples
+
+### Using the Authorization header
+
+```jsx
+import { headers } from 'next/headers'
+
+export default async function Page() {
+  const authorization = (await headers()).get('authorization')
+  const res = await fetch('...', {
+    headers: { authorization }, // Forward the authorization header
+  })
+  const user = await res.json()
+
+  return <h1>{user.name}</h1>
+}
+```
+
+## Version History
+
+| Version      | Changes                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `v15.0.0-RC` | `headers` is now an async function. A codemod is available.                                                              |
+| `v13.0.0`    | `headers` introduced.                                                                                                     |
+
+# ImageResponse
+
+The `ImageResponse` constructor allows you to generate dynamic images using JSX and CSS. This is useful for generating social media images such as Open Graph images, Twitter cards, and more.
+
+## Options
+
+```jsx
+import { ImageResponse } from 'next/og'
+
+new ImageResponse(
+  element: ReactElement,
+  options: {
+    width?: number = 1200
+    height?: number = 630
+    emoji?: 'twemoji' | 'blobmoji' | 'noto' | 'openmoji' = 'twemoji',
+    fonts?: {
+      name: string,
+      data: ArrayBuffer,
+      weight: number,
+      style: 'normal' | 'italic'
+    }[]
+    debug?: boolean = false
+
+    // Options that will be passed to the HTTP response
+    status?: number = 200
+    statusText?: string
+    headers?: Record<string, string>
+  },
+)
+```
+
+## Supported CSS Properties
+
+Please refer to Satori’s documentation for a list of supported HTML and CSS features.
+
+## Version History
+
+| Version   | Changes                                               |
+| --------- | ----------------------------------------------------- |
+| `v14.0.0` | `ImageResponse` moved from `next/server` to `next/og` |
+| `v13.3.0` | `ImageResponse` can be imported from `next/server`.   |
+| `v13.0.0` | `ImageResponse` introduced via `@vercel/og` package.  |
+
+# Functions
+
+API Reference for Next.js Functions and Hooks.
+
+The content of this document is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# NextRequest
+
+API Reference for NextRequest.
+
+NextRequest extends the Web Request API with additional convenience methods.
+
+## `cookies`
+
+Read or mutate the `Set-Cookie` header of the request.
+
+### `set(name, value)`
+
+Set a cookie with the given value on the request.
+
+```ts
+request.cookies.set('show-banner', 'false')
+```
+
+### `get(name)`
+
+Return the value of the cookie by name. Returns `undefined` if not found.
+
+```ts
+request.cookies.get('show-banner')
+```
+
+### `getAll()`
+
+Return all cookies on the request or values of a specific cookie name.
+
+```ts
+request.cookies.getAll('experiments')
+request.cookies.getAll()
+```
+
+### `delete(name)`
+
+Delete the cookie from the request.
+
+```ts
+request.cookies.delete('experiments')
+```
+
+### `has(name)`
+
+Return `true` if the cookie exists on the request.
+
+```ts
+request.cookies.has('experiments')
+```
+
+### `clear()`
+
+Remove the `Set-Cookie` header from the request.
+
+```ts
+request.cookies.clear()
+```
+
+## `nextUrl`
+
+Extends the native URL API with additional convenience methods, including Next.js specific properties.
+
+```ts
+request.nextUrl.pathname
+request.nextUrl.searchParams
+```
+
+### Available Options
+
+**Pages Router Properties:**
+
+- `basePath`: string - The base path of the URL.
+- `buildId`: string | undefined - The build identifier of the Next.js application.
+- `defaultLocale`: string | undefined - The default locale for internationalization.
+- `domainLocale`:
+  - `defaultLocale`: string - The default locale within a domain.
+  - `domain`: string - The domain associated with a specific locale.
+  - `http`: boolean | undefined - Indicates if the domain is using HTTP.
+- `locales`: string[] | undefined - An array of available locales.
+- `locale`: string | undefined - The currently active locale.
+- `url`: URL - The URL object.
+
+**App Router Properties:**
+
+- `basePath`: string - The base path of the URL.
+- `buildId`: string | undefined - The build identifier of the Next.js application.
+- `pathname`: string - The pathname of the URL.
+- `searchParams`: Object - The search parameters of the URL.
+
+Note: The internationalization properties from the Pages Router are not available for usage in the App Router.
+
+## Version History
+
+| Version   | Changes                 |
+| --------- | ----------------------- |
+| `v15.0.0` | `ip` and `geo` removed. |
+
+# NextResponse
+
+API Reference for NextResponse.
+
+NextResponse extends the Web Response API with additional convenience methods.
+
+## cookies
+
+Read or mutate the Set-Cookie header of the response.
+
+### set(name, value)
+
+Set a cookie with the given value on the response.
+
+```ts
+let response = NextResponse.next()
+response.cookies.set('show-banner', 'false')
+return response
+```
+
+### get(name)
+
+Return the value of the cookie by name. Returns `undefined` if not found.
+
+```ts
+let response = NextResponse.next()
+response.cookies.get('show-banner')
+```
+
+### getAll()
+
+Return all cookies on the response or values of a specific cookie.
+
+```ts
+let response = NextResponse.next()
+response.cookies.getAll('experiments')
+response.cookies.getAll()
+```
+
+### delete(name)
+
+Delete the cookie from the response.
+
+```ts
+let response = NextResponse.next()
+response.cookies.delete('experiments')
+```
+
+## json()
+
+Produce a response with the given JSON body.
+
+```ts
+import { NextResponse } from 'next/server'
+
+export async function GET(request) {
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+}
+```
+
+## redirect()
+
+Produce a response that redirects to a URL.
+
+```ts
+import { NextResponse } from 'next/server'
+
+return NextResponse.redirect(new URL('/new', request.url))
+```
+
+Modify the URL before redirecting.
+
+```ts
+import { NextResponse } from 'next/server'
+
+const loginUrl = new URL('/login', request.url)
+loginUrl.searchParams.set('from', request.nextUrl.pathname)
+return NextResponse.redirect(loginUrl)
+```
+
+## rewrite()
+
+Produce a response that rewrites (proxies) the given URL while preserving the original URL.
+
+```ts
+import { NextResponse } from 'next/server'
+
+return NextResponse.rewrite(new URL('/proxy', request.url))
+```
+
+## next()
+
+Useful for Middleware, allowing early return and continued routing.
+
+```ts
+import { NextResponse } from 'next/server'
+
+return NextResponse.next()
+```
+
+Forward headers when producing the response.
+
+```ts
+import { NextResponse } from 'next/server'
+
+const newHeaders = new Headers(request.headers)
+newHeaders.set('x-version', '123')
+return NextResponse.next({
+  request: {
+    headers: newHeaders,
+  },
+})
+```
+
+# notFound
+
+Description: API Reference for the notFound function.
+
+The `notFound` function allows you to render the not-found file within a route segment as well as inject a `<meta name="robots" content="noindex" />` tag.
+
+## `notFound()`
+
+Invoking the `notFound()` function throws a `NEXT_NOT_FOUND` error and terminates rendering of the route segment in which it was thrown. Specifying a not-found file allows you to gracefully handle such errors by rendering a Not Found UI within the segment.
+
+```jsx
+import { notFound } from 'next/navigation'
+
+async function fetchUser(id) {
+  const res = await fetch('https://...')
+  if (!res.ok) return undefined
+  return res.json()
+}
+
+export default async function Profile({ params }) {
+  const user = await fetchUser(params.id)
+
+  if (!user) {
+    notFound()
+  }
+
+  // ...
+}
+```
+
+Good to know: `notFound()` does not require you to use `return notFound()` due to using the TypeScript never type.
+
+## Version History
+
+- **Version**: v13.0.0
+  - Changes: `notFound` introduced.
+
+# permanentRedirect
+
+## Description
+The `permanentRedirect` function allows you to redirect the user to another URL. It can be used in Server Components, Client Components, Route Handlers, and Server Actions.
+
+When used in a streaming context, it inserts a meta tag to emit the redirect on the client side. In a server action, it serves a 303 HTTP redirect response. Otherwise, it serves a 308 (Permanent) HTTP redirect response.
+
+If a resource doesn't exist, use the `notFound` function instead.
+
+**Note**: To return a 307 (Temporary) HTTP redirect instead of 308 (Permanent), use the `redirect` function.
+
+## Parameters
+The `permanentRedirect` function accepts two arguments:
+
+```js
+permanentRedirect(path, type)
+```
+
+| Parameter | Type                                                          | Description                                                 |
+| --------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `path`    | `string`                                                      | The URL to redirect to. Can be a relative or absolute path. |
+| `type`    | `'replace'` (default) or `'push'` (default in Server Actions) | The type of redirect to perform.                            |
+
+By default, `permanentRedirect` uses `push` in Server Actions and `replace` elsewhere. You can override this behavior by specifying the `type` parameter. The `type` parameter has no effect in Server Components.
+
+## Returns
+`permanentRedirect` does not return a value.
+
+## Example
+Invoking the `permanentRedirect()` function throws a `NEXT_REDIRECT` error and terminates rendering of the route segment in which it was thrown.
+
+```jsx
+import { permanentRedirect } from 'next/navigation'
+
+async function fetchTeam(id) {
+  const res = await fetch('https://...')
+  if (!res.ok) return undefined
+  return res.json()
+}
+
+export default async function Profile({ params }) {
+  const team = await fetchTeam(params.id)
+  if (!team) {
+    permanentRedirect('/login')
+  }
+
+  // ...
+}
+```
+
+**Note**: `permanentRedirect` does not require you to use `return permanentRedirect()` as it uses the TypeScript `never` type.
+
+# redirect
+
+## Description
+API Reference for the redirect function.
+
+The `redirect` function allows you to redirect the user to another URL. It can be used in Server Components, Route Handlers, and Server Actions.
+
+When used in a streaming context, it inserts a meta tag to emit the redirect on the client side. In a server action, it serves a 303 HTTP redirect response. Otherwise, it serves a 307 HTTP redirect response.
+
+If a resource doesn't exist, use the `notFound` function instead.
+
+**Good to know**:
+- In Server Actions and Route Handlers, `redirect` should be called after the `try/catch` block.
+- To return a 308 (Permanent) HTTP redirect instead of 307 (Temporary), use the `permanentRedirect` function.
+
+## Parameters
+The `redirect` function accepts two arguments:
+
+```js
+redirect(path, type)
+```
+
+| Parameter | Type                                                          | Description                                                 |
+| --------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `path`    | `string`                                                      | The URL to redirect to. Can be a relative or absolute path. |
+| `type`    | `'replace'` (default) or `'push'` (default in Server Actions) | The type of redirect to perform.                            |
+
+By default, `redirect` uses `push` in Server Actions and `replace` elsewhere. You can override this behavior by specifying the `type` parameter. The `type` parameter has no effect in Server Components.
+
+## Returns
+`redirect` does not return a value.
+
+## Example
+
+### Server Component
+Invoking the `redirect()` function throws a `NEXT_REDIRECT` error and terminates rendering of the route segment in which it was thrown.
+
+```jsx
+import { redirect } from 'next/navigation'
+
+async function fetchTeam(id) {
+  const res = await fetch('https://...')
+  if (!res.ok) return undefined
+  return res.json()
+}
+
+export default async function Profile({ params }) {
+  const team = await fetchTeam(params.id)
+  if (!team) {
+    redirect('/login')
+  }
+
+  // ...
+}
+```
+
+**Good to know**: `redirect` does not require you to use `return redirect()` as it uses the TypeScript `never` type.
+
+### Client Component
+`redirect` can be used in a Client Component through a Server Action. Use the `useRouter` hook for event handlers.
+
+```tsx
+'use client'
+
+import { navigate } from './actions'
+
+export function ClientRedirect() {
+  return (
+    <form action={navigate}>
+      <input type="text" name="id" />
+      <button>Submit</button>
+    </form>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { navigate } from './actions'
+
+export function ClientRedirect() {
+  return (
+    <form action={navigate}>
+      <input type="text" name="id" />
+      <button>Submit</button>
+    </form>
+  )
+}
+```
+
+```ts
+'use server'
+
+import { redirect } from 'next/navigation'
+
+export async function navigate(data: FormData) {
+  redirect(`/posts/${data.get('id')}`)
+}
+```
+
+```js
+'use server'
+
+import { redirect } from 'next/navigation'
+
+export async function navigate(data) {
+  redirect(`/posts/${data.get('id')}`)
+}
+```
+
+## FAQ
+
+### Why does `redirect` use 307 and 308?
+`redirect()` uses `307` for a temporary redirect and `308` for a permanent redirect. Traditionally, `302` was used for temporary redirects, but many browsers changed the request method from `POST` to `GET` when using `302`, which is not ideal for operations like creating a new user.
+
+The `307` status code preserves the request method as `POST`, ensuring that requests remain consistent.
+
+- `302` - Temporary redirect, changes request method from `POST` to `GET`
+- `307` - Temporary redirect, preserves request method as `POST`
+
+The `redirect()` method uses a `307` by default, ensuring requests are preserved as `POST`.
+
+## Version History
+
+| Version   | Changes                |
+| --------- | ---------------------- |
+| `v13.0.0` | `redirect` introduced. |
+
+# revalidatePath
+
+`revalidatePath` allows you to purge cached data on-demand for a specific path.
+
+**Good to know**:
+- `revalidatePath` is available in both Node.js and Edge runtimes.
+- It only invalidates the cache when the included path is next visited. Calling `revalidatePath` with a dynamic route segment will not trigger immediate revalidations.
+- Currently, it invalidates all routes in the client-side Router Cache. This behavior will be updated to apply only to the specific path in the future.
+- It invalidates only the specific path in the server-side Route Cache.
+
+## Parameters
+
+```tsx
+revalidatePath(path: string, type?: 'page' | 'layout'): void;
+```
+
+- `path`: A string representing the filesystem path associated with the data to revalidate (e.g., `/product/[slug]/page`) or the literal route segment (e.g., `/product/123`). Must be less than 1024 characters and is case-sensitive.
+- `type`: (optional) `'page'` or `'layout'` to specify the type of path to revalidate. Required if `path` contains a dynamic segment.
+
+## Returns
+
+`revalidatePath` does not return a value.
+
+## Examples
+
+### Revalidating A Specific URL
+
+```ts
+import { revalidatePath } from 'next/cache'
+revalidatePath('/blog/post-1')
+```
+
+### Revalidating A Page Path
+
+```ts
+import { revalidatePath } from 'next/cache'
+revalidatePath('/blog/[slug]', 'page')
+// or with route groups
+revalidatePath('/(main)/blog/[slug]', 'page')
+```
+
+### Revalidating A Layout Path
+
+```ts
+import { revalidatePath } from 'next/cache'
+revalidatePath('/blog/[slug]', 'layout')
+// or with route groups
+revalidatePath('/(main)/post/[slug]', 'layout')
+```
+
+### Revalidating All Data
+
+```ts
+import { revalidatePath } from 'next/cache'
+revalidatePath('/', 'layout')
+```
+
+### Server Action
+
+```ts filename="app/actions.ts"
+'use server'
+
+import { revalidatePath } from 'next/cache'
+
+export default async function submit() {
+  await submitForm()
+  revalidatePath('/')
+}
+```
+
+### Route Handler
+
+```ts filename="app/api/revalidate/route.ts"
+import { revalidatePath } from 'next/cache'
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const path = request.nextUrl.searchParams.get('path')
+
+  if (path) {
+    revalidatePath(path)
+    return Response.json({ revalidated: true, now: Date.now() })
+  }
+
+  return Response.json({
+    revalidated: false,
+    now: Date.now(),
+    message: 'Missing path to revalidate',
+  })
+}
+```
+
+```js filename="app/api/revalidate/route.js"
+import { revalidatePath } from 'next/cache'
+
+export async function GET(request) {
+  const path = request.nextUrl.searchParams.get('path')
+
+  if (path) {
+    revalidatePath(path)
+    return Response.json({ revalidated: true, now: Date.now() })
+  }
+
+  return Response.json({
+    revalidated: false,
+    now: Date.now(),
+    message: 'Missing path to revalidate',
+  })
+}
+```
+
+# revalidateTag
+
+API Reference for the revalidateTag function.
+
+`revalidateTag` allows you to purge cached data on-demand for a specific cache tag.
+
+**Good to know**:
+- `revalidateTag` is available in both Node.js and Edge runtimes.
+- `revalidateTag` only invalidates the cache when the path is next visited. Calling `revalidateTag` with a dynamic route segment will not immediately trigger many revalidations at once. The invalidation only happens when the path is next visited.
+
+## Parameters
+
+```tsx
+revalidateTag(tag: string): void;
+```
+
+- `tag`: A string representing the cache tag associated with the data you want to revalidate. Must be less than or equal to 256 characters. This value is case-sensitive.
+
+You can add tags to `fetch` as follows:
+
+```tsx
+fetch(url, { next: { tags: [...] } });
+```
+
+## Returns
+
+`revalidateTag` does not return a value.
+
+## Examples
+
+### Server Action
+
+```ts
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export default async function submit() {
+  await addPost()
+  revalidateTag('posts')
+}
+```
+
+```js
+'use server'
+
+import { revalidateTag } from 'next/cache'
+
+export default async function submit() {
+  await addPost()
+  revalidateTag('posts')
+}
+```
+
+### Route Handler
+
+```ts
+import type { NextRequest } from 'next/server'
+import { revalidateTag } from 'next/cache'
+
+export async function GET(request: NextRequest) {
+  const tag = request.nextUrl.searchParams.get('tag')
+  revalidateTag(tag)
+  return Response.json({ revalidated: true, now: Date.now() })
+}
+```
+
+```js
+import { revalidateTag } from 'next/cache'
+
+export async function GET(request) {
+  const tag = request.nextUrl.searchParams.get('tag')
+  revalidateTag(tag)
+  return Response.json({ revalidated: true, now: Date.now() })
+}
+```
+
+# unstable_after
+
+`unstable_after` allows you to schedule work to be executed after a response (or prerender) is finished. This is useful for tasks and other side effects that should not block the response, such as logging and analytics.
+
+It can be used in Server Components, `generateMetadata`, Server Actions, Route Handlers, and Middleware.
+
+The function accepts a callback that will be executed after the response (or prerender) is finished:
+
+```tsx
+import { unstable_after as after } from 'next/server'
+// Custom logging function
+import { log } from '@/app/utils'
+
+export default function Layout({ children }) {
+  after(() => {
+    // Execute after the layout is rendered and sent to the user
+    log()
+  })
+  return <>{children}</>
+}
+```
+
+```jsx
+import { unstable_after as after } from 'next/server'
+// Custom logging function
+import { log } from '@/app/utils'
+
+export default function Layout({ children }) {
+  after(() => {
+    // Execute after the layout is rendered and sent to the user
+    log()
+  })
+  return <>{children}</>
+}
+```
+
+**Good to know:** `unstable_after` is not a Dynamic API and calling it does not cause a route to become dynamic. If used within a static page, the callback will execute at build time or whenever a page is revalidated.
+
+## Reference
+
+### Parameters
+
+- A callback function which will be executed after the response (or prerender) is finished.
+
+### Serverless function duration
+
+`unstable_after` will run for the platform's default or configured max duration of a serverless function. If your platform supports it, you can configure the timeout limit using the `maxDuration` route segment config.
+
+## Good to know
+
+- `unstable_after` will be executed even if the response didn't complete successfully, including when an error is thrown or when `notFound` or `redirect` is called.
+- You can use React `cache` to deduplicate functions called inside `unstable_after`.
+- `cookies` cannot be set inside `unstable_after` since the response has already been sent.
+- Dynamic APIs cannot be called within `unstable_after`. Call them outside of `unstable_after` and use the object they returned.
+- `unstable_after` can be nested inside other `unstable_after` calls, allowing for utility functions that wrap `unstable_after` calls to add additional functionality.
+
+## Alternatives
+
+The use case for `unstable_after` is to process secondary tasks without blocking the primary response. It's similar to using the platform's `waitUntil()` or removing `await` from a promise, but with the following differences:
+
+- **`waitUntil()`**: accepts a promise and enqueues a task to be executed during the lifecycle of the request, whereas `unstable_after` accepts a callback that will be executed after the response is finished.
+- **Removing `await`**: starts executing during the response, which uses resources. It's also not reliable in serverless environments as the function stops computation immediately after the response is sent, potentially interrupting the task.
+
+We recommend using `unstable_after` as it has been designed to consider other Next.js APIs and contexts.
+
+Version History:
+- `v15.0.0-rc`: `unstable_after` introduced.
+
+# unstable_rethrow
+
+## Description
+API Reference for the unstable_rethrow function.
+
+## Overview
+`unstable_rethrow` is used to avoid catching internal errors thrown by Next.js when handling errors in application code.
+
+## Example Usage
+When calling the `notFound` function, it throws an internal Next.js error and renders the not-found.js component. If used inside a `try/catch` block, the error will be caught, preventing the rendering of not-found.js:
+
+```tsx
+import { notFound } from 'next/navigation'
+
+export default async function Page() {
+  try {
+    const post = await fetch('https://.../posts/1').then((res) => {
+      if (res.status === 404) notFound()
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
+```
+
+To re-throw the internal error and maintain expected behavior, use the `unstable_rethrow` API:
+
+```tsx
+import { notFound, unstable_rethrow } from 'next/navigation'
+
+export default async function Page() {
+  try {
+    const post = await fetch('https://.../posts/1').then((res) => {
+      if (res.status === 404) notFound()
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
+    })
+  } catch (err) {
+    unstable_rethrow(err)
+    console.error(err)
+  }
+}
+```
+
+## Related Next.js APIs
+The following APIs rely on throwing an error that should be rethrown and handled by Next.js:
+
+- notFound()
+- redirect()
+- permanentRedirect()
+
+If a route segment is marked to throw an error unless static, a Dynamic API call will also throw an error that should not be caught by the developer. Note that Partial Prerendering (PPR) affects this behavior. These APIs include:
+
+- cookies
+- headers
+- searchParams
+- fetch(..., { cache: 'no-store' })
+- fetch(..., { next: { revalidate: 0 } })
+
+## Important Notes
+- Call this method at the top of the catch block, passing the error object as its only argument. It can also be used within a `.catch` handler of a promise.
+- If API calls that throw are not wrapped in a try/catch, `unstable_rethrow` is not needed.
+- Resource cleanup (like clearing intervals, timers, etc.) must occur before calling `unstable_rethrow` or within a `finally` block.
+
+# useParams
+
+`useParams` is a **Client Component** hook that lets you read a route's dynamic parameters filled in by the current URL.
+
+```tsx
+'use client'
+
+import { useParams } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const params = useParams<{ tag: string; item: string }>()
+
+  // Route -> /shop/[tag]/[item]
+  // URL -> /shop/shoes/nike-air-max-97
+  // `params` -> { tag: 'shoes', item: 'nike-air-max-97' }
+  console.log(params)
+
+  return '...'
+}
+```
+
+```jsx
+'use client'
+
+import { useParams } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const params = useParams()
+
+  // Route -> /shop/[tag]/[item]
+  // URL -> /shop/shoes/nike-air-max-97
+  // `params` -> { tag: 'shoes', item: 'nike-air-max-97' }
+  console.log(params)
+
+  return '...'
+}
+```
+
+## Parameters
+
+```tsx
+const params = useParams()
+```
+
+`useParams` does not take any parameters.
+
+## Returns
+
+`useParams` returns an object containing the current route's filled in dynamic parameters.
+
+- Each property in the object is an active dynamic segment.
+- The property name is the segment's name, and the property value is what the segment is filled in with.
+- The property value will either be a `string` or an array of `string` depending on the type of dynamic segment.
+- If the route contains no dynamic parameters, `useParams` returns an empty object.
+- If used in Pages Router, `useParams` will return `null` on the initial render and updates with properties once the router is ready.
+
+For example:
+
+Route                           | URL         | `useParams()`
+------------------------------- | ----------- | -------------------------
+`app/shop/page.js`              | `/shop`     | `{}`
+`app/shop/[slug]/page.js`       | `/shop/1`   | `{ slug: '1' }`
+`app/shop/[tag]/[item]/page.js` | `/shop/1/2` | `{ tag: '1', item: '2' }`
+`app/shop/[...slug]/page.js`    | `/shop/1/2` | `{ slug: ['1', '2'] }`
+
+## Version History
+
+Version   | Changes
+--------- | -----------------------
+`v13.3.0` | `useParams` introduced.
+
+# usePathname
+
+`usePathname` is a **Client Component** hook that allows reading the current URL's **pathname**.
+
+```tsx
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const pathname = usePathname()
+  return <p>Current pathname: {pathname}</p>
+}
+```
+
+```jsx
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const pathname = usePathname()
+  return <p>Current pathname: {pathname}</p>
+}
+```
+
+`usePathname` requires the use of a Client Component. Client Components are essential to the Server Components architecture.
+
+A Client Component with `usePathname` is rendered into HTML on the initial page load. When navigating to a new route, the component does not need to be re-fetched; it is downloaded once and re-renders based on the current state.
+
+**Good to know**:
+- Reading the current URL from a Server Component is not supported to preserve layout state across page navigations.
+- Compatibility mode:
+  - `usePathname` may return `null` when a fallback route is being rendered or when a pages directory page has been automatically statically optimized by Next.js and the router is not ready.
+  - When using `usePathname` with rewrites in next.config or Middleware, use `useState` and `useEffect` to avoid hydration mismatch errors.
+  - Next.js will automatically update types if both an app and pages directory are detected in your project.
+
+## Parameters
+
+```tsx
+const pathname = usePathname()
+```
+
+`usePathname` does not take any parameters.
+
+## Returns
+
+`usePathname` returns a string of the current URL's pathname. For example:
+
+| URL                 | Returned value        |
+| ------------------- | --------------------- |
+| `/`                 | `'/'`                 |
+| `/dashboard`        | `'/dashboard'`        |
+| `/dashboard?v=2`    | `'/dashboard'`        |
+| `/blog/hello-world` | `'/blog/hello-world'` |
+
+## Examples
+
+### Do something in response to a route change
+
+```tsx
+'use client'
+
+import { usePathname, useSearchParams } from 'next/navigation'
+
+function ExampleClientComponent() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    // Do something here...
+  }, [pathname, searchParams])
+}
+```
+
+```jsx
+'use client'
+
+import { usePathname, useSearchParams } from 'next/navigation'
+
+function ExampleClientComponent() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    // Do something here...
+  }, [pathname, searchParams])
+}
+```
+
+| Version   | Changes                   |
+| --------- | ------------------------- |
+| `v13.0.0` | `usePathname` introduced. |
+
+# useReportWebVitals
+
+## Description
+API Reference for the useReportWebVitals function.
+
+The `useReportWebVitals` hook allows you to report Core Web Vitals and can be used in combination with your analytics service.
+
+## Example Usage
+
+### Pages Router
+
+```jsx
+import { useReportWebVitals } from 'next/web-vitals'
+
+function MyApp({ Component, pageProps }) {
+  useReportWebVitals((metric) => {
+    console.log(metric)
+  })
+
+  return <Component {...pageProps} />
+}
+```
+
+### App Router
+
+```jsx
+'use client'
+
+import { useReportWebVitals } from 'next/web-vitals'
+
+export function WebVitals() {
+  useReportWebVitals((metric) => {
+    console.log(metric)
+  })
+}
+```
+
+```jsx
+import { WebVitals } from './_components/web-vitals'
+
+export default function Layout({ children }) {
+  return (
+    <html>
+      <body>
+        <WebVitals />
+        {children}
+      </body>
+    </html>
+  )
+}
+```
+
+> Note: The `useReportWebVitals` hook requires the `"use client"` directive. Create a separate component for optimal performance.
+
+## Metric Object Properties
+
+- `id`: Unique identifier for the metric in the context of the current page load.
+- `name`: The name of the performance metric (e.g., TTFB, FCP, LCP, FID, CLS).
+- `delta`: The difference between the current and previous value of the metric, typically in milliseconds.
+- `entries`: An array of Performance Entries associated with the metric.
+- `navigationType`: Indicates the type of navigation that triggered the metric collection (e.g., "navigate", "reload").
+- `rating`: A qualitative rating of the metric value (e.g., "good", "needs-improvement", "poor").
+- `value`: The actual value or duration of the performance entry, typically in milliseconds.
+
+## Web Vitals
+
+Web Vitals are a set of metrics that capture the user experience of a web page:
+
+- Time to First Byte (TTFB)
+- First Contentful Paint (FCP)
+- Largest Contentful Paint (LCP)
+- First Input Delay (FID)
+- Cumulative Layout Shift (CLS)
+- Interaction to Next Paint (INP)
+
+You can handle results using the `name` property.
+
+### Example Handling of Web Vitals
+
+```jsx
+import { useReportWebVitals } from 'next/web-vitals'
+
+function MyApp({ Component, pageProps }) {
+  useReportWebVitals((metric) => {
+    switch (metric.name) {
+      case 'FCP':
+        // handle FCP results
+      case 'LCP':
+        // handle LCP results
+      // ...
+    }
+  })
+
+  return <Component {...pageProps} />
+}
+```
+
+## Custom Metrics
+
+Additional custom metrics for measuring hydration and rendering times:
+
+- `Next.js-hydration`: Time taken for the page to hydrate (in ms).
+- `Next.js-route-change-to-render`: Time taken for a page to start rendering after a route change (in ms).
+- `Next.js-render`: Time taken for a page to finish rendering after a route change (in ms).
+
+### Example Handling of Custom Metrics
+
+```jsx
+import { useReportWebVitals } from 'next/web-vitals'
+
+function MyApp({ Component, pageProps }) {
+  useReportWebVitals((metric) => {
+    switch (metric.name) {
+      case 'Next.js-hydration':
+        // handle hydration results
+        break
+      case 'Next.js-route-change-to-render':
+        // handle route-change to render results
+        break
+      case 'Next.js-render':
+        // handle render results
+        break
+      default:
+        break
+    }
+  })
+
+  return <Component {...pageProps} />
+}
+```
+
+## Usage on Vercel
+
+Vercel Speed Insights does not use `useReportWebVitals`, but rather the `@vercel/speed-insights` package. The `useReportWebVitals` hook is useful for local development or when using a different service for collecting Web Vitals.
+
+## Sending Results to External Systems
+
+You can send results to any endpoint to measure and track real user performance. Example:
+
+```js
+useReportWebVitals((metric) => {
+  const body = JSON.stringify(metric)
+  const url = 'https://example.com/analytics'
+
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(url, body)
+  } else {
+    fetch(url, { body, method: 'POST', keepalive: true })
+  }
+})
+```
+
+### Google Analytics Integration
+
+```js
+useReportWebVitals(metric => {
+  window.gtag('event', metric.name, {
+    value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+    event_label: metric.id,
+    non_interaction: true,
+  });
+})
+```
+
+Read more about sending results to Google Analytics.
+
+# useRouter
+
+The `useRouter` hook allows you to programmatically change routes inside Client Components.
+
+**Recommendation:** Use the `<Link>` component for navigation unless you have a specific requirement for using `useRouter`.
+
+```tsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.push('/dashboard')}>
+      Dashboard
+    </button>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.push('/dashboard')}>
+      Dashboard
+    </button>
+  )
+}
+```
+
+## `useRouter()`
+
+- `router.push(href: string, { scroll: boolean })`: Perform a client-side navigation to the provided route. Adds a new entry into the browser’s history stack.
+- `router.replace(href: string, { scroll: boolean })`: Perform a client-side navigation to the provided route without adding a new entry into the browser’s history stack.
+- `router.refresh()`: Refresh the current route, making a new request to the server, re-fetching data requests, and re-rendering Server Components. The client will merge the updated React Server Component payload without losing unaffected client-side React or browser state.
+- `router.prefetch(href: string)`: Prefetch the provided route for faster client-side transitions.
+- `router.back()`: Navigate back to the previous route in the browser’s history stack.
+- `router.forward()`: Navigate forwards to the next page in the browser’s history stack.
+
+**Good to know**:
+- The `<Link>` component automatically prefetch routes as they become visible in the viewport.
+- `refresh()` could reproduce the same result if fetch requests are cached. Other Dynamic APIs like cookies and headers could also change the response.
+
+### Migrating from `next/router`
+
+- Import `useRouter` from `next/navigation` when using the App Router.
+- The `pathname` string has been removed and is replaced by `usePathname()`.
+- The `query` object has been removed and is replaced by `useSearchParams()`.
+- `router.events` has been replaced.
+
+## Examples
+
+### Router events
+
+You can listen for page changes by composing other Client Component hooks like `usePathname` and `useSearchParams`.
+
+```jsx
+'use client'
+
+import { useEffect } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+
+export function NavigationEvents() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const url = `${pathname}?${searchParams}`
+    console.log(url)
+  }, [pathname, searchParams])
+
+  return '...'
+}
+```
+
+Which can be imported into a layout.
+
+```jsx
+import { Suspense } from 'react'
+import { NavigationEvents } from './components/navigation-events'
+
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+
+        <Suspense fallback={null}>
+          <NavigationEvents />
+        </Suspense>
+      </body>
+    </html>
+  )
+}
+```
+
+**Good to know**: `<NavigationEvents>` is wrapped in a `Suspense` boundary because `useSearchParams()` causes client-side rendering up to the closest `Suspense` boundary during static rendering.
+
+### Disabling scroll to top
+
+By default, Next.js will scroll to the top of the page when navigating to a new route. You can disable this behavior by passing `scroll: false` to `router.push()` or `router.replace()`.
+
+```tsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button
+      type="button"
+      onClick={() => router.push('/dashboard', { scroll: false })}
+    >
+      Dashboard
+    </button>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button
+      type="button"
+      onClick={() => router.push('/dashboard', { scroll: false })}
+    >
+      Dashboard
+    </button>
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                                        |
+| --------- | ---------------------------------------------- |
+| `v13.0.0` | `useRouter` from `next/navigation` introduced. |
+
+# useSearchParams
+
+`useSearchParams` is a **Client Component** hook that allows reading the current URL's **query string**.
+
+`useSearchParams` returns a **read-only** version of the `URLSearchParams` interface.
+
+```tsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  return <>Search: {search}</>
+}
+```
+
+```jsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  return <>Search: {search}</>
+}
+```
+
+## Parameters
+
+`useSearchParams` does not take any parameters.
+
+## Returns
+
+`useSearchParams` returns a **read-only** version of the `URLSearchParams` interface, which includes utility methods for reading the URL's query string:
+
+- `URLSearchParams.get()`: Returns the first value associated with the search parameter. For example:
+
+  | URL                  | `searchParams.get("a")`                                                                                         |
+  | -------------------- | --------------------------------------------------------------------------------------------------------------- |
+  | `/dashboard?a=1`     | `'1'`                                                                                                           |
+  | `/dashboard?a=`      | `''`                                                                                                            |
+  | `/dashboard?b=3`     | `null`                                                                                                          |
+  | `/dashboard?a=1&a=2` | `'1'` _- use `getAll()` to get all values_ |
+
+- `URLSearchParams.has()`: Returns a boolean value indicating if the given parameter exists. For example:
+
+  | URL              | `searchParams.has("a")` |
+  | ---------------- | ----------------------- |
+  | `/dashboard?a=1` | `true`                  |
+  | `/dashboard?b=3` | `false`                 |
+
+- Learn more about other **read-only** methods of `URLSearchParams`, including `getAll()`, `keys()`, `values()`, `entries()`, `forEach()`, and `toString()`.
+
+> **Good to know**:
+>
+> - `useSearchParams` is a Client Component hook and is **not supported** in Server Components to prevent stale values during partial rendering.
+> - If an application includes the `/pages` directory, `useSearchParams` will return `ReadonlyURLSearchParams | null`. The `null` value is for compatibility during migration since search params cannot be known during pre-rendering of a page that doesn't use `getServerSideProps`.
+
+## Behavior
+
+### Static Rendering
+
+If a route is statically rendered, calling `useSearchParams` will cause the Client Component tree up to the closest `Suspense` boundary to be client-side rendered. This allows a part of the route to be statically rendered while the dynamic part that uses `useSearchParams` is client-side rendered.
+
+Wrap the Client Component that uses `useSearchParams` in a `<Suspense/>` boundary to allow any Client Components above it to be statically rendered and sent as part of initial HTML.
+
+```tsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  console.log(search)
+  return <>Search: {search}</>
+}
+```
+
+```jsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  console.log(search)
+  return <>Search: {search}</>
+}
+```
+
+```tsx
+import { Suspense } from 'react'
+import SearchBar from './search-bar'
+
+function SearchBarFallback() {
+  return <>placeholder</>
+}
+
+export default function Page() {
+  return (
+    <>
+      <nav>
+        <Suspense fallback={<SearchBarFallback />}>
+          <SearchBar />
+        </Suspense>
+      </nav>
+      <h1>Dashboard</h1>
+    </>
+  )
+}
+```
+
+```jsx
+import { Suspense } from 'react'
+import SearchBar from './search-bar'
+
+function SearchBarFallback() {
+  return <>placeholder</>
+}
+
+export default function Page() {
+  return (
+    <>
+      <nav>
+        <Suspense fallback={<SearchBarFallback />}>
+          <SearchBar />
+        </Suspense>
+      </nav>
+      <h1>Dashboard</h1>
+    </>
+  )
+}
+```
+
+### Dynamic Rendering
+
+If a route is dynamically rendered, `useSearchParams` will be available on the server during the initial server render of the Client Component.
+
+```tsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  console.log(search)
+  return <>Search: {search}</>
+}
+```
+
+```jsx
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+
+export default function SearchBar() {
+  const searchParams = useSearchParams()
+  const search = searchParams.get('search')
+  console.log(search)
+  return <>Search: {search}</>
+}
+```
+
+```tsx
+import SearchBar from './search-bar'
+
+export const dynamic = 'force-dynamic'
+
+export default function Page() {
+  return (
+    <>
+      <nav>
+        <SearchBar />
+      </nav>
+      <h1>Dashboard</h1>
+    </>
+  )
+}
+```
+
+```jsx
+import SearchBar from './search-bar'
+
+export const dynamic = 'force-dynamic'
+
+export default function Page() {
+  return (
+    <>
+      <nav>
+        <SearchBar />
+      </nav>
+      <h1>Dashboard</h1>
+    </>
+  )
+}
+```
+
+> **Good to know**: Setting the `dynamic` route segment config option to `force-dynamic` can be used to force dynamic rendering.
+
+### Server Components
+
+#### Pages
+
+To access search params in Pages (Server Components), use the `searchParams` prop.
+
+#### Layouts
+
+Layouts (Server Components) do not receive the `searchParams` prop because a shared layout is not re-rendered during navigation, which could lead to stale `searchParams` between navigations. Instead, use the Page `searchParams` prop or the `useSearchParams` hook in a Client Component, which is re-rendered on the client with the latest `searchParams`.
+
+## Examples
+
+### Updating `searchParams`
+
+You can use `useRouter` or `Link` to set new `searchParams`. After a navigation is performed, the current page will receive an updated `searchParams` prop.
+
+```tsx
+'use client'
+
+export default function ExampleClientComponent() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const createQueryString = useCallback(
+    (name, value) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set(name, value)
+      return params.toString()
+    },
+    [searchParams]
+  )
+
+  return (
+    <>
+      <p>Sort By</p>
+      <button
+        onClick={() => {
+          router.push(pathname + '?' + createQueryString('sort', 'asc'))
+        }}
+      >
+        ASC
+      </button>
+      <Link
+        href={pathname + '?' + createQueryString('sort', 'desc')}
+      >
+        DESC
+      </Link>
+    </>
+  )
+}
+```
+
+```jsx
+'use client'
+
+export default function ExampleClientComponent() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const createQueryString = useCallback(
+    (name, value) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
+      return params.toString()
+    },
+    [searchParams]
+  )
+
+  return (
+    <>
+      <p>Sort By</p>
+      <button
+        onClick={() => {
+          router.push(pathname + '?' + createQueryString('sort', 'asc'))
+        }}
+      >
+        ASC
+      </button>
+      <Link
+        href={pathname + '?' + createQueryString('sort', 'desc')}
+      >
+        DESC
+      </Link>
+    </>
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                       |
+| --------- | ----------------------------- |
+| `v13.0.0` | `useSearchParams` introduced. |
+
+# useSelectedLayoutSegment
+
+**Description**: API Reference for the useSelectedLayoutSegment hook.
+
+`useSelectedLayoutSegment` is a **Client Component** hook that lets you read the active route segment **one level below** the Layout it is called from. It is useful for navigation UI, such as tabs inside a parent layout that change style depending on the active child segment.
+
+## Example Usage
+
+```tsx
+'use client'
+
+import { useSelectedLayoutSegment } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const segment = useSelectedLayoutSegment()
+
+  return <p>Active segment: {segment}</p>
+}
+```
+
+```jsx
+'use client'
+
+import { useSelectedLayoutSegment } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const segment = useSelectedLayoutSegment()
+
+  return <p>Active segment: {segment}</p>
+}
+```
+
+**Good to know**:
+- Since `useSelectedLayoutSegment` is a Client Component hook, and Layouts are Server Components by default, `useSelectedLayoutSegment` is usually called via a Client Component that is imported into a Layout.
+- `useSelectedLayoutSegment` only returns the segment one level down. To return all active segments, see `useSelectedLayoutSegments`.
+
+## Parameters
+
+```tsx
+const segment = useSelectedLayoutSegment(parallelRoutesKey?: string)
+```
+
+`useSelectedLayoutSegment` _optionally_ accepts a `parallelRoutesKey`, which allows you to read the active route segment within that slot.
+
+## Returns
+
+`useSelectedLayoutSegment` returns a string of the active segment or `null` if one doesn't exist.
+
+**Example Layouts and URLs**:
+
+| Layout                    | Visited URL                    | Returned Segment |
+| ------------------------- | ------------------------------ | ---------------- |
+| `app/layout.js`           | `/`                            | `null`           |
+| `app/layout.js`           | `/dashboard`                   | `'dashboard'`    |
+| `app/dashboard/layout.js` | `/dashboard`                   | `null`           |
+| `app/dashboard/layout.js` | `/dashboard/settings`          | `'settings'`     |
+| `app/dashboard/layout.js` | `/dashboard/analytics`         | `'analytics'`    |
+| `app/dashboard/layout.js` | `/dashboard/analytics/monthly` | `'analytics'`    |
+
+## Examples
+
+### Creating an Active Link Component
+
+You can use `useSelectedLayoutSegment` to create an active link component that changes style depending on the active segment.
+
+```tsx
+'use client'
+
+import Link from 'next/link'
+import { useSelectedLayoutSegment } from 'next/navigation'
+
+export default function BlogNavLink({
+  slug,
+  children,
+}: {
+  slug: string
+  children: React.ReactNode
+}) {
+  const segment = useSelectedLayoutSegment()
+  const isActive = slug === segment
+
+  return (
+    <Link
+      href={`/blog/${slug}`}
+      style={{ fontWeight: isActive ? 'bold' : 'normal' }}
+    >
+      {children}
+    </Link>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import Link from 'next/link'
+import { useSelectedLayoutSegment } from 'next/navigation'
+
+export default function BlogNavLink({ slug, children }) {
+  const segment = useSelectedLayoutSegment()
+  const isActive = slug === segment
+
+  return (
+    <Link
+      href={`/blog/${slug}`}
+      style={{ fontWeight: isActive ? 'bold' : 'normal' }}
+    >
+      {children}
+    </Link>
+  )
+}
+```
+
+```tsx
+// Import the Client Component into a parent Layout (Server Component)
+import { BlogNavLink } from './blog-nav-link'
+import getFeaturedPosts from './get-featured-posts'
+
+export default async function Layout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const featuredPosts = await getFeaturedPosts()
+  return (
+    <div>
+      {featuredPosts.map((post) => (
+        <div key={post.id}>
+          <BlogNavLink slug={post.slug}>{post.title}</BlogNavLink>
+        </div>
+      ))}
+      <div>{children}</div>
+    </div>
+  )
+}
+```
+
+```jsx
+// Import the Client Component into a parent Layout (Server Component)
+import { BlogNavLink } from './blog-nav-link'
+import getFeaturedPosts from './get-featured-posts'
+
+export default async function Layout({ children }) {
+  const featuredPosts = await getFeaturedPosts()
+  return (
+    <div>
+      {featuredPosts.map((post) => (
+        <div key={post.id}>
+          <BlogNavLink slug={post.slug}>{post.title}</BlogNavLink>
+        </div>
+      ))}
+      <div>{children}</div>
+    </div>
+  )
+}
+```
+
+## Version History
+
+| Version   | Changes                                |
+| --------- | -------------------------------------- |
+| `v13.0.0` | `useSelectedLayoutSegment` introduced. |
+
+# useSelectedLayoutSegments
+
+**Description**: API Reference for the useSelectedLayoutSegments hook.
+
+`useSelectedLayoutSegments` is a **Client Component** hook that lets you read the active route segments **below** the Layout it is called from. It is useful for creating UI in parent Layouts that need knowledge of active child segments such as breadcrumbs.
+
+## Example Usage
+
+```tsx
+'use client'
+
+import { useSelectedLayoutSegments } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const segments = useSelectedLayoutSegments()
+
+  return (
+    <ul>
+      {segments.map((segment, index) => (
+        <li key={index}>{segment}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { useSelectedLayoutSegments } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const segments = useSelectedLayoutSegments()
+
+  return (
+    <ul>
+      {segments.map((segment, index) => (
+        <li key={index}>{segment}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+**Good to know**:
+- Since `useSelectedLayoutSegments` is a Client Component hook, and Layouts are Server Components by default, `useSelectedLayoutSegments` is usually called via a Client Component that is imported into a Layout.
+- The returned segments include Route Groups, which you might not want to be included in your UI. You can use the `filter()` array method to remove items that start with a bracket.
+
+## Parameters
+
+```tsx
+const segments = useSelectedLayoutSegments(parallelRoutesKey?: string)
+```
+
+`useSelectedLayoutSegments` _optionally_ accepts a `parallelRoutesKey`, which allows you to read the active route segment within that slot.
+
+## Returns
+
+`useSelectedLayoutSegments` returns an array of strings containing the active segments one level down from the layout the hook was called from, or an empty array if none exist.
+
+**Example**: Given the Layouts and URLs below, the returned segments would be:
+
+| Layout                    | Visited URL           | Returned Segments           |
+| ------------------------- | --------------------- | --------------------------- |
+| `app/layout.js`           | `/`                   | `[]`                        |
+| `app/layout.js`           | `/dashboard`          | `['dashboard']`             |
+| `app/layout.js`           | `/dashboard/settings` | `['dashboard', 'settings']` |
+| `app/dashboard/layout.js` | `/dashboard`          | `[]`                        |
+| `app/dashboard/layout.js` | `/dashboard/settings` | `['settings']`              |
+
+## Version History
+
+| Version   | Changes                                 |
+| --------- | --------------------------------------- |
+| `v13.0.0` | `useSelectedLayoutSegments` introduced. |
+
+# userAgent
+
+The `userAgent` helper extends the Web Request API with additional properties and methods to interact with the user agent object from the request.
+
+```ts
+import { NextRequest, NextResponse, userAgent } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const url = request.nextUrl
+  const { device } = userAgent(request)
+  const viewport = device.type === 'mobile' ? 'mobile' : 'desktop'
+  url.searchParams.set('viewport', viewport)
+  return NextResponse.rewrite(url)
+}
+```
+
+```js
+import { NextResponse, userAgent } from 'next/server'
+
+export function middleware(request) {
+  const url = request.nextUrl
+  const { device } = userAgent(request)
+  const viewport = device.type === 'mobile' ? 'mobile' : 'desktop'
+  url.searchParams.set('viewport', viewport)
+  return NextResponse.rewrite(url)
+}
+```
+
+## Properties
+
+### `isBot`
+A boolean indicating whether the request comes from a known bot.
+
+### `browser`
+An object containing information about the browser used in the request.
+- `name`: Browser's name or `undefined`.
+- `version`: Browser's version or `undefined`.
+
+### `device`
+An object containing information about the device used in the request.
+- `model`: Device model or `undefined`.
+- `type`: Device type (e.g., `console`, `mobile`, `tablet`, `smarttv`, `wearable`, `embedded`, or `undefined`).
+- `vendor`: Device vendor or `undefined`.
+
+### `engine`
+An object containing information about the browser's engine.
+- `name`: Engine's name (e.g., `Amaya`, `Blink`, `EdgeHTML`, `Flow`, `Gecko`, `Goanna`, `iCab`, `KHTML`, `Links`, `Lynx`, `NetFront`, `NetSurf`, `Presto`, `Tasman`, `Trident`, `w3m`, `WebKit`, or `undefined`).
+- `version`: Engine's version or `undefined`.
+
+### `os`
+An object containing information about the operating system.
+- `name`: OS name or `undefined`.
+- `version`: OS version or `undefined`.
+
+### `cpu`
+An object containing information about the CPU architecture.
+- `architecture`: CPU architecture (e.g., `68k`, `amd64`, `arm`, `arm64`, `armhf`, `avr`, `ia32`, `ia64`, `irix`, `irix64`, `mips`, `mips64`, `pa-risc`, `ppc`, `sparc`, `sparc64`, or `undefined`).
+
+# appDir
+
+Enable the App Router to use layouts, streaming, and more.
+
+Good to know: This option is no longer needed as of Next.js 13.4. The App Router is now stable.
+
+The App Router (app directory) enables support for layouts, Server Components, streaming, and colocated data fetching.
+
+Using the app directory will automatically enable React Strict Mode. Learn how to incrementally adopt app.
+
+# assetPrefix
+
+Learn how to use the assetPrefix config option to configure your CDN.
+
+**Attention**: Deploying to Vercel automatically configures a global CDN for your Next.js project. You do not need to manually set up an Asset Prefix.
+
+**Good to know**: Next.js 9.5+ added support for a customizable Base Path, which is better suited for hosting your application on a sub-path like `/docs`. We do not suggest you use a custom Asset Prefix for this use case.
+
+## Set up a CDN
+
+To set up a CDN, you can set up an asset prefix and configure your CDN's origin to resolve to the domain that Next.js is hosted on.
+
+Open `next.config.mjs` and add the `assetPrefix` config based on the phase:
+
+```js
+// @ts-check
+import { PHASE_DEVELOPMENT_SERVER } from 'next/constants'
+
+export default (phase) => {
+  const isDev = phase === PHASE_DEVELOPMENT_SERVER
+  /**
+   * @type {import('next').NextConfig}
+   */
+  const nextConfig = {
+    assetPrefix: isDev ? undefined : 'https://cdn.mydomain.com',
+  }
+  return nextConfig
+}
+```
+
+Next.js will automatically use your asset prefix for the JavaScript and CSS files it loads from the `/_next/` path (`.next/static/` folder). For example, with the above configuration, the following request for a JS chunk:
+
+```
+/_next/static/chunks/4b9b41aaa062cbbfeff4add70f256968c51ece5d.4d708494b3aed70c04f0.js
+```
+
+Would instead become:
+
+```
+https://cdn.mydomain.com/_next/static/chunks/4b9b41aaa062cbbfeff4add70f256968c51ece5d.4d708494b3aed70c04f0.js
+```
+
+The exact configuration for uploading your files to a given CDN will depend on your CDN of choice. The only folder you need to host on your CDN is the contents of `.next/static/`, which should be uploaded as `_next/static/` as the above URL request indicates. Do not upload the rest of your `.next/` folder, as you should not expose your server code and other configuration to the public.
+
+While `assetPrefix` covers requests to `_next/static`, it does not influence the following paths:
+
+- Files in the public folder; if you want to serve those assets over a CDN, you'll have to introduce the prefix yourself.
+- `/_next/data/` requests for `getServerSideProps` pages. These requests will always be made against the main domain since they're not static.
+- `/_next/data/` requests for `getStaticProps` pages. These requests will always be made against the main domain to support Incremental Static Generation, even if you're not using it (for consistency).
+
+# basePath
+
+Use `basePath` to deploy a Next.js application under a sub-path of a domain.
+
+To deploy a Next.js application under a sub-path of a domain, you can use the `basePath` config option. 
+
+`basePath` allows you to set a path prefix for the application. For example, to use `/docs` instead of `''` (an empty string, the default), open `next.config.js` and add the `basePath` config:
+
+```js
+module.exports = {
+  basePath: '/docs',
+}
+```
+
+**Good to know**: This value must be set at build time and cannot be changed without re-building as the value is inlined in the client-side bundles.
+
+### Links
+
+When linking to other pages using `next/link` and `next/router`, the `basePath` will be automatically applied. For example, using `/about` will automatically become `/docs/about` when `basePath` is set to `/docs`.
+
+```js
+export default function HomePage() {
+  return (
+    <>
+      <Link href="/about">About Page</Link>
+    </>
+  )
+}
+```
+
+Output HTML:
+
+```html
+<a href="/docs/about">About Page</a>
+```
+
+This ensures that you don't have to change all links in your application when changing the `basePath` value.
+
+### Images
+
+When using the `next/image` component, you will need to add the `basePath` in front of `src`. For example, using `/docs/me.png` will properly serve your image when `basePath` is set to `/docs`.
+
+```jsx
+import Image from 'next/image'
+
+function Home() {
+  return (
+    <>
+      <h1>My Homepage</h1>
+      <Image
+        src="/docs/me.png"
+        alt="Picture of the author"
+        width={500}
+        height={500}
+      />
+      <p>Welcome to my homepage!</p>
+    </>
+  )
+}
+
+export default Home
+```
+
+# cacheLife
+
+Learn how to set up cacheLife configurations in Next.js.
+
+Version: experimental
+
+The `cacheLife` option allows you to define custom configurations when using the `cacheLife` function with the `use cache` directive at the level of components, functions, or files, for more granular control over caching.
+
+## Usage
+
+To use `cacheLife`, enable the `dynamicIO` flag and define the configuration in your `next.config.js` file as follows:
+
+```js
+module.exports = {
+  experimental: {
+    dynamicIO: true,
+    cacheLife: {
+      blog: {
+        stale: 3600, // 1 hour
+        revalidate: 900, // 15 minutes
+        expire: 86400, // 1 day
+      },
+    },
+  },
+}
+```
+
+You can now use this custom `blog` configuration in your component, function, or file as follows:
+
+```tsx
+import { unstable_cacheLife as cacheLife } from 'next/cache'
+
+export async function getCachedData() {
+  'use cache'
+  cacheLife('blog')
+  const data = await fetch('/api/data')
+  return data
+}
+```
+
+## Configuration structure
+
+The configuration object has key values with the following format:
+
+- **Property**: `stale`
+  - **Value**: `number`
+  - **Description**: Duration the client should cache a value without checking the server.
+  - **Requirement**: Optional
+
+- **Property**: `revalidate`
+  - **Value**: `number`
+  - **Description**: Frequency at which the cache should refresh on the server; stale values may be served while revalidating.
+  - **Requirement**: Optional
+
+- **Property**: `expire`
+  - **Value**: `number`
+  - **Description**: Maximum duration for which a value can remain stale before switching to dynamic fetching; must be longer than `revalidate`.
+  - **Requirement**: Optional - Must be longer than `revalidate`
+
+# compress
+
+Next.js provides gzip compression to compress rendered content and static files, applicable only with the server target.
+
+By default, Next.js uses `gzip` to compress rendered content and static files when using `next start` or a custom server. This optimization is for applications without pre-configured compression. If compression is already configured via a custom server, Next.js will not add compression.
+
+**Good to know:**
+- When hosting on Vercel, compression uses `brotli` first, then `gzip`.
+- Check if compression is enabled and the algorithm used by examining the `Accept-Encoding` (browser accepted options) and `Content-Encoding` (currently used) headers in the response.
+
+## Disabling compression
+
+To disable **compression**, set the `compress` config option to `false`:
+
+```js
+module.exports = {
+  compress: false,
+}
+```
+
+Disabling compression is not recommended unless you have compression configured on your server, as it reduces bandwidth usage and improves application performance.
+
+## Changing the compression algorithm
+
+To change your compression algorithm, configure your custom server and set the `compress` option to `false` in your `next.config.js` file. For example, if using nginx and wanting to switch to `brotli`, set the `compress` option to `false` to allow nginx to handle compression.
+
+**Good to know:**
+- For Next.js applications on Vercel, compression is managed by Vercel's Edge Network, not Next.js.
+
+# crossOrigin
+
+Use the `crossOrigin` option to add a crossOrigin tag on the `script` tags generated by `next/script`.
+
+Use the `crossOrigin` option to add a `crossOrigin` attribute in all `<script>` tags generated by the `next/script` component and `next/head` components, and define how cross-origin requests should be handled.
+
+```js
+// next.config.js
+module.exports = {
+  crossOrigin: 'anonymous',
+}
+```
+
+## Options
+
+- `'anonymous'`: Adds `crossOrigin="anonymous"` attribute.
+- `'use-credentials'`: Adds `crossOrigin="use-credentials"`.
+
+# CSS Chunking
+
+Use the `cssChunking` option to control how CSS files are chunked in your Next.js application. CSS Chunking is a strategy to improve web application performance by splitting and re-ordering CSS files into chunks, allowing you to load only the necessary CSS for a specific route.
+
+## Configuration
+
+You can control CSS chunking using the `experimental.cssChunking` option in your `next.config.js` file:
+
+```tsx
+import type { NextConfig } from 'next'
+
+const nextConfig = {
+  experimental: {
+    cssChunking: 'loose', // default
+  },
+} satisfies NextConfig
+
+export default nextConfig
+```
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    cssChunking: 'loose', // default
+  },
+}
+
+module.exports = nextConfig
+```
+
+## Options
+
+- **`'loose'` (default)**: Next.js merges CSS files whenever possible, determining dependencies from import order to reduce chunks and requests.
+- **`'strict'`**: Next.js loads CSS files in the order they are imported, which may result in more chunks and requests.
+
+Consider using `'strict'` if you encounter unexpected CSS behavior due to import order dependencies. For most applications, `'loose'` is recommended for fewer requests and better performance.
+
+# devIndicators
+
+Optimized pages include an indicator to let you know if it's being statically optimized. You can opt-out of it here.
+
+`devIndicators` allows you to configure the on-screen indicators that give context about the current route you're viewing during development.
+
+```ts
+devIndicators: {
+  appIsrStatus?: boolean, // defaults to true
+  buildActivity?: boolean, // defaults to true
+  buildActivityPosition?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left', // defaults to 'bottom-right'
+},
+```
+
+## appIsrStatus (Static Indicator)
+
+Next.js displays a static indicator in the bottom corner of the screen that signals if a route will be prerendered at build time. This helps identify if a route is static or dynamic.
+
+You can temporarily hide the indicator by clicking the close indicator, which will remember your preference in `localStorage` for 1 hour. To permanently disable it, use the config option in `next.config.js`:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  devIndicators: {
+    appIsrStatus: false,
+  },
+}
+
+export default nextConfig
+```
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  devIndicators: {
+    appIsrStatus: false,
+  },
+}
+
+module.exports = nextConfig
+```
+
+## buildActivity (Compilation Indicator)
+
+When you edit your code, and Next.js is compiling the application, a compilation indicator appears in the bottom right corner of the page.
+
+This indicator is only present in development mode and will not appear in production mode.
+
+To change its position, set the `buildActivityPosition` in `next.config.js`:
+
+```js
+module.exports = {
+  devIndicators: {
+    buildActivityPosition: 'bottom-right',
+  },
+}
+```
+
+To remove it, disable the `buildActivity` config in `devIndicators`:
+
+```js
+module.exports = {
+  devIndicators: {
+    buildActivity: false,
+  },
+}
+```
+
+## Troubleshooting
+
+### Static route not showing the indicator
+
+If a route is expected to be static and the indicator is enabled but not showing, it may have opted out of static rendering.
+
+Confirm if a route is static or dynamic by building your application using `next build --debug`, and checking the output in your terminal. Static routes will display a `○` symbol, while dynamic routes will display a `ƒ` symbol.
+
+There are two reasons a route might opt out of static rendering:
+
+- The presence of Dynamic APIs which rely on runtime information.
+- An uncached data request, like a call to an ORM or database driver.
+
+Check your route for these conditions. If you cannot statically render the route, consider using `loading.js` or `<Suspense />` to leverage streaming.
+
+## Pages Only
+
+This indicator was removed in Next.js version 10.0.1. We recommend upgrading to the latest version of Next.js.
+
+When a page qualifies for Automatic Static Optimization, an indicator is shown to inform you. This is helpful since automatic static optimization can be very beneficial.
+
+To remove it, disable the `autoPrerender` config in `devIndicators`:
+
+```js
+module.exports = {
+  devIndicators: {
+    autoPrerender: false,
+  },
+}
+```
+
+# distDir
+
+Set a custom build directory to use instead of the default .next directory.
+
+You can specify a name for a custom build directory instead of `.next`.
+
+Open `next.config.js` and add the `distDir` config:
+
+```js
+module.exports = {
+  distDir: 'build',
+}
+```
+
+Now, if you run `next build`, Next.js will use `build` instead of the default `.next` folder.
+
+`distDir` should not leave your project directory. For example, `../build` is an invalid directory.
+
+# dynamicIO
+
+## Description
+Learn how to enable the dynamicIO flag in Next.js.
+
+The `dynamicIO` flag is an experimental feature in Next.js that excludes data fetching operations in the App Router from pre-renders unless explicitly cached. This is useful for optimizing dynamic data fetching in server components, allowing for fresh data during runtime instead of serving from a pre-rendered cache.
+
+It is expected to be used with the `use cache` directive so that data fetching occurs at runtime by default, unless specific parts of the application are defined to be cached with `use cache` at the page, function, or component level.
+
+## Usage
+To enable the `dynamicIO` flag, set it to `true` in the `experimental` section of your `next.config.ts` file:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    dynamicIO: true,
+  },
+}
+
+export default nextConfig
+```
+
+When `dynamicIO` is enabled, you can use the following cache functions and configurations:
+
+- The `use cache` directive
+- The `cacheLife` function with `use cache`
+- The `cacheTag` function
+
+## Notes
+- While `dynamicIO` can optimize performance by ensuring fresh data fetching during runtime, it may introduce additional latency compared to serving pre-rendered content.
+
+# Environment Variables in Next.js
+
+Learn to add and access environment variables in your Next.js application at build time.
+
+Since the release of Next.js 9.4, there is a more intuitive experience for adding environment variables. 
+
+**Good to know**: Environment variables specified in this way will always be included in the JavaScript bundle. Prefixing the environment variable name with `NEXT_PUBLIC_` only has an effect when specifying them through the environment or .env files.
+
+To add environment variables to the JavaScript bundle, open `next.config.js` and add the `env` config:
+
+```js
+module.exports = {
+  env: {
+    customKey: 'my-value',
+  },
+}
+```
+
+You can access `process.env.customKey` in your code. For example:
+
+```jsx
+function Page() {
+  return <h1>The value of customKey is: {process.env.customKey}</h1>
+}
+
+export default Page
+```
+
+Next.js will replace `process.env.customKey` with `'my-value'` at build time. Destructuring `process.env` variables won't work due to the nature of webpack DefinePlugin.
+
+For example, the following line:
+
+```jsx
+return <h1>The value of customKey is: {process.env.customKey}</h1>
+```
+
+Will end up being:
+
+```jsx
+return <h1>The value of customKey is: {'my-value'}</h1>
+```
+
+# eslint
+
+Next.js reports ESLint errors and warnings during builds by default. Learn how to opt-out of this behavior here.
+
+When ESLint is detected in your project, Next.js fails your production build (`next build`) when errors are present.
+
+If you'd like Next.js to produce production code even when your application has ESLint errors, you can disable the built-in linting step completely. This is not recommended unless you already have ESLint configured to run in a separate part of your workflow (for example, in CI or a pre-commit hook).
+
+Open `next.config.js` and enable the `ignoreDuringBuilds` option in the `eslint` config:
+
+```js
+module.exports = {
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
+  },
+}
+```
+
+# expireTime
+
+Customize stale-while-revalidate expire time for ISR enabled pages.
+
+You can specify a custom `stale-while-revalidate` expire time for CDNs to consume in the `Cache-Control` header for ISR enabled pages.
+
+Open `next.config.js` and add the `expireTime` config:
+
+```js
+module.exports = {
+  // one hour in seconds
+  expireTime: 3600,
+}
+```
+
+Now when sending the `Cache-Control` header, the expire time will be calculated depending on the specific revalidate period.
+
+For example, if you have a revalidate of 15 minutes on a path and the expire time is one hour, the generated `Cache-Control` header will be `s-maxage=900, stale-while-revalidate=2700`, allowing it to stay stale for 15 minutes less than the configured expire time.
+
+# exportPathMap (Deprecated)
+
+Customize the pages that will be exported as HTML files when using `next export`.
+
+This feature is exclusive to `next export` and currently **deprecated** in favor of `getStaticPaths` with `pages` or `generateStaticParams` with `app`.
+
+## Examples
+
+- Static Export: GitHub repository for examples with static export.
+
+`exportPathMap` allows you to specify a mapping of request paths to page destinations, to be used during export. Paths defined in `exportPathMap` will also be available when using `next dev`.
+
+### Example Configuration
+
+To create a custom `exportPathMap` for an app with the following pages:
+
+- `pages/index.js`
+- `pages/about.js`
+- `pages/post.js`
+
+Open `next.config.js` and add the following `exportPathMap` config:
+
+```js
+module.exports = {
+  exportPathMap: async function (
+    defaultPathMap,
+    { dev, dir, outDir, distDir, buildId }
+  ) {
+    return {
+      '/': { page: '/' },
+      '/about': { page: '/about' },
+      '/p/hello-nextjs': { page: '/post', query: { title: 'hello-nextjs' } },
+      '/p/learn-nextjs': { page: '/post', query: { title: 'learn-nextjs' } },
+      '/p/deploy-nextjs': { page: '/post', query: { title: 'deploy-nextjs' } },
+    }
+  },
+}
+```
+
+**Note**: The `query` field in `exportPathMap` cannot be used with automatically statically optimized pages or `getStaticProps` pages as they are rendered to HTML files at build-time and additional query information cannot be provided during `next export`.
+
+The pages will then be exported as HTML files, for example, `/about` will become `/about.html`.
+
+### Function Arguments
+
+`exportPathMap` is an `async` function that receives two arguments:
+
+- `defaultPathMap`: The default map used by Next.js.
+- An object with:
+  - `dev`: `true` when `exportPathMap` is called in development; `false` when running `next export`.
+  - `dir`: Absolute path to the project directory.
+  - `outDir`: Absolute path to the `out/` directory. When `dev` is `true`, this will be `null`.
+  - `distDir`: Absolute path to the `.next/` directory.
+  - `buildId`: The generated build id.
+
+The returned object is a map of pages where the `key` is the `pathname` and the `value` is an object that accepts the following fields:
+
+- `page`: `String` - the page inside the `pages` directory to render.
+- `query`: `Object` - the `query` object passed to `getInitialProps` when prerendering. Defaults to `{}`.
+
+**Note**: The exported `pathname` can also be a filename (e.g., `/readme.md`), but you may need to set the `Content-Type` header to `text/html` when serving its content if it differs from `.html`.
+
+## Adding a Trailing Slash
+
+To configure Next.js to export pages as `index.html` files and require trailing slashes, open `next.config.js` and enable the `trailingSlash` config:
+
+```js
+module.exports = {
+  trailingSlash: true,
+}
+```
+
+## Customizing the Output Directory
+
+`next export` will use `out` as the default output directory. You can customize this using the `-o` argument:
+
+```bash
+next export -o outdir
+```
+
+**Warning**: Using `exportPathMap` is deprecated and is overridden by `getStaticPaths` inside `pages`. It is not recommended to use them together.
+
+# generateBuildId
+
+Configure the build ID, which is used to identify the current build in which your application is being served.
+
+Next.js generates an ID during `next build` to identify which version of your application is being served. The same build should be used and boot up multiple containers.
+
+If you are rebuilding for each stage of your environment, you will need to generate a consistent build ID to use between containers. Use the `generateBuildId` command in `next.config.js`:
+
+```jsx
+module.exports = {
+  generateBuildId: async () => {
+    // This could be anything, using the latest git hash
+    return process.env.GIT_HASH
+  },
+}
+```
+
+# generateEtags
+
+Next.js will generate etags for every page by default. You may want to disable etag generation for HTML pages depending on your cache strategy.
+
+Open `next.config.js` and disable the `generateEtags` option:
+
+```js
+module.exports = {
+  generateEtags: false,
+}
+```
+
+# Headers
+
+Add custom HTTP headers to your Next.js app.
+
+Headers allow you to set custom HTTP headers on the response to an incoming request on a given path.
+
+To set custom HTTP headers, use the `headers` key in `next.config.js`:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/about',
+        headers: [
+          {
+            key: 'x-custom-header',
+            value: 'my custom header value',
+          },
+          {
+            key: 'x-another-custom-header',
+            value: 'my other custom header value',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+`headers` is an async function that expects an array to be returned holding objects with `source` and `headers` properties:
+
+- `source`: the incoming request path pattern.
+- `headers`: an array of response header objects, with `key` and `value` properties.
+- `basePath`: `false` or `undefined` - if false, the basePath won't be included when matching, can be used for external rewrites only.
+- `locale`: `false` or `undefined` - whether the locale should not be included when matching.
+- `has`: an array of objects with `type`, `key`, and `value` properties.
+- `missing`: an array of objects with `type`, `key`, and `value` properties.
+
+Headers are checked before the filesystem, which includes pages and `/public` files.
+
+## Header Overriding Behavior
+
+If two headers match the same path and set the same header key, the last header key will override the first.
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'there',
+          },
+        ],
+      },
+      {
+        source: '/hello',
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'world',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Path Matching
+
+Path matches are allowed, for example `/blog/:slug` will match `/blog/hello-world`:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/blog/:slug',
+        headers: [
+          {
+            key: 'x-slug',
+            value: ':slug',
+          },
+          {
+            key: 'x-slug-:slug',
+            value: 'my other custom header value',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+### Wildcard Path Matching
+
+To match a wildcard path, use `*` after a parameter, e.g., `/blog/:slug*`:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/blog/:slug*',
+        headers: [
+          {
+            key: 'x-slug',
+            value: ':slug*',
+          },
+          {
+            key: 'x-slug-:slug*',
+            value: 'my other custom header value',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+### Regex Path Matching
+
+To match a regex path, wrap the regex in parentheses after a parameter:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/blog/:post(\\d{1,})',
+        headers: [
+          {
+            key: 'x-post',
+            value: ':post',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Header, Cookie, and Query Matching
+
+To apply a header when header, cookie, or query values match, use the `has` and `missing` fields:
+
+```js
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-add-header',
+          },
+        ],
+        headers: [
+          {
+            key: 'x-another-header',
+            value: 'hello',
+          },
+        ],
+      },
+      {
+        source: '/:path*',
+        missing: [
+          {
+            type: 'header',
+            key: 'x-no-header',
+          },
+        ],
+        headers: [
+          {
+            key: 'x-another-header',
+            value: 'hello',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Headers with basePath support
+
+When using `basePath`, each `source` is automatically prefixed with the `basePath` unless `basePath: false` is added:
+
+```js
+module.exports = {
+  basePath: '/docs',
+
+  async headers() {
+    return [
+      {
+        source: '/with-basePath',
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'world',
+          },
+        ],
+      },
+      {
+        source: '/without-basePath',
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'world',
+          },
+        ],
+        basePath: false,
+      },
+    ]
+  },
+}
+```
+
+## Headers with i18n support
+
+When using `i18n`, each `source` is automatically prefixed to handle the configured `locales` unless `locale: false` is added:
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en', 'fr', 'de'],
+    defaultLocale: 'en',
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/with-locale',
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'world',
+          },
+        ],
+      },
+      {
+        source: '/nl/with-locale-manual',
+        locale: false,
+        headers: [
+          {
+            key: 'x-hello',
+            value: 'world',
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+## Cache-Control
+
+Next.js sets the `Cache-Control` header of `public, max-age=31536000, immutable` for immutable assets. You cannot set `Cache-Control` headers in `next.config.js` for these assets.
+
+You can set `Cache-Control` headers for other responses or data.
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  res.setHeader('Cache-Control', 's-maxage=86400')
+  res.status(200).json({ message: 'Hello from Next.js!' })
+}
+```
+
+## Options
+
+### CORS
+
+Set the `Access-Control-Allow-Origin` header to allow a specific origin to access your API Endpoints.
+
+```js
+async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+        ],
+      },
+    ];
+  },
+```
+
+### X-DNS-Prefetch-Control
+
+Controls DNS prefetching, allowing browsers to proactively perform domain name resolution.
+
+```js
+{
+  key: 'X-DNS-Prefetch-Control',
+  value: 'on'
+}
+```
+
+### Strict-Transport-Security
+
+Informs browsers to only access the site using HTTPS.
+
+```js
+{
+  key: 'Strict-Transport-Security',
+  value: 'max-age=63072000; includeSubDomains; preload'
+}
+```
+
+### X-Frame-Options
+
+Indicates whether the site should be allowed to be displayed within an `iframe`.
+
+```js
+{
+  key: 'X-Frame-Options',
+  value: 'SAMEORIGIN'
+}
+```
+
+### Permissions-Policy
+
+Controls which features and APIs can be used in the browser.
+
+```js
+{
+  key: 'Permissions-Policy',
+  value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()'
+}
+```
+
+### X-Content-Type-Options
+
+Prevents the browser from guessing the type of content if the `Content-Type` header is not explicitly set.
+
+```js
+{
+  key: 'X-Content-Type-Options',
+  value: 'nosniff'
+}
+```
+
+### Referrer-Policy
+
+Controls how much information the browser includes when navigating from the current website to another.
+
+```js
+{
+  key: 'Referrer-Policy',
+  value: 'origin-when-cross-origin'
+}
+```
+
+### Content-Security-Policy
+
+Learn more about adding a Content Security Policy to your application.
+
+## Version History
+
+| Version   | Changes          |
+| --------- | ---------------- |
+| `v13.3.0` | `missing` added. |
+| `v10.2.0` | `has` added.     |
+| `v9.5.0`  | Headers added.   |
+
+# httpAgentOptions
+
+Next.js will automatically use HTTP Keep-Alive by default. Learn more about how to disable HTTP Keep-Alive here.
+
+In Node.js versions prior to 18, Next.js automatically polyfills `fetch()` with undici and enables HTTP Keep-Alive by default.
+
+To disable HTTP Keep-Alive for all `fetch()` calls on the server-side, open `next.config.js` and add the `httpAgentOptions` config:
+
+```js
+module.exports = {
+  httpAgentOptions: {
+    keepAlive: false,
+  },
+}
+```
+
+# Images
+
+Custom configuration for the next/image loader.
+
+If you want to use a cloud provider to optimize images instead of using the Next.js built-in Image Optimization API, you can configure `next.config.js` as follows:
+
+```js
+module.exports = {
+  images: {
+    loader: 'custom',
+    loaderFile: './my/image/loader.js',
+  },
+}
+```
+
+The `loaderFile` must point to a file relative to the root of your Next.js application. The file must export a default function that returns a string.
+
+For example:
+
+```js
+'use client'
+
+export default function myImageLoader({ src, width, quality }) {
+  return `https://example.com/${src}?w=${width}&q=${quality || 75}`
+}
+```
+
+Alternatively, you can use the `loader` prop to pass the function to each instance of `next/image`.
+
+**Good to know**: Customizing the image loader file requires using Client Components to serialize the provided function.
+
+To learn more about configuring the behavior of the built-in Image Optimization API and the Image Component, see Image Configuration Options for available options.
+
+## Example Loader Configuration
+
+### Akamai
+
+```js
+export default function akamaiLoader({ src, width, quality }) {
+  return `https://example.com/${src}?imwidth=${width}`
+}
+```
+
+### AWS CloudFront
+
+```js
+export default function cloudfrontLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  url.searchParams.set('format', 'auto')
+  url.searchParams.set('width', width.toString())
+  url.searchParams.set('quality', (quality || 75).toString())
+  return url.href
+}
+```
+
+### Cloudinary
+
+```js
+export default function cloudinaryLoader({ src, width, quality }) {
+  const params = ['f_auto', 'c_limit', `w_${width}`, `q_${quality || 'auto'}`]
+  return `https://example.com/${params.join(',')}${src}`
+}
+```
+
+### Cloudflare
+
+```js
+export default function cloudflareLoader({ src, width, quality }) {
+  const params = [`width=${width}`, `quality=${quality || 75}`, 'format=auto']
+  return `https://example.com/cdn-cgi/image/${params.join(',')}/${src}`
+}
+```
+
+### Contentful
+
+```js
+export default function contentfulLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  url.searchParams.set('fm', 'webp')
+  url.searchParams.set('w', width.toString())
+  url.searchParams.set('q', (quality || 75).toString())
+  return url.href
+}
+```
+
+### Fastly
+
+```js
+export default function fastlyLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  url.searchParams.set('auto', 'webp')
+  url.searchParams.set('width', width.toString())
+  url.searchParams.set('quality', (quality || 75).toString())
+  return url.href
+}
+```
+
+### Gumlet
+
+```js
+export default function gumletLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  url.searchParams.set('format', 'auto')
+  url.searchParams.set('w', width.toString())
+  url.searchParams.set('q', (quality || 75).toString())
+  return url.href
+}
+```
+
+### ImageEngine
+
+```js
+export default function imageengineLoader({ src, width, quality }) {
+  const compression = 100 - (quality || 50)
+  const params = [`w_${width}`, `cmpr_${compression}`]
+  return `https://example.com${src}?imgeng=/${params.join('/')}`
+}
+```
+
+### Imgix
+
+```js
+export default function imgixLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  const params = url.searchParams
+  params.set('auto', params.getAll('auto').join(',') || 'format')
+  params.set('fit', params.get('fit') || 'max')
+  params.set('w', params.get('w') || width.toString())
+  params.set('q', (quality || 50).toString())
+  return url.href
+}
+```
+
+### PixelBin
+
+```js
+export default function pixelBinLoader({ src, width, quality }) {
+  const name = '<your-cloud-name>'
+  const opt = `t.resize(w:${width})~t.compress(q:${quality || 75})`
+  return `https://cdn.pixelbin.io/v2/${name}/${opt}/${src}?f_auto=true`
+}
+```
+
+### Sanity
+
+```js
+export default function sanityLoader({ src, width, quality }) {
+  const prj = 'zp7mbokg'
+  const dataset = 'production'
+  const url = new URL(`https://cdn.sanity.io/images/${prj}/${dataset}${src}`)
+  url.searchParams.set('auto', 'format')
+  url.searchParams.set('fit', 'max')
+  url.searchParams.set('w', width.toString())
+  if (quality) {
+    url.searchParams.set('q', quality.toString())
+  }
+  return url.href
+}
+```
+
+### Sirv
+
+```js
+export default function sirvLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  const params = url.searchParams
+  params.set('format', params.getAll('format').join(',') || 'optimal')
+  params.set('w', params.get('w') || width.toString())
+  params.set('q', (quality || 85).toString())
+  return url.href
+}
+```
+
+### Supabase
+
+```js
+export default function supabaseLoader({ src, width, quality }) {
+  const url = new URL(`https://example.com${src}`)
+  url.searchParams.set('width', width.toString())
+  url.searchParams.set('quality', (quality || 75).toString())
+  return url.href
+}
+```
+
+### Thumbor
+
+```js
+export default function thumborLoader({ src, width, quality }) {
+  const params = [`${width}x0`, `filters:quality(${quality || 75})`]
+  return `https://example.com${params.join('/')}${src}`
+}
+```
+
+### ImageKit.io
+
+```js
+export default function imageKitLoader({ src, width, quality }) {
+  const params = [`w-${width}`, `q-${quality || 80}`]
+  return `https://ik.imagekit.io/your_imagekit_id/${src}?tr=${params.join(',')}`
+}
+```
+
+### Nitrogen AIO
+
+```js
+export default function aioLoader({ src, width, quality }) {
+  const url = new URL(src, window.location.href)
+  const params = url.searchParams
+  const aioParams = params.getAll('aio')
+  aioParams.push(`w-${width}`)
+  if (quality) {
+    aioParams.push(`q-${quality.toString()}`)
+  }
+  params.set('aio', aioParams.join(';'))
+  return url.href
+}
+```
+
+# Custom Next.js Cache Handler
+
+Configure the Next.js cache used for storing and revalidating data to use any external service like Redis, Memcached, or others.
+
+Caching and revalidating pages (with Incremental Static Regeneration) use the same shared cache. When deploying to Vercel, the ISR cache is automatically persisted to durable storage.
+
+When self-hosting, the ISR cache is stored to the filesystem (on disk) on your Next.js server. This works automatically when self-hosting using both the Pages and App Router.
+
+You can configure the Next.js cache location if you want to persist cached pages and data to durable storage, or share the cache across multiple containers or instances of your Next.js application.
+
+```js
+module.exports = {
+  cacheHandler: require.resolve('./cache-handler.js'),
+  cacheMaxMemorySize: 0, // disable default in-memory caching
+}
+```
+
+View an example of a custom cache handler and learn more about implementation.
+
+## API Reference
+
+The cache handler can implement the following methods: `get`, `set`, and `revalidateTag`.
+
+### `get()`
+
+| Parameter | Type     | Description                  |
+| --------- | -------- | ---------------------------- |
+| `key`     | `string` | The key to the cached value. |
+
+Returns the cached value or `null` if not found.
+
+### `set()`
+
+| Parameter | Type           | Description                      |
+| --------- | -------------- | -------------------------------- |
+| `key`     | `string`       | The key to store the data under. |
+| `data`    | Data or `null` | The data to be cached.           |
+| `ctx`     | `{ tags: [] }` | The cache tags provided.         |
+
+Returns `Promise<void>`.
+
+### `revalidateTag()`
+
+| Parameter | Type                   | Description                   |
+| --------- | ---------------------- | ----------------------------- |
+| `tag`     | `string` or `string[]` | The cache tags to revalidate. |
+
+Returns `Promise<void>`. Learn more about revalidating data or the `revalidateTag()` function.
+
+**Good to know:**
+
+- `revalidatePath` is a convenience layer on top of cache tags. Calling `revalidatePath` will call your `revalidateTag` function, which you can then choose if you want to tag cache keys based on the path.
+
+## Version History
+
+| Version   | Changes                                                      |
+| --------- | ------------------------------------------------------------ |
+| `v14.1.0` | Renamed to `cacheHandler` and became stable.                 |
+| `v13.4.0` | `incrementalCacheHandlerPath` support for `revalidateTag`.   |
+| `v13.4.0` | `incrementalCacheHandlerPath` support for standalone output. |
+| `v12.2.0` | Experimental `incrementalCacheHandlerPath` added.            |
+
+# next.config.js Options
+
+Learn how to configure your application with next.config.js.
+
+Next.js can be configured through a `next.config.js` file in the root of your project directory (for example, by `package.json`) with a default export.
+
+```js
+// @ts-check
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  /* config options here */
+}
+
+module.exports = nextConfig
+```
+
+## ECMAScript Modules
+
+`next.config.js` is a regular Node.js module, not a JSON file. It gets used by the Next.js server and build phases, and it's not included in the browser build.
+
+If you need ECMAScript modules, you can use `next.config.mjs`:
+
+```js
+// @ts-check
+
+/**
+ * @type {import('next').NextConfig}
+ */
+const nextConfig = {
+  /* config options here */
+}
+
+export default nextConfig
+```
+
+Good to know: `next.config` with the `.cjs`, `.cts`, or `.mts` extensions are currently not supported.
+
+## Configuration as a Function
+
+You can also use a function:
+
+```js
+// @ts-check
+
+export default (phase, { defaultConfig }) => {
+  /**
+   * @type {import('next').NextConfig}
+   */
+  const nextConfig = {
+    /* config options here */
+  }
+  return nextConfig
+}
+```
+
+### Async Configuration
+
+Since Next.js 12.1.0, you can use an async function:
+
+```js
+// @ts-check
+
+module.exports = async (phase, { defaultConfig }) => {
+  /**
+   * @type {import('next').NextConfig}
+   */
+  const nextConfig = {
+    /* config options here */
+  }
+  return nextConfig
+}
+```
+
+### Phase
+
+`phase` is the current context in which the configuration is loaded. You can see the available phases. Phases can be imported from `next/constants`:
+
+```js
+// @ts-check
+
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
+
+module.exports = (phase, { defaultConfig }) => {
+  if (phase === PHASE_DEVELOPMENT_SERVER) {
+    return {
+      /* development only config options here */
+    }
+  }
+
+  return {
+    /* config options for all phases except development here */
+  }
+}
+```
+
+## TypeScript
+
+This feature is available from Next.js canary.
+
+If you are using TypeScript in your project, you can use `next.config.ts` to use TypeScript in your configuration:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  /* config options here */
+}
+
+export default nextConfig
+```
+
+The commented lines are the place where you can put the configs allowed by `next.config.js`, which are defined in the Next.js repository.
+
+However, none of the configs are required, and it's not necessary to understand what each config does. Instead, search for the features you need to enable or modify in this section and they will show you what to do.
+
+Avoid using new JavaScript features not available in your target Node.js version. `next.config.js` will not be parsed by Webpack or Babel.
+
+This page documents all the available configuration options.
+
+# Logging
+
+Configure how data fetches are logged to the console when running Next.js in development mode.
+
+You can configure the logging level and whether the full URL is logged to the console when running Next.js in development mode. Currently, `logging` only applies to data fetching using the `fetch` API. It does not yet apply to other logs inside of Next.js.
+
+Example configuration to log full URLs:
+
+```js
+module.exports = {
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
+}
+```
+
+Any `fetch` requests that are restored from the Server Components HMR cache are not logged by default. However, this can be enabled by setting `logging.fetches.hmrRefreshes` to `true`.
+
+Example configuration to enable logging for HMR refreshes:
+
+```js
+module.exports = {
+  logging: {
+    fetches: {
+      hmrRefreshes: true,
+    },
+  },
+}
+```
+
+You can also disable the development logging by setting `logging` to `false`.
+
+Example configuration to disable logging:
+
+```js
+module.exports = {
+  logging: false,
+}
+```
+
+# mdxRs
+
+Use the new Rust compiler to compile MDX files in the App Router.
+
+Version: experimental
+
+For experimental use with `@next/mdx`. Compiles MDX files using the new Rust compiler.
+
+```js
+// next.config.js
+const withMDX = require('@next/mdx')()
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  pageExtensions: ['ts', 'tsx', 'mdx'],
+  experimental: {
+    mdxRs: true,
+  },
+}
+
+module.exports = withMDX(nextConfig)
+```
+
+# onDemandEntries
+
+Configure how Next.js will dispose and keep in memory pages created in development.
+
+Next.js exposes options to control how the server disposes or retains built pages in development.
+
+To change the defaults, open `next.config.js` and add the `onDemandEntries` config:
+
+```js
+module.exports = {
+  onDemandEntries: {
+    // period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
+}
+```
+
+# optimizePackageImports
+
+## Description
+API Reference for optimizePackageImports Next.js Config Option.
+
+Some packages can export hundreds or thousands of modules, which can cause performance issues in development and production.
+
+Adding a package to `experimental.optimizePackageImports` will only load the modules you are actually using, while still giving you the convenience of writing import statements with many named exports.
+
+```js
+// next.config.js
+module.exports = {
+  experimental: {
+    optimizePackageImports: ['package-name'],
+  },
+}
+```
+
+## Optimized Libraries
+The following libraries are optimized by default:
+
+- lucide-react
+- date-fns
+- lodash-es
+- ramda
+- antd
+- react-bootstrap
+- ahooks
+- @ant-design/icons
+- @headlessui/react
+- @headlessui-float/react
+- @heroicons/react/20/solid
+- @heroicons/react/24/solid
+- @heroicons/react/24/outline
+- @visx/visx
+- @tremor/react
+- rxjs
+- @mui/material
+- @mui/icons-material
+- recharts
+- react-use
+- @material-ui/core
+- @material-ui/icons
+- @tabler/icons-react
+- mui-core
+- react-icons/*
+
+# Output
+
+Next.js automatically traces which files are needed by each page to allow for easy deployment of your application. 
+
+During a build, Next.js will automatically trace each page and its dependencies to determine all of the files that are needed for deploying a production version of your application. This feature helps reduce the size of deployments drastically. Starting with Next.js 12, you can leverage Output File Tracing in the `.next/` directory to only include the necessary files, removing the need for the deprecated `serverless` target.
+
+## How it Works
+
+During `next build`, Next.js uses `@vercel/nft` to statically analyze `import`, `require`, and `fs` usage to determine all files that a page might load. The production server is also traced for its needed files and output at `.next/next-server.js.nft.json`.
+
+To leverage the `.nft.json` files emitted to the `.next` output directory, read the list of files in each trace that are relative to the `.nft.json` file and copy them to your deployment location.
+
+## Automatically Copying Traced Files
+
+Next.js can automatically create a `standalone` folder that copies only the necessary files for a production deployment, including select files in `node_modules`. Enable this in your `next.config.js`:
+
+```js
+module.exports = {
+  output: 'standalone',
+}
+```
+
+This creates a folder at `.next/standalone` for deployment without installing `node_modules`. A minimal `server.js` file is also output, which can be used instead of `next start`. This minimal server does not copy the `public` or `.next/static` folders by default, as these should ideally be handled by a CDN.
+
+> Good to know:
+> - If your project needs to listen to a specific port or hostname, define `PORT` or `HOSTNAME` environment variables before running `server.js`. For example, run `PORT=8080 HOSTNAME=0.0.0.0 node server.js` to start the server on `http://0.0.0.0:8080`.
+
+## Caveats
+
+- In monorepo setups, the project directory is used for tracing by default. To include files outside of the folder, set `outputFileTracingRoot` in your `next.config.js`:
+
+```js
+module.exports = {
+  outputFileTracingRoot: path.join(__dirname, '../../'),
+}
+```
+
+- Next.js might fail to include required files or incorrectly include unused files. Use `outputFileTracingExcludes` and `outputFileTracingIncludes` in `next.config.js` to manage this:
+
+```js
+module.exports = {
+  outputFileTracingExcludes: {
+    '/api/hello': ['./un-necessary-folder/**/*'],
+  },
+  outputFileTracingIncludes: {
+    '/api/another': ['./necessary-folder/**/*'],
+    '/api/login/\\[\\[\\.\\.\\.slug\\]\\]': [
+      './node_modules/aws-crt/dist/bin/**/*',
+    ],
+  },
+}
+```
+
+**Note:** The key of `outputFileTracingIncludes`/`outputFileTracingExcludes` is a glob, so special characters need to be escaped.
+
+- Currently, Next.js does not do anything with the emitted `.nft.json` files. These files must be read by your deployment platform to create a minimal deployment.
+
+## Experimental `turbotrace`
+
+Tracing dependencies can be slow due to complex computations. `turbotrace` in Rust is a faster alternative. To enable it, add the following configuration to your `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    turbotrace: {
+      logLevel?: 'bug' | 'fatal' | 'error' | 'warning' | 'hint' | 'note' | 'suggestions' | 'info',
+      logDetail?: boolean,
+      logAll?: boolean,
+      contextDirectory?: string,
+      processCwd?: string,
+      memoryLimit?: number,
+    },
+  },
+}
+```
+
+# pageExtensions
+
+Extend the default page extensions used by Next.js when resolving pages in the Pages Router.
+
+By default, Next.js accepts files with the following extensions: `.tsx`, `.ts`, `.jsx`, `.js`. This can be modified to allow other extensions like markdown (`.md`, `.mdx`).
+
+```js
+// next.config.js
+const withMDX = require('@next/mdx')()
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
+}
+
+module.exports = withMDX(nextConfig)
+```
+
+You can extend the default page extensions used by Next.js. Inside `next.config.js`, add the `pageExtensions` config:
+
+```js
+// next.config.js
+module.exports = {
+  pageExtensions: ['mdx', 'md', 'jsx', 'js', 'tsx', 'ts'],
+}
+```
+
+Changing these values affects all Next.js pages, including:
+
+- middleware.js
+- instrumentation.js
+- pages/_document.js
+- pages/_app.js
+- pages/api/
+
+For example, if you reconfigure `.ts` page extensions to `.page.ts`, you would need to rename pages like `middleware.page.ts`, `instrumentation.page.ts`, `_app.page.ts`.
+
+## Including non-page files in the `pages` directory
+
+You can colocate test files or other files used by components in the `pages` directory. Inside `next.config.js`, add the `pageExtensions` config:
+
+```js
+// next.config.js
+module.exports = {
+  pageExtensions: ['page.tsx', 'page.ts', 'page.jsx', 'page.js'],
+}
+```
+
+Then, rename your pages to have a file extension that includes `.page` (e.g., rename `MyPage.tsx` to `MyPage.page.tsx`). Ensure you rename all Next.js pages, including the files mentioned above.
+
+# poweredByHeader
+
+Next.js adds the `x-powered-by` header by default. To opt-out, modify the `next.config.js` file to disable the `poweredByHeader` configuration:
+
+```js
+module.exports = {
+  poweredByHeader: false,
+}
+```
+
+# Partial Prerendering in Next.js
+
+Partial Prerendering (PPR) enables the combination of static and dynamic components within the same route.
+
+## Using Partial Prerendering
+
+### Incremental Adoption (Version 15)
+
+In Next.js 15, you can incrementally adopt Partial Prerendering in layouts and pages by setting the `ppr` option in `next.config.js` to `incremental`, and exporting the `experimental_ppr` route config option at the top of the file:
+
+**next.config.ts**
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    ppr: 'incremental',
+  },
+}
+
+export default nextConfig
+```
+
+**next.config.js**
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    ppr: 'incremental',
+  },
+}
+
+module.exports = nextConfig
+```
+
+**app/page.tsx**
+```tsx
+import { Suspense } from "react"
+import { StaticComponent, DynamicComponent, Fallback } from "@/app/ui"
+
+export const experimental_ppr = true
+
+export default function Page() {
+  return (
+    <>
+      <StaticComponent />
+      <Suspense fallback={<Fallback />}>
+        <DynamicComponent />
+      </Suspense>
+    </>
+  );
+}
+```
+
+**app/page.js**
+```jsx
+import { Suspense } from "react"
+import { StaticComponent, DynamicComponent, Fallback } from "@/app/ui"
+
+export const experimental_ppr = true
+
+export default function Page() {
+  return (
+    <>
+      <StaticComponent />
+      <Suspense fallback={<Fallback />}>
+        <DynamicComponent />
+      </Suspense>
+    </>
+  );
+}
+```
+
+### Important Notes
+
+- Routes without `experimental_ppr` default to `false` and will not be prerendered using PPR. Explicit opt-in is required for each route.
+- `experimental_ppr` applies to all children of the route segment, including nested layouts and pages. It only needs to be added to the top segment of a route.
+- To disable PPR for child segments, set `experimental_ppr` to `false` in the child segment.
+
+### Version Changes
+
+| Version   | Changes                                     |
+| --------- | ------------------------------------------- |
+| `v15.0.0` | experimental `incremental` value introduced |
+| `v14.0.0` | experimental `ppr` introduced               |
+
+# productionBrowserSourceMaps
+
+Enables browser source map generation during the production build.
+
+Source Maps are enabled by default during development. During production builds, they are disabled to prevent leaking your source on the client, unless you specifically opt-in with the configuration flag.
+
+Next.js provides a configuration flag to enable browser source map generation during the production build:
+
+```js
+module.exports = {
+  productionBrowserSourceMaps: true,
+}
+```
+
+When the `productionBrowserSourceMaps` option is enabled, the source maps will be output in the same directory as the JavaScript files. Next.js will automatically serve these files when requested.
+
+- Adding source maps can increase `next build` time.
+- Increases memory usage during `next build`.
+
+# reactCompiler
+
+Enable the React Compiler to automatically optimize component rendering.
+
+**Version:** experimental
+
+Next.js 15 RC introduced support for the React Compiler. The compiler improves performance by automatically optimizing component rendering, reducing the need for manual memoization through APIs such as `useMemo` and `useCallback`.
+
+## Installation
+
+Upgrade to Next.js 15 and install the `babel-plugin-react-compiler`:
+
+```bash
+npm install babel-plugin-react-compiler
+```
+
+## Configuration
+
+Add the `experimental.reactCompiler` option in `next.config.js`:
+
+### TypeScript
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    reactCompiler: true,
+  },
+}
+
+export default nextConfig
+```
+
+### JavaScript
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    reactCompiler: true,
+  },
+}
+
+module.exports = nextConfig
+```
+
+## Opt-in Mode
+
+Optionally, configure the compiler to run in "opt-in" mode:
+
+### TypeScript
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    reactCompiler: {
+      compilationMode: 'annotation',
+    },
+  },
+}
+
+export default nextConfig
+```
+
+### JavaScript
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    reactCompiler: {
+      compilationMode: 'annotation',
+    },
+  },
+}
+
+module.exports = nextConfig
+```
+
+**Note:** The React Compiler is currently only usable in Next.js through a Babel plugin, which opts out of Next.js's default Rust-based compiler, potentially resulting in slower build times. Support for the React Compiler as the default compiler is in progress.
+
+Learn more about the React Compiler and the available Next.js config options.
+
+# reactMaxHeadersLength
+
+The maximum length of the headers emitted by React and added to the response.
+
+During static rendering, React can emit headers that can be added to the response. These headers can improve performance by allowing the browser to preload resources like fonts, scripts, and stylesheets. The default value is 6000, but you can override this value by configuring the `reactMaxHeadersLength` option in `next.config.js`:
+
+```js
+module.exports = {
+  reactMaxHeadersLength: 1000,
+}
+```
+
+Note: This option is only available in App Router.
+
+Depending on the type of proxy between the browser and the server, headers can be truncated. If using a reverse proxy that doesn't support long headers, set a lower value to prevent truncation.
+
+# reactStrictMode
+
+The complete Next.js runtime is now Strict Mode-compliant. Learn how to opt-in.
+
+Good to know: Since Next.js 13.5.1, Strict Mode is true by default with the app router, so the above configuration is only necessary for pages. You can still disable Strict Mode by setting reactStrictMode: false.
+
+Suggested: We strongly suggest you enable Strict Mode in your Next.js application to better prepare your application for the future of React.
+
+React's Strict Mode is a development mode only feature for highlighting potential problems in an application. It helps to identify unsafe lifecycles, legacy API usage, and a number of other features.
+
+The Next.js runtime is Strict Mode-compliant. To opt-in to Strict Mode, configure the following option in your next.config.js:
+
+```js
+module.exports = {
+  reactStrictMode: true,
+}
+```
+
+If you or your team are not ready to use Strict Mode in your entire application, that's OK! You can incrementally migrate on a page-by-page basis using <React.StrictMode>.
+
+# Redirects
+
+Redirects allow you to redirect an incoming request path to a different destination path.
+
+To use redirects, add the `redirects` key in `next.config.js`:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/about',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
+}
+```
+
+`redirects` is an async function that returns an array of objects with `source`, `destination`, and `permanent` properties:
+
+- `source`: Incoming request path pattern.
+- `destination`: Path to route to.
+- `permanent`: `true` uses 308 status code (cache forever), `false` uses 307 status code (temporary, not cached).
+
+**Why does Next.js use 307 and 308?** Many browsers changed the request method of the redirect to `GET` for 302 and 301 status codes. Next.js uses 307 and 308 to preserve the original request method.
+
+Additional properties:
+- `basePath`: `false` or `undefined` - if false, `basePath` won't be included (for external redirects).
+- `locale`: `false` or `undefined` - whether to include the locale when matching.
+- `has`: Array of objects with `type`, `key`, and `value` properties for matching.
+- `missing`: Array of objects with `type`, `key`, and `value` properties for non-matching.
+
+Redirects are checked before the filesystem, including pages and `/public` files. In the Pages Router, redirects do not apply to client-side routing unless Middleware matches the path.
+
+Query values in the request will be passed to the redirect destination. For example:
+
+```js
+{
+  source: '/old-blog/:path*',
+  destination: '/blog/:path*',
+  permanent: false
+}
+```
+
+Requesting `/old-blog/post-1?hello=world` redirects to `/blog/post-1?hello=world`.
+
+## Path Matching
+
+Path matches are allowed, e.g., `/old-blog/:slug` matches `/old-blog/hello-world`:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/old-blog/:slug',
+        destination: '/news/:slug',
+        permanent: true,
+      },
+    ]
+  },
+}
+```
+
+### Wildcard Path Matching
+
+Use `*` after a parameter for wildcard matching, e.g., `/blog/:slug*` matches `/blog/a/b/c/d/hello-world`:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/blog/:slug*',
+        destination: '/news/:slug*',
+        permanent: true,
+      },
+    ]
+  },
+}
+```
+
+### Regex Path Matching
+
+Wrap regex in parentheses after a parameter, e.g., `/post/:slug(\\d{1,})` matches `/post/123` but not `/post/abc`:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/post/:slug(\\d{1,})',
+        destination: '/news/:slug',
+        permanent: false,
+      },
+    ]
+  },
+}
+```
+
+Escape special regex characters in the `source`:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/english\\(default\\)/:slug',
+        destination: '/en-us/:slug',
+        permanent: false,
+      },
+    ]
+  },
+}
+```
+
+## Header, Cookie, and Query Matching
+
+Use `has` and `missing` fields to match based on header, cookie, or query values. Both `source` and all `has` items must match, and all `missing` items must not match for the redirect to apply.
+
+Example:
+
+```js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/:path((?!another-page$).*)',
+        has: [
+          {
+            type: 'header',
+            key: 'x-redirect-me',
+          },
+        ],
+        permanent: false,
+        destination: '/another-page',
+      },
+      {
+        source: '/specific/:path*',
+        has: [
+          {
+            type: 'query',
+            key: 'page',
+            value: 'home',
+          },
+          {
+            type: 'cookie',
+            key: 'authorized',
+            value: 'true',
+          },
+        ],
+        permanent: false,
+        destination: '/another/:path*',
+      },
+    ]
+  },
+}
+```
+
+### Redirects with basePath Support
+
+When using `basePath`, each `source` and `destination` is prefixed with the `basePath` unless `basePath: false` is set:
+
+```js
+module.exports = {
+  basePath: '/docs',
+
+  async redirects() {
+    return [
+      {
+        source: '/with-basePath',
+        destination: '/another',
+        permanent: false,
+      },
+      {
+        source: '/without-basePath',
+        destination: 'https://example.com',
+        basePath: false,
+        permanent: false,
+      },
+    ]
+  },
+}
+```
+
+### Redirects with i18n Support
+
+When using `i18n`, each `source` and `destination` is prefixed to handle configured locales unless `locale: false` is set:
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en', 'fr', 'de'],
+    defaultLocale: 'en',
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/with-locale',
+        destination: '/another',
+        permanent: false,
+      },
+      {
+        source: '/nl/with-locale-manual',
+        destination: '/nl/another',
+        locale: false,
+        permanent: false,
+      },
+    ]
+  },
+}
+```
+
+For older HTTP clients, use the `statusCode` property instead of `permanent` to assign a custom status code.
+
+## Other Redirects
+
+- Inside API Routes and Route Handlers, you can redirect based on the incoming request.
+- Inside `getStaticProps` and `getServerSideProps`, you can redirect specific pages at request-time.
+
+## Version History
+
+| Version   | Changes            |
+| --------- | ------------------ |
+| `v13.3.0` | `missing` added.   |
+| `v10.2.0` | `has` added.       |
+| `v9.5.0`  | `redirects` added. |
+
+# Rewrites
+
+Rewrites allow you to map an incoming request path to a different destination path.
+
+Rewrites act as a URL proxy and mask the destination path, making it appear the user hasn't changed their location on the site. In contrast, redirects will reroute to a new page and show the URL changes.
+
+To use rewrites, you can use the `rewrites` key in `next.config.js`:
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/about',
+        destination: '/',
+      },
+    ]
+  },
+}
+```
+
+Rewrites are applied to client-side routing; a `<Link href="/about">` will have the rewrite applied in the above example.
+
+`rewrites` is an async function that expects to return either an array or an object of arrays holding objects with `source` and `destination` properties:
+
+- `source`: String - the incoming request path pattern.
+- `destination`: String - the path you want to route to.
+- `basePath`: false or undefined - if false, the basePath won't be included when matching, can be used for external rewrites only.
+- `locale`: false or undefined - whether the locale should not be included when matching.
+- `has`: array of objects with `type`, `key`, and `value` properties.
+- `missing`: array of objects with `type`, `key`, and `value` properties.
+
+When the `rewrites` function returns an array, rewrites are applied after checking the filesystem (pages and `/public` files) and before dynamic routes. When the `rewrites` function returns an object of arrays, this behavior can be changed and more finely controlled:
+
+```js
+module.exports = {
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/some-page',
+          destination: '/somewhere-else',
+          has: [{ type: 'query', key: 'overrideMe' }],
+        },
+      ],
+      afterFiles: [
+        {
+          source: '/non-existent',
+          destination: '/somewhere-else',
+        },
+      ],
+      fallback: [
+        {
+          source: '/:path*',
+          destination: `https://my-old-site.com/:path*`,
+        },
+      ],
+    }
+  },
+}
+```
+
+Good to know: rewrites in `beforeFiles` do not check the filesystem/dynamic routes immediately after matching a source; they continue until all `beforeFiles` have been checked.
+
+The order Next.js routes are checked is:
+
+1. headers are checked/applied
+2. redirects are checked/applied
+3. `beforeFiles` rewrites are checked/applied
+4. static files from the public directory, `_next/static` files, and non-dynamic pages are checked/served
+5. `afterFiles` rewrites are checked/applied
+6. `fallback` rewrites are checked/applied
+
+## Rewrite Parameters
+
+When using parameters in a rewrite, the parameters will be passed in the query by default when none of the parameters are used in the `destination`.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/old-about/:path*',
+        destination: '/about',
+      },
+    ]
+  },
+}
+```
+
+If a parameter is used in the destination, none of the parameters will be automatically passed in the query.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/docs/:path*',
+        destination: '/:path*',
+      },
+    ]
+  },
+}
+```
+
+You can still pass the parameters manually in the query if one is already used in the destination.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/:first/:second',
+        destination: '/:first?second=:second',
+      },
+    ]
+  },
+}
+```
+
+Good to know: Static pages from Automatic Static Optimization or prerendering params from rewrites will be parsed on the client after hydration and provided in the query.
+
+## Path Matching
+
+Path matches are allowed, for example `/blog/:slug` will match `/blog/hello-world`:
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/blog/:slug',
+        destination: '/news/:slug',
+      },
+    ]
+  },
+}
+```
+
+### Wildcard Path Matching
+
+To match a wildcard path, use `*` after a parameter:
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/blog/:slug*',
+        destination: '/news/:slug*',
+      },
+    ]
+  },
+}
+```
+
+### Regex Path Matching
+
+To match a regex path, wrap the regex in parentheses after a parameter:
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/old-blog/:post(\\d{1,})',
+        destination: '/blog/:post',
+      },
+    ]
+  },
+}
+```
+
+The following characters are used for regex path matching: `(`, `)`, `{`, `}`, `[`, `]`, `|`, `\`, `^`, `.`, `:`, `*`, `+`, `-`, `?`, `$`.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/english\\(default\\)/:slug',
+        destination: '/en-us/:slug',
+      },
+    ]
+  },
+}
+```
+
+## Header, Cookie, and Query Matching
+
+To match a rewrite when header, cookie, or query values also match, use the `has` field or `missing` field. Both the `source` and all `has` items must match, and all `missing` items must not match for the rewrite to be applied.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-rewrite-me',
+          },
+        ],
+        destination: '/another-page',
+      },
+      {
+        source: '/:path*',
+        missing: [
+          {
+            type: 'header',
+            key: 'x-rewrite-me',
+          },
+        ],
+        destination: '/another-page',
+      },
+      {
+        source: '/specific/:path*',
+        has: [
+          {
+            type: 'query',
+            key: 'page',
+            value: 'home',
+          },
+          {
+            type: 'cookie',
+            key: 'authorized',
+            value: 'true',
+          },
+        ],
+        destination: '/:path*/home',
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-authorized',
+            value: '(?<authorized>yes|true)',
+          },
+        ],
+        destination: '/home?authorized=:authorized',
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'example.com',
+          },
+        ],
+        destination: '/another-page',
+      },
+    ]
+  },
+}
+```
+
+## Rewriting to an External URL
+
+Rewrites allow you to rewrite to an external URL. This is especially useful for incrementally adopting Next.js.
+
+```js
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/blog',
+        destination: 'https://example.com/blog',
+      },
+      {
+        source: '/blog/:slug',
+        destination: 'https://example.com/blog/:slug',
+      },
+    ]
+  },
+}
+```
+
+If using `trailingSlash: true`, insert a trailing slash in the `source` parameter.
+
+```js
+module.exports = {
+  trailingSlash: true,
+  async rewrites() {
+    return [
+      {
+        source: '/blog/',
+        destination: 'https://example.com/blog/',
+      },
+      {
+        source: '/blog/:path*/',
+        destination: 'https://example.com/blog/:path*/',
+      },
+    ]
+  },
+}
+```
+
+### Incremental Adoption of Next.js
+
+Next.js can fall back to proxying to an existing website after checking all Next.js routes.
+
+```js
+module.exports = {
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: '/:path*',
+          destination: `https://custom-routes-proxying-endpoint.vercel.app/:path*`,
+        },
+      ],
+    }
+  },
+}
+```
+
+### Rewrites with BasePath Support
+
+When leveraging basePath support with rewrites, each `source` and `destination` is automatically prefixed with the `basePath`.
+
+```js
+module.exports = {
+  basePath: '/docs',
+
+  async rewrites() {
+    return [
+      {
+        source: '/with-basePath',
+        destination: '/another',
+      },
+      {
+        source: '/without-basePath',
+        destination: 'https://example.com',
+        basePath: false,
+      },
+    ]
+  },
+}
+```
+
+### Rewrites with i18n Support
+
+When leveraging i18n support with rewrites, each `source` and `destination` is automatically prefixed to handle the configured locales unless you add `locale: false` to the rewrite.
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en', 'fr', 'de'],
+    defaultLocale: 'en',
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/with-locale',
+        destination: '/another',
+      },
+      {
+        source: '/nl/with-locale-manual',
+        destination: '/nl/another',
+        locale: false,
+      },
+      {
+        source: '/:locale/api-alias/:path*',
+        destination: '/api/:path*',
+        locale: false,
+      },
+      {
+        source: '/(.*)',
+        destination: '/another',
+      },
+    ]
+  },
+}
+```
+
+## Version History
+
+| Version   | Changes          |
+| --------- | ---------------- |
+| `v13.3.0` | `missing` added. |
+| `v10.2.0` | `has` added.     |
+| `v9.5.0`  | Headers added.   |
+
+# sassOptions
+
+`sassOptions` allow you to configure the Sass compiler.
+
+TypeScript Example:
+
+```ts
+import type { NextConfig } from 'next'
+
+const sassOptions = {
+  additionalData: `
+    $var: red;
+  `,
+}
+
+const nextConfig: NextConfig = {
+  sassOptions: {
+    ...sassOptions,
+    implementation: 'sass-embedded',
+  },
+}
+
+export default nextConfig
+```
+
+JavaScript Example:
+
+```js
+/** @type {import('next').NextConfig} */
+
+const sassOptions = {
+  additionalData: `
+    $var: red;
+  `,
+}
+
+const nextConfig = {
+  sassOptions: {
+    ...sassOptions,
+    implementation: 'sass-embedded',
+  },
+}
+
+module.exports = nextConfig
+```
+
+Good to know: `sassOptions` are not typed outside of `implementation` because Next.js does not maintain the other possible properties.
+
+# serverActions
+
+Configure Server Actions behavior in your Next.js application.
+
+## allowedOrigins
+
+A list of extra safe origin domains from which Server Actions can be invoked. Next.js compares the origin of a Server Action request with the host domain to prevent CSRF attacks. If not provided, only the same origin is allowed.
+
+```js
+/** @type {import('next').NextConfig} */
+module.exports = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['my-proxy.com', '*.my-proxy.com'],
+    },
+  },
+}
+```
+
+## bodySizeLimit
+
+The default maximum size of the request body sent to a Server Action is 1MB. This limit prevents excessive server resource consumption and potential DDoS attacks. You can configure this limit using the `serverActions.bodySizeLimit` option, which can take the number of bytes or a string format like `1000`, `'500kb'`, or `'3mb'`.
+
+```js
+/** @type {import('next').NextConfig} */
+module.exports = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+}
+```
+
+## Enabling Server Actions (v13)
+
+Server Actions became a stable feature in Next.js 14 and are enabled by default. For earlier versions, enable them by setting `experimental.serverActions` to `true`.
+
+```js
+/** @type {import('next').NextConfig} */
+const config = {
+  experimental: {
+    serverActions: true,
+  },
+}
+
+module.exports = config
+```
+
+# serverComponentsHmrCache
+
+**Description:** Configure whether fetch responses in Server Components are cached across HMR refresh requests.  
+**Version:** experimental
+
+The experimental `serverComponentsHmrCache` option allows you to cache `fetch` responses in Server Components across Hot Module Replacement (HMR) refreshes in local development. This results in faster responses and reduced costs for billed API calls.
+
+By default, the HMR cache applies to all `fetch` requests, including those with the `cache: 'no-store'` option. This means uncached requests will not show fresh data between HMR refreshes. However, the cache will be cleared on navigation or full-page reloads.
+
+You can disable the HMR cache by setting `serverComponentsHmrCache` to `false` in your `next.config.js` file:
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    serverComponentsHmrCache: false, // defaults to true
+  },
+}
+
+export default nextConfig
+```
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    serverComponentsHmrCache: false, // defaults to true
+  },
+}
+
+module.exports = nextConfig
+```
+
+**Good to know:** For better observability, we recommend using the `logging.fetches` option which logs fetch cache hits and misses in the console during development.
+
+# serverExternalPackages
+
+Opt-out specific dependencies from the Server Components bundling and use native Node.js `require`.
+
+Dependencies used inside Server Components and Route Handlers will automatically be bundled by Next.js. If a dependency is using Node.js specific features, you can choose to opt-out specific dependencies from the Server Components bundling.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  serverExternalPackages: ['@acme/ui'],
+}
+
+module.exports = nextConfig
+```
+
+Next.js includes a short list of popular packages that currently are working on compatibility and automatically opted out:
+
+- @appsignal/nodejs
+- @aws-sdk/client-s3
+- @aws-sdk/s3-presigned-post
+- @blockfrost/blockfrost-js
+- @highlight-run/node
+- @jpg-store/lucid-cardano
+- @libsql/client
+- @mikro-orm/core
+- @mikro-orm/knex
+- @node-rs/argon2
+- @node-rs/bcrypt
+- @prisma/client
+- @react-pdf/renderer
+- @sentry/profiling-node
+- @sparticuz/chromium
+- @swc/core
+- argon2
+- autoprefixer
+- aws-crt
+- bcrypt
+- better-sqlite3
+- canvas
+- cpu-features
+- cypress
+- dd-trace
+- eslint
+- express
+- firebase-admin
+- import-in-the-middle
+- isolated-vm
+- jest
+- jsdom
+- keyv
+- libsql
+- mdx-bundler
+- mongodb
+- mongoose
+- newrelic
+- next-mdx-remote
+- next-seo
+- node-cron
+- node-pty
+- node-web-audio-api
+- oslo
+- pg
+- playwright
+- playwright-core
+- postcss
+- prettier
+- prisma
+- puppeteer-core
+- puppeteer
+- require-in-the-middle
+- rimraf
+- sharp
+- shiki
+- sqlite3
+- ts-node
+- ts-morph
+- typescript
+- vscode-oniguruma
+- webpack
+- websocket
+- zeromq
+
+Version Changes:
+- v15.0.0: Moved from experimental to stable. Renamed from serverComponentsExternalPackages to serverExternalPackages.
+
+# staleTimes
+
+`staleTimes` is an experimental feature that enables caching of page segments in the client-side router cache.
+
+You can enable this experimental feature and provide custom revalidation times by setting the experimental `staleTimes` flag:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
+}
+
+module.exports = nextConfig
+```
+
+The `static` and `dynamic` properties correspond with the time period (in seconds) based on different types of link prefetching.
+
+- The `dynamic` property is used when the page is neither statically generated nor fully prefetched (i.e., with prefetch={true}).
+  - Default: 0 seconds (not cached)
+- The `static` property is used for statically generated pages, or when the `prefetch` prop on `Link` is set to `true`, or when calling `router.prefetch`.
+  - Default: 5 minutes
+
+**Good to know:**
+- Loading boundaries are considered reusable for the `static` period defined in this configuration.
+- This doesn't affect partial rendering, meaning shared layouts won't automatically be refetched on every navigation, only the page segment that changes.
+- This doesn't change back/forward caching behavior to prevent layout shift and to prevent losing the browser scroll position.
+
+You can learn more about the Client Router Cache here.
+
+### Version History
+
+| Version   | Changes                                                    |
+| --------- | ---------------------------------------------------------- |
+| `v15.0.0` | The `dynamic` `staleTimes` default changed from 30s to 0s. |
+| `v14.2.0` | Experimental `staleTimes` introduced.                      |
+
+# staticGeneration*
+
+Learn how to configure static generation in your Next.js application.
+
+The `staticGeneration*` options allow you to configure the Static Generation process for advanced use cases.
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    staticGenerationRetryCount: 1,
+    staticGenerationMaxConcurrency: 8,
+    staticGenerationMinPagesPerWorker: 25,
+  },
+}
+
+export default nextConfig
+```
+
+```js
+const nextConfig = {
+  experimental: {
+    staticGenerationRetryCount: 1,
+    staticGenerationMaxConcurrency: 8,
+    staticGenerationMinPagesPerWorker: 25,
+  },
+}
+
+export default nextConfig;
+```
+
+## Config Options
+
+The following options are available:
+
+- `staticGenerationRetryCount`: The number of times to retry a failed page generation before failing the build.
+- `staticGenerationMaxConcurrency`: The maximum number of pages to be processed per worker.
+- `staticGenerationMinPagesPerWorker`: The minimum number of pages to be processed before starting a new worker.
+
+# trailingSlash
+
+Configure Next.js pages to resolve with or without a trailing slash.
+
+By default, Next.js redirects URLs with trailing slashes to their counterparts without a trailing slash. For example, `/about/` will redirect to `/about`. You can configure this behavior to redirect URLs without trailing slashes to their counterparts with trailing slashes.
+
+Open `next.config.js` and add the `trailingSlash` config:
+
+```js
+module.exports = {
+  trailingSlash: true,
+}
+```
+
+With this option set, URLs like `/about` will redirect to `/about/`.
+
+When used with output: "export" configuration, the `/about` page will output `/about/index.html` (instead of the default `/about.html`).
+
+## Version History
+
+| Version  | Changes                |
+| -------- | ---------------------- |
+| v9.5.0  | trailingSlash added.   |
+
+# transpilePackages
+
+Automatically transpile and bundle dependencies from local packages (like monorepos) or from external dependencies (`node_modules`). This replaces the `next-transpile-modules` package.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  transpilePackages: ['package-name'],
+}
+
+module.exports = nextConfig
+```
+
+## Version History
+
+- **Version v13.0.0**: `transpilePackages` added.
+
+# turbo
+
+Configure Next.js with Turbopack-specific options.
+
+The `turbo` option lets you customize Turbopack to transform different files and change how modules are resolved.
+
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    turbo: {
+      // ...
+    },
+  },
+}
+
+export default nextConfig
+```
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbo: {
+      // ...
+    },
+  },
+}
+
+module.exports = nextConfig
+```
+
+**Good to know**:
+- Turbopack for Next.js does not require loaders or loader configuration for built-in functionality. It has built-in support for CSS and compiling modern JavaScript, so there's no need for `css-loader`, `postcss-loader`, or `babel-loader` if using `@babel/preset-env`.
+
+## Reference
+
+### Options
+
+The following options are available for the `turbo` configuration:
+
+- `rules`: List of unsupported webpack loaders to apply when running with Turbopack.
+- `resolveAlias`: Map aliased imports to modules to load in their place.
+- `resolveExtensions`: List of extensions to resolve when importing files.
+- `moduleIdStrategy`: Assign module IDs.
+- `useSwcCss`: Use `swc_css` instead of `lightningcss` for Turbopack.
+- `treeshaking`: Enable tree shaking for the turbopack dev server and build.
+- `memoryLimit`: A target memory limit for turbo, in bytes.
+
+### Supported loaders
+
+The following loaders have been tested to work with Turbopack's webpack loader implementation:
+
+- babel-loader
+- @svgr/webpack
+- svg-inline-loader
+- yaml-loader
+- string-replace-loader
+- raw-loader
+- sass-loader
+
+## Examples
+
+### Configuring webpack loaders
+
+If you need loader support beyond what's built in, many webpack loaders already work with Turbopack. There are currently some limitations:
+
+- Only a core subset of the webpack loader API is implemented.
+- Only loaders that return JavaScript code are supported.
+- Options passed to webpack loaders must be plain JavaScript primitives, objects, and arrays.
+
+To configure loaders, add the names of the loaders you've installed and any options in `next.config.js`, mapping file extensions to a list of loaders:
+
+```js
+module.exports = {
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+}
+```
+
+**Good to know**: Prior to Next.js version 13.4.4, `turbo.rules` was named `turbo.loaders` and only accepted file extensions like `.mdx` instead of `*.mdx`.
+
+### Resolving aliases
+
+Turbopack can be configured to modify module resolution through aliases, similar to webpack's resolve.alias configuration.
+
+To configure resolve aliases, map imported patterns to their new destination in `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        underscore: 'lodash',
+        mocha: { browser: 'mocha/browser-entry.js' },
+      },
+    },
+  },
+}
+```
+
+This aliases imports of the `underscore` package to the `lodash` package. In other words, `import underscore from 'underscore'` will load the `lodash` module instead of `underscore`.
+
+Turbopack also supports conditional aliasing through this field, similar to Node.js' conditional exports. Currently, only the `browser` condition is supported.
+
+### Resolving custom extensions
+
+Turbopack can be configured to resolve modules with custom extensions, similar to webpack's resolve.extensions configuration.
+
+To configure resolve extensions, use the `resolveExtensions` field in `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    turbo: {
+      resolveExtensions: [
+        '.mdx',
+        '.tsx',
+        '.ts',
+        '.jsx',
+        '.js',
+        '.mjs',
+        '.json',
+      ],
+    },
+  },
+}
+```
+
+This overwrites the original resolve extensions with the provided list. Make sure to include the default extensions.
+
+For more information and guidance for how to migrate your app to Turbopack from webpack, see Turbopack's documentation on webpack compatibility.
+
+### Assigning module IDs
+
+Turbopack currently supports two strategies for assigning module IDs:
+
+- `'named'`: Assigns readable module IDs based on the module's path and functionality.
+- `'deterministic'`: Assigns small hashed numeric module IDs, which are mostly consistent between builds and help with long-term caching.
+
+If not set, Turbopack will use `'named'` for development builds and `'deterministic'` for production builds.
+
+To configure the module IDs strategy, use the `moduleIdStrategy` field in `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    turbo: {
+      moduleIdStrategy: 'deterministic',
+    },
+  },
+}
+```
+
+## Version History
+
+- `13.0.0`: `experimental.turbo` introduced.
+
+# typedRoutes
+
+Enable experimental support for statically typed links. This feature requires using the App Router as well as TypeScript in your project.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    typedRoutes: true,
+  },
+}
+
+module.exports = nextConfig
+```
+
+# TypeScript in Next.js
+
+Next.js reports TypeScript errors by default. If you want to opt-out of this behavior, follow the instructions below.
+
+Next.js fails your **production build** (`next build`) when TypeScript errors are present in your project. To allow production code to be generated even with errors, you can disable the built-in type checking step. 
+
+**Warning:** If you disable this feature, ensure that you are running type checks as part of your build or deploy process, as this can be very dangerous.
+
+To disable type checking, open `next.config.js` and enable the `ignoreBuildErrors` option in the `typescript` config:
+
+```js
+module.exports = {
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
+}
+```
+
+# urlImports
+
+## Description
+Configure Next.js to allow importing modules from external URLs.
+
+## Version
+experimental
+
+URL imports are an experimental feature that allows you to import modules directly from external servers instead of from the local disk.
+
+**Warning**: Only use domains that you trust to download and execute on your machine. Please exercise discretion and caution until the feature is flagged as stable.
+
+To opt-in, add the allowed URL prefixes inside `next.config.js`:
+
+```js
+module.exports = {
+  experimental: {
+    urlImports: ['https://example.com/assets/', 'https://cdn.skypack.dev'],
+  },
+}
+```
+
+Then, you can import modules directly from URLs:
+
+```js
+import { a, b, c } from 'https://example.com/assets/some/module.js'
+```
+
+URL Imports can be used everywhere normal package imports can be used.
+
+## Security Model
+This feature is being designed with security as the top priority. An experimental flag requires you to explicitly allow the domains you accept URL imports from. Future improvements will limit URL imports to execute in the browser sandbox using the Edge Runtime.
+
+## Lockfile
+When using URL imports, Next.js will create a `next.lock` directory containing a lockfile and fetched assets. This directory must be committed to Git, not ignored by `.gitignore`.
+
+- When running `next dev`, Next.js will download and add all newly discovered URL Imports to your lockfile.
+- When running `next build`, Next.js will use only the lockfile to build the application for production.
+
+Typically, no network requests are needed, and any outdated lockfile will cause the build to fail. An exception is resources that respond with `Cache-Control: no-cache`. These resources will have a `no-cache` entry in the lockfile and will always be fetched from the network on each build.
+
+## Examples
+
+### Skypack
+```js
+import confetti from 'https://cdn.skypack.dev/canvas-confetti'
+import { useEffect } from 'react'
+
+export default () => {
+  useEffect(() => {
+    confetti()
+  })
+  return <p>Hello</p>
+}
+```
+
+### Static Image Imports
+```js
+import Image from 'next/image'
+import logo from 'https://example.com/assets/logo.png'
+
+export default () => (
+  <div>
+    <Image src={logo} placeholder="blur" />
+  </div>
+)
+```
+
+### URLs in CSS
+```css
+.className {
+  background: url('https://example.com/assets/hero.jpg');
+}
+```
+
+### Asset Imports
+```js
+const logo = new URL('https://example.com/assets/file.txt', import.meta.url)
+
+console.log(logo.pathname)
+
+// prints "/_next/static/media/file.a9727b5d.txt"
+```
+
+# useLightningcss
+
+Enable experimental support for Lightning CSS.
+
+Version: experimental
+
+Experimental support for using Lightning CSS, a fast CSS bundler and minifier, written in Rust.
+
+TypeScript Configuration:
+```ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  experimental: {
+    useLightningcss: true,
+  },
+}
+
+export default nextConfig
+```
+
+JavaScript Configuration:
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    useLightningcss: true,
+  },
+}
+
+module.exports = nextConfig
+```
+
+# webVitalsAttribution
+
+Learn how to use the webVitalsAttribution option to pinpoint the source of Web Vitals issues.
+
+When debugging issues related to Web Vitals, it is often helpful to pinpoint the source of the problem. For example, in the case of Cumulative Layout Shift (CLS), we might want to know the first element that shifted during the largest layout shift. For Largest Contentful Paint (LCP), identifying the element corresponding to the LCP can help, especially if it is an image, as knowing the URL of the image resource can assist in locating the asset for optimization.
+
+Pinpointing the biggest contributor to the Web Vitals score, known as attribution, allows us to obtain more in-depth information such as entries for PerformanceEventTiming, PerformanceNavigationTiming, and PerformanceResourceTiming.
+
+Attribution is disabled by default in Next.js but can be enabled per metric by specifying the following in next.config.js:
+
+```js
+experimental: {
+  webVitalsAttribution: ['CLS', 'LCP']
+}
+```
+
+Valid attribution values are all web-vitals metrics specified in the NextWebVitalsMetric type.
+
+# Custom Webpack Config
+
+Learn how to customize the webpack config used by Next.js.
+
+> **Good to know**: changes to webpack config are not covered by semver so proceed at your own risk.
+
+Before adding custom webpack configuration, ensure Next.js doesn't already support your use case:
+
+**App Only:**
+- CSS imports
+- CSS modules
+- Sass/SCSS imports
+- Sass/SCSS modules
+
+**Pages Only:**
+- CSS imports
+- CSS modules
+- Sass/SCSS imports
+- Sass/SCSS modules
+- Customizing babel configuration
+
+Some commonly requested features are available as plugins:
+- @next/mdx
+- @next/bundle-analyzer
+
+To extend webpack usage, define a function in `next.config.js`:
+
+```js
+module.exports = {
+  webpack: (
+    config,
+    { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
+  ) => {
+    // Important: return the modified config
+    return config;
+  },
+}
+```
+
+The `webpack` function is executed three times: twice for the server (nodejs / edge runtime) and once for the client. Use the `isServer` property to distinguish between client and server configuration.
+
+The second argument to the `webpack` function includes:
+- `buildId`: String - Unique identifier between builds
+- `dev`: Boolean - Indicates if the compilation is in development
+- `isServer`: Boolean - `true` for server-side compilation, `false` for client-side
+- `nextRuntime`: String | undefined - Target runtime for server-side compilation; either "edge" or "nodejs", `undefined` for client-side
+- `defaultLoaders`: Object - Default loaders used by Next.js:
+  - `babel`: Object - Default `babel-loader` configuration
+
+Example usage of `defaultLoaders.babel`:
+
+```js
+module.exports = {
+  webpack: (config, options) => {
+    config.module.rules.push({
+      test: /\.mdx/,
+      use: [
+        options.defaultLoaders.babel,
+        {
+          loader: '@mdx-js/loader',
+          options: pluginOptions.options,
+        },
+      ],
+    });
+
+    return config;
+  },
+}
+```
+
+### `nextRuntime`
+
+`isServer` is `true` when `nextRuntime` is "edge" or "nodejs". The "edge" runtime is currently for middleware and Server Components in edge runtime only.
+
+# create-next-app
+
+Create Next.js apps using one command with the create-next-app CLI.
+
+The `create-next-app` CLI allows you to create a new Next.js application using the default template or an example from a public GitHub repository. It is the easiest way to get started with Next.js.
+
+## Basic Usage
+
+```bash
+npx create-next-app@latest [project-name] [options]
+```
+
+## Reference
+
+The following options are available:
+
+- `-h` or `--help`: Show all available options
+- `-v` or `--version`: Output the version number
+- `--no-*`: Negate default options. E.g. `--no-eslint`
+- `--ts` or `--typescript`: Initialize as a TypeScript project (default)
+- `--js` or `--javascript`: Initialize as a JavaScript project
+- `--tailwind`: Initialize with Tailwind CSS config (default)
+- `--eslint`: Initialize with ESLint config
+- `--app`: Initialize as an App Router project
+- `--src-dir`: Initialize inside a `src/` directory
+- `--turbopack`: Enable Turbopack by default for development
+- `--import-alias <alias-to-configure>`: Specify import alias to use (default "@/*")
+- `--empty`: Initialize an empty project
+- `--use-npm`: Explicitly tell the CLI to bootstrap the application using npm
+- `--use-pnpm`: Explicitly tell the CLI to bootstrap the application using pnpm
+- `--use-yarn`: Explicitly tell the CLI to bootstrap the application using Yarn
+- `--use-bun`: Explicitly tell the CLI to bootstrap the application using Bun
+- `-e` or `--example [name] [github-url]`: An example to bootstrap the app with
+- `--example-path <path-to-example>`: Specify the path to the example separately
+- `--reset-preferences`: Explicitly tell the CLI to reset any stored preferences
+- `--skip-install`: Explicitly tell the CLI to skip installing packages
+- `--yes`: Use previous preferences or defaults for all options
+
+## Examples
+
+### With the Default Template
+
+To create a new app using the default template, run the following command in your terminal:
+
+```bash
+npx create-next-app@latest
+```
+
+You will then be asked the following prompts:
+
+```
+What is your project named?  my-app
+Would you like to use TypeScript?  No / Yes
+Would you like to use ESLint?  No / Yes
+Would you like to use Tailwind CSS?  No / Yes
+Would you like your code inside a `src/` directory?  No / Yes
+Would you like to use App Router? (recommended)  No / Yes
+Would you like to use Turbopack for `next dev`?  No / Yes
+Would you like to customize the import alias (`@/*` by default)?  No / Yes
+```
+
+Once you've answered the prompts, a new project will be created with your chosen configuration.
+
+### With an Official Next.js Example
+
+To create a new app using an official Next.js example, use the `--example` flag. For example:
+
+```bash
+npx create-next-app@latest --example [example-name] [your-project-name]
+```
+
+You can view a list of all available examples along with setup instructions in the Next.js repository.
+
+### With Any Public GitHub Example
+
+To create a new app using any public GitHub example, use the `--example` option with the GitHub repo's URL. For example:
+
+```bash
+npx create-next-app@latest --example "https://github.com/.../" [your-project-name]
+```
+
+# CLI
+
+API Reference for the Next.js Command Line Interface (CLI) tools.
+
+Next.js comes with **two** Command Line Interface (CLI) tools:
+
+- **`create-next-app`**: Quickly create a new Next.js application using the default template or an example from a public GitHub repository.
+- **`next`**: Run the Next.js development server, build your application, and more.
+
+# Next CLI
+
+Learn how to run and build your application with the Next.js CLI.
+
+The Next.js CLI allows you to develop, build, start your application, and more.
+
+## Basic Usage
+
+```bash
+npx next [command] [options]
+```
+
+## Reference
+
+### Options
+
+| Options             | Description                        |
+| ------------------- | ---------------------------------- |
+| `-h` or `--help`    | Shows all available options        |
+| `-v` or `--version` | Outputs the Next.js version number |
+
+### Commands
+
+| Command                                | Description                                                                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dev`                                  | Starts Next.js in development mode with Hot Module Reloading, error reporting, and more.                                                                                                                                           |
+| `build`                                | Creates an optimized production build of your application, displaying information about each route.                                                                                                                                |
+| `start`                                | Starts Next.js in production mode. The application should be compiled with `next build` first.                                                                                                                                     |
+| `info`                                 | Prints relevant details about the current system which can be used to report Next.js bugs.                                                                                                                                         |
+| `lint`                                 | Runs ESLint for all files in the `/src`, `/app`, `/pages`, `/components`, and `/lib` directories, providing a guided setup to install any required dependencies if ESLint is not already configured. |
+| `telemetry`                            | Allows you to enable or disable Next.js' completely anonymous telemetry collection.                                                                                                                                                |
+
+> **Good to know**: Running `next` without a command is an alias for `next dev`.
+
+### `next dev` Options
+
+`next dev` starts the application in development mode with Hot Module Reloading (HMR), error reporting, and more.
+
+| Option                                   | Description                                                                                                                                          |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h, --help`                             | Show all available options.                                                                                                                          |
+| `[directory]`                            | A directory in which to build the application. If not provided, current directory is used.                                                           |
+| `--turbopack`                            | Starts development mode using Turbopack.                                                                                                           |
+| `-p` or `--port <port>`                  | Specify a port number on which to start the application. Default: 3000, env: PORT                                                                    |
+| `-H` or `--hostname <hostname>`          | Specify a hostname on which to start the application. Default: 0.0.0.0                                                                             |
+| `--experimental-https`                   | Starts the server with HTTPS and generates a self-signed certificate.                                                                                |
+| `--experimental-https-key <path>`        | Path to a HTTPS key file.                                                                                                                            |
+| `--experimental-https-cert <path>`       | Path to a HTTPS certificate file.                                                                                                                    |
+| `--experimental-https-ca <path>`         | Path to a HTTPS certificate authority file.                                                                                                          |
+| `--experimental-upload-trace <traceUrl>` | Reports a subset of the debugging trace to a remote HTTP URL.                                                                                        |
+
+### `next build` Options
+
+`next build` creates an optimized production build of your application, displaying information about each route.
+
+| Option                             | Description                                                                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h, --help`                       | Show all available options.                                                                                                                   |
+| `[directory]`                      | A directory on which to build the application. If not provided, the current directory will be used.                                           |
+| `-d` or `--debug`                  | Enables a more verbose build output.                                                                                                          |
+| `--profile`                        | Enables production profiling for React.                                                                                                       |
+| `--no-lint`                        | Disables linting.                                                                                                                             |
+| `--no-mangling`                    | Disables name mangling. This may affect performance and should only be used for debugging purposes.                                           |
+| `--experimental-app-only`          | Builds only App Router routes.                                                                                                                |
+| `--experimental-build-mode [mode]` | Uses an experimental build mode. (choices: "compile", "generate", default: "default")                                                         |
+
+### `next start` Options
+
+`next start` starts the application in production mode. The application should be compiled with `next build` first.
+
+| Option                                  | Description                                                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `-h` or `--help`                        | Show all available options.                                                                                     |
+| `[directory]`                           | A directory on which to start the application. If no directory is provided, the current directory will be used. |
+| `-p` or `--port <port>`                 | Specify a port number on which to start the application. (default: 3000, env: PORT)                             |
+| `-H` or `--hostname <hostname>`         | Specify a hostname on which to start the application (default: 0.0.0.0).                                        |
+| `--keepAliveTimeout <keepAliveTimeout>` | Specify the maximum amount of milliseconds to wait before closing the inactive connections.                     |
+
+### `next info` Options
+
+`next info` prints relevant details about the current system which can be used to report Next.js bugs.
+
+| Option           | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `-h` or `--help` | Show all available options                     |
+| `--verbose`      | Collects additional information for debugging. |
+
+### `next lint` Options
+
+`next lint` runs ESLint for all files in the `pages/`, `app/`, `components/`, `lib/`, and `src/` directories.
+
+| Option                                                | Description                                                                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `[directory]`                                         | A base directory on which to lint the application. If not provided, the current directory will be used.       |
+| `-d, --dir, <dirs...>`                                | Include directory, or directories, to run ESLint.                                                             |
+| `--file, <files...>`                                  | Include file, or files, to run ESLint.                                                                        |
+| `--ext, [exts...]`                                    | Specify JavaScript file extensions. (default: [".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx"]) |
+| `-c, --config, <config>`                              | Uses this configuration file, overriding all other configuration options.                                     |
+| `--resolve-plugins-relative-to, <rprt>`               | Specify a directory where plugins should be resolved from.                                                    |
+| `--strict`                                            | Creates a `.eslintrc.json` file using the Next.js strict configuration.                                       |
+| `--rulesdir, <rulesdir...>`                           | Uses additional rules from this directory(s).                                                                 |
+| `--fix`                                               | Automatically fix linting issues.                                                                             |
+| `--fix-type <fixType>`                                | Specify the types of fixes to apply (e.g., problem, suggestion, layout).                                      |
+| `--ignore-path <path>`                                | Specify a file to ignore.                                                                                     |
+| `--no-ignore <path>`                                  | Disables the `--ignore-path` option.                                                                          |
+| `--quiet`                                             | Reports errors only.                                                                                          |
+| `--max-warnings [maxWarnings]`                        | Specify the number of warnings before triggering a non-zero exit code. (default: -1)                          |
+| `-o, --output-file, <outputFile>`                     | Specify a file to write report to.                                                                            |
+| `-f, --format, <format>`                              | Uses a specific output format.                                                                                |
+| `--no-inline-config`                                  | Prevents comments from changing config or rules.                                                              |
+| `--report-unused-disable-directives-severity <level>` | Specify severity level for unused eslint-disable directives. (choices: "error", "off", "warn")                |
+| `--no-cache`                                          | Disables caching.                                                                                             |
+| `--cache-location, <cacheLocation>`                   | Specify a location for cache.                                                                                 |
+| `--cache-strategy, [cacheStrategy]`                   | Specify a strategy to use for detecting changed files in the cache. (default: "metadata")                     |
+| `--error-on-unmatched-pattern`                        | Reports errors when any file patterns are unmatched.                                                          |
+| `-h, --help`                                          | Displays this message.                                                                                        |
+
+### `next telemetry` Options
+
+Next.js collects completely anonymous telemetry data about general usage. Participation in this anonymous program is optional.
+
+| Option       | Description                             |
+| ------------ | --------------------------------------- |
+| `-h, --help` | Show all available options.             |
+| `--enable`   | Enables Next.js' telemetry collection.  |
+| `--disable`  | Disables Next.js' telemetry collection. |
+
+## Examples
+
+### Changing the Default Port
+
+By default, Next.js uses `http://localhost:3000` during development and with `next start`. The default port can be changed with the `-p` option:
+
+```bash
+next dev -p 4000
+```
+
+Or using the `PORT` environment variable:
+
+```bash
+PORT=4000 next dev
+```
+
+> **Good to know**: `PORT` cannot be set in `.env` as booting up the HTTP server happens before any other code is initialized.
+
+### Using HTTPS During Development
+
+Next.js can generate a self-signed certificate with `next dev` using the `--experimental-https` flag:
+
+```bash
+next dev --experimental-https
+```
+
+With the generated certificate, the Next.js development server will exist at `https://localhost:3000`. You can also provide a custom certificate and key.
+
+```bash
+next dev --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem
+```
+
+> **Good to know**: When deploying to Vercel, HTTPS is automatically configured for your Next.js application.
+
+### Configuring a Timeout for Downstream Proxies
+
+To configure the timeout values for the production Next.js server, pass `--keepAliveTimeout` (in milliseconds) to `next start`:
+
+```bash
+next start --keepAliveTimeout 70000
+```
+
+### Passing Node.js Arguments
+
+You can pass any Node.js arguments to `next` commands:
+
+```bash
+NODE_OPTIONS='--throw-deprecation' next
+NODE_OPTIONS='-r esm' next
+NODE_OPTIONS='--inspect' next
+```
+
+# Edge Runtime
+
+The Next.js Edge Runtime is used for Middleware and supports the following APIs:
+
+## Network APIs
+
+- **Blob**: Represents a blob
+- **fetch**: Fetches a resource
+- **FetchEvent**: Represents a fetch event
+- **File**: Represents a file
+- **FormData**: Represents form data
+- **Headers**: Represents HTTP headers
+- **Request**: Represents an HTTP request
+- **Response**: Represents an HTTP response
+- **URLSearchParams**: Represents URL search parameters
+- **WebSocket**: Represents a websocket connection
+
+## Encoding APIs
+
+- **atob**: Decodes a base-64 encoded string
+- **btoa**: Encodes a string in base-64
+- **TextDecoder**: Decodes a Uint8Array into a string
+- **TextDecoderStream**: Chainable decoder for streams
+- **TextEncoder**: Encodes a string into a Uint8Array
+- **TextEncoderStream**: Chainable encoder for streams
+
+## Stream APIs
+
+- **ReadableStream**: Represents a readable stream
+- **ReadableStreamBYOBReader**: Represents a reader of a ReadableStream
+- **ReadableStreamDefaultReader**: Represents a reader of a ReadableStream
+- **TransformStream**: Represents a transform stream
+- **WritableStream**: Represents a writable stream
+- **WritableStreamDefaultWriter**: Represents a writer of a WritableStream
+
+## Crypto APIs
+
+- **crypto**: Provides access to the cryptographic functionality of the platform
+- **CryptoKey**: Represents a cryptographic key
+- **SubtleCrypto**: Provides access to common cryptographic primitives, like hashing, signing, encryption or decryption
+
+## Web Standard APIs
+
+- **AbortController**: Allows you to abort one or more DOM requests as and when desired
+- **Array**: Represents an array of values
+- **ArrayBuffer**: Represents a generic, fixed-length raw binary data buffer
+- **Atomics**: Provides atomic operations as static methods
+- **BigInt**: Represents a whole number with arbitrary precision
+- **BigInt64Array**: Represents a typed array of 64-bit signed integers
+- **BigUint64Array**: Represents a typed array of 64-bit unsigned integers
+- **Boolean**: Represents a logical entity and can have two values: true and false
+- **clearInterval**: Cancels a timed, repeating action established by setInterval()
+- **clearTimeout**: Cancels a timed, repeating action established by setTimeout()
+- **console**: Provides access to the browser's debugging console
+- **DataView**: Represents a generic view of an ArrayBuffer
+- **Date**: Represents a single moment in time in a platform-independent format
+- **decodeURI**: Decodes a Uniform Resource Identifier (URI)
+- **decodeURIComponent**: Decodes a URI component
+- **DOMException**: Represents an error that occurs in the DOM
+- **encodeURI**: Encodes a URI
+- **encodeURIComponent**: Encodes a URI component
+- **Error**: Represents an error when trying to execute a statement or accessing a property
+- **EvalError**: Represents an error that occurs regarding the global function eval()
+- **Float32Array**: Represents a typed array of 32-bit floating point numbers
+- **Float64Array**: Represents a typed array of 64-bit floating point numbers
+- **Function**: Represents a function
+- **Infinity**: Represents the mathematical Infinity value
+- **Int8Array**: Represents a typed array of 8-bit signed integers
+- **Int16Array**: Represents a typed array of 16-bit signed integers
+- **Int32Array**: Represents a typed array of 32-bit signed integers
+- **Intl**: Provides access to internationalization and localization functionality
+- **isFinite**: Determines whether a value is a finite number
+- **isNaN**: Determines whether a value is NaN
+- **JSON**: Provides functionality to convert JavaScript values to and from the JSON format
+- **Map**: Represents a collection of values, where each value may occur only once
+- **Math**: Provides access to mathematical functions and constants
+- **Number**: Represents a numeric value
+- **Object**: Represents the object that is the base of all JavaScript objects
+- **parseFloat**: Parses a string argument and returns a floating point number
+- **parseInt**: Parses a string argument and returns an integer of the specified radix
+- **Promise**: Represents the eventual completion (or failure) of an asynchronous operation
+- **Proxy**: Represents an object that defines custom behavior for fundamental operations
+- **queueMicrotask**: Queues a microtask to be executed
+- **RangeError**: Represents an error when a value is not in the set or range of allowed values
+- **ReferenceError**: Represents an error when a non-existent variable is referenced
+- **Reflect**: Provides methods for interceptable JavaScript operations
+- **RegExp**: Represents a regular expression
+- **Set**: Represents a collection of values, where each value may occur only once
+- **setInterval**: Repeatedly calls a function with a fixed time delay
+- **setTimeout**: Calls a function after a specified number of milliseconds
+- **SharedArrayBuffer**: Represents a generic, fixed-length raw binary data buffer
+- **String**: Represents a sequence of characters
+- **structuredClone**: Creates a deep copy of a value
+- **Symbol**: Represents a unique and immutable data type
+- **SyntaxError**: Represents an error when trying to interpret syntactically invalid code
+- **TypeError**: Represents an error when a value is not of the expected type
+- **Uint8Array**: Represents a typed array of 8-bit unsigned integers
+- **Uint8ClampedArray**: Represents a typed array of 8-bit unsigned integers clamped to 0-255
+- **Uint32Array**: Represents a typed array of 32-bit unsigned integers
+- **URIError**: Represents an error when a global URI handling function was used incorrectly
+- **URL**: Represents an object providing static methods for creating object URLs
+- **URLPattern**: Represents a URL pattern
+- **URLSearchParams**: Represents a collection of key/value pairs
+- **WeakMap**: Represents a collection of key/value pairs with weakly referenced keys
+- **WeakSet**: Represents a collection of objects where each object may occur only once
+- **WebAssembly**: Provides access to WebAssembly
+
+## Next.js Specific Polyfills
+
+- **AsyncLocalStorage**: Node.js API for async context
+
+## Environment Variables
+
+Use `process.env` to access Environment Variables for both next dev and next build.
+
+## Unsupported APIs
+
+The Edge Runtime has restrictions:
+
+- Native Node.js APIs are not supported (e.g., cannot read/write to the filesystem).
+- `node_modules` can be used if they implement ES Modules and do not use native Node.js APIs.
+- Direct `require` calls are not allowed; use ES Modules instead.
+
+The following JavaScript features are disabled:
+
+- **eval**: Evaluates JavaScript code represented as a string
+- **new Function(evalString)**: Creates a new function with the provided code
+- **WebAssembly.compile**: Compiles a WebAssembly module from a buffer
+- **WebAssembly.instantiate**: Compiles and instantiates a WebAssembly module from a buffer
+
+Dynamic code evaluation statements that cannot be reached at runtime and cannot be removed by treeshaking may cause issues. You can relax checks for specific files in your Middleware configuration:
+
+```javascript
+export const config = {
+  unstable_allowDynamic: [
+    '/lib/utilities.js',
+    '/node_modules/function-bind/**',
+  ],
+}
+```
+
+`unstable_allowDynamic` is a glob or an array of globs, ignoring dynamic code evaluation for specific files. Be warned that if these statements are executed on the Edge, they will throw and cause a runtime error.
+
+# Legacy APIs
+
+The following APIs are considered legacy and will be removed in a future version of Next.js:
+
+# unstable_cache
+
+API Reference for the unstable_cache function.
+
+**Warning**: This API will be deprecated in future versions. In version 15, use the `use cache` directive instead.
+
+`unstable_cache` allows you to cache the results of expensive operations, like database queries, and reuse them across multiple requests.
+
+```jsx
+import { getUser } from './data';
+import { unstable_cache } from 'next/cache';
+
+const getCachedUser = unstable_cache(
+  async (id) => getUser(id),
+  ['my-app-user']
+);
+
+export default async function Component({ userID }) {
+  const user = await getCachedUser(userID);
+  ...
+}
+```
+
+**Good to know**:
+- Accessing dynamic data sources such as `headers` or `cookies` inside a cache scope is not supported. Use `headers` outside of the cached function and pass the required dynamic data as an argument.
+- This API uses Next.js' built-in Data Cache to persist the result across requests and deployments.
+
+**Warning**: This API is unstable and may change in the future. Migration documentation and codemods will be provided as this API stabilizes.
+
+## Parameters
+
+```jsx
+const data = unstable_cache(fetchData, keyParts, options)()
+```
+
+- `fetchData`: An asynchronous function that fetches the data to cache. It must return a `Promise`.
+- `keyParts`: An optional array of keys for additional cache identification. Use it when external variables are used without being passed as parameters.
+- `options`: An object controlling cache behavior, containing:
+  - `tags`: An array of tags for cache invalidation. Not used for unique function identification.
+  - `revalidate`: Number of seconds after which the cache should be revalidated. Omit or pass `false` to cache indefinitely.
+
+## Returns
+
+`unstable_cache` returns a function that, when invoked, returns a Promise resolving to the cached data. If the data is not cached, the provided function is invoked, and its result is cached and returned.
+
+## Example
+
+```tsx
+import { unstable_cache } from 'next/cache';
+
+export default async function Page({ params }: { params: { userId: string } }) {
+  const getCachedUser = unstable_cache(
+    async () => {
+      return { id: params.userId };
+    },
+    [params.userId],
+    {
+      tags: ['users'],
+      revalidate: 60,
+    }
+  );
+
+  //...
+}
+```
+
+```jsx
+import { unstable_cache } from 'next/cache';
+
+export default async function Page({ params }) {
+  const getCachedUser = unstable_cache(
+    async () => {
+      return { id: params.userId };
+    },
+    [params.userId],
+    {
+      tags: ["users"],
+      revalidate: 60,
+    }
+  );
+
+  //...
+}
+```
+
+## Version History
+
+| Version   | Changes                      |
+| --------- | ---------------------------- |
+| `v14.0.0` | `unstable_cache` introduced. |
+
+# unstable_noStore
+
+**Description:** API Reference for the unstable_noStore function.  
+**Version:** unstable
+
+This API will be deprecated in the future. In version 15, we recommend using `connection` instead of `unstable_noStore`.
+
+`unstable_noStore` can be used to declaratively opt out of static rendering and indicate a particular component should not be cached.
+
+```jsx
+import { unstable_noStore as noStore } from 'next/cache';
+
+export default async function ServerComponent() {
+  noStore();
+  const result = await db.query(...);
+  ...
+}
+```
+
+**Good to know:**
+- `unstable_noStore` is equivalent to `cache: 'no-store'` on a `fetch`.
+- `unstable_noStore` is preferred over `export const dynamic = 'force-dynamic'` as it is more granular and can be used on a per-component basis.
+
+Using `unstable_noStore` inside `unstable_cache` will not opt out of static generation. Instead, it will defer to the cache configuration to determine whether to cache the result or not.
+
+## Usage
+
+If you prefer not to pass additional options to `fetch`, like `cache: 'no-store'`, `next: { revalidate: 0 }` or in cases where `fetch` is not available, you can use `noStore()` as a replacement for all of these use cases.
+
+```jsx
+import { unstable_noStore as noStore } from 'next/cache';
+
+export default async function ServerComponent() {
+  noStore();
+  const result = await db.query(...);
+  ...
+}
+```
+
+## Version History
+
+- **Version v14.0.0:** `unstable_noStore` introduced.
+
+# API Reference
+
+The Next.js API reference is divided into the following sections:
+
+# App Router
+
+The Next.js App Router introduces a new model for building applications using React's latest features such as Server Components, Streaming with Suspense, and Server Actions.
+
+Get started with the App Router by creating your first page.
+
+## Frequently Asked Questions
+
+### How can I access the request object in a layout?
+
+You cannot access the raw request object. However, you can access headers and cookies through server-only functions. Layouts do not rerender and can be cached and reused to avoid unnecessary computation when navigating between pages. This design enforces consistent behavior for layouts across different pages.
+
+### How can I access the URL on a page?
+
+By default, pages are Server Components. You can access route segments through the params prop and URL search params through the searchParams prop. For Client Components, use usePathname, useSelectedLayoutSegment, and useSelectedLayoutSegments for more complex routes.
+
+### How can I redirect from a Server Component?
+
+Use redirect to redirect from a page to a relative or absolute URL. redirect is a temporary (307) redirect, while permanentRedirect is a permanent (308) redirect. These functions will insert a meta tag to emit the redirect on the client side when used while streaming UI.
+
+### How can I handle authentication with the App Router?
+
+Common authentication solutions that support the App Router include:
+- NextAuth.js
+- Clerk
+- Stack Auth
+- Auth0
+- Stytch
+- Kinde
+- WorkOS
+- Manual handling of sessions or JWTs
+
+### How can I set cookies?
+
+You can set cookies in Server Actions or Route Handlers using the cookies function. You cannot set cookies from a page or layout directly after streaming starts. Cookies can also be set from Middleware.
+
+### How can I build multi-tenant apps?
+
+For building a single Next.js application that serves multiple tenants, an example showing the recommended architecture is available.
+
+### How can I invalidate the App Router cache?
+
+There are multiple layers of caching in Next.js, and thus, multiple ways to invalidate different parts of the cache.
+
+### Are there any comprehensive, open-source applications built on the App Router?
+
+Yes, examples include Next.js Commerce and the Platforms Starter Kit, both of which are open-source.
+
+## Learn More
+
+- Routing Fundamentals
+- Data Fetching and Caching
+- Incremental Static Regeneration
+- Forms and Mutations
+- Caching
+- Rendering Fundamentals
+- Server Components
+- Client Components
+
+# Pages and Layouts
+
+The Pages Router has a file-system based router built on the concept of pages. When a file is added to the `pages` directory, it's automatically available as a route.
+
+In Next.js, a **page** is a React Component exported from a `.js`, `.jsx`, `.ts`, or `.tsx` file in the `pages` directory. Each page is associated with a route based on its file name.
+
+**Example**: If you create `pages/about.js` that exports a React component, it will be accessible at `/about`.
+
+```jsx
+export default function About() {
+  return <div>About</div>
+}
+```
+
+## Index routes
+
+The router will automatically route files named `index` to the root of the directory.
+
+- `pages/index.js` → `/`
+- `pages/blog/index.js` → `/blog`
+
+## Nested routes
+
+The router supports nested files. If you create a nested folder structure, files will automatically be routed in the same way.
+
+- `pages/blog/first-post.js` → `/blog/first-post`
+- `pages/dashboard/settings/username.js` → `/dashboard/settings/username`
+
+## Pages with Dynamic Routes
+
+Next.js supports pages with dynamic routes. For example, if you create a file called `pages/posts/[id].js`, it will be accessible at `posts/1`, `posts/2`, etc.
+
+## Layout Pattern
+
+The React model allows us to deconstruct a page into a series of components. Many of these components are often reused between pages, such as a navigation bar and footer.
+
+```jsx
+import Navbar from './navbar'
+import Footer from './footer'
+
+export default function Layout({ children }) {
+  return (
+    <>
+      <Navbar />
+      <main>{children}</main>
+      <Footer />
+    </>
+  )
+}
+```
+
+## Examples
+
+### Single Shared Layout with Custom App
+
+If you only have one layout for your entire application, create a Custom App and wrap your application with the layout. The `<Layout />` component is re-used when changing pages, preserving its component state.
+
+```jsx
+import Layout from '../components/layout'
+
+export default function MyApp({ Component, pageProps }) {
+  return (
+    <Layout>
+      <Component {...pageProps} />
+    </Layout>
+  )
+}
+```
+
+### Per-Page Layouts
+
+For multiple layouts, add a property `getLayout` to your page, allowing you to return a React component for the layout on a per-page basis.
+
+```jsx
+import Layout from '../components/layout'
+import NestedLayout from '../components/nested-layout'
+
+export default function Page() {
+  return (
+    /** Your content */
+  )
+}
+
+Page.getLayout = function getLayout(page) {
+  return (
+    <Layout>
+      <NestedLayout>{page}</NestedLayout>
+    </Layout>
+  )
+}
+```
+
+```jsx
+export default function MyApp({ Component, pageProps }) {
+  const getLayout = Component.getLayout ?? ((page) => page)
+
+  return getLayout(<Component {...pageProps} />)
+}
+```
+
+This layout pattern enables state persistence because the React component tree is maintained between page transitions.
+
+### With TypeScript
+
+When using TypeScript, create a new type for your pages that includes a `getLayout` function. Then, create a new type for your `AppProps` to use the previously created type.
+
+```tsx
+import type { ReactElement } from 'react'
+import Layout from '../components/layout'
+import NestedLayout from '../components/nested-layout'
+import type { NextPageWithLayout } from './_app'
+
+const Page: NextPageWithLayout = () => {
+  return <p>hello world</p>
+}
+
+Page.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <Layout>
+      <NestedLayout>{page}</NestedLayout>
+    </Layout>
+  )
+}
+
+export default Page
+```
+
+```tsx
+import type { ReactElement, ReactNode } from 'react'
+import type { NextPage } from 'next'
+import type { AppProps } from 'next/app'
+
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
+
+export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
+  const getLayout = Component.getLayout ?? ((page) => page)
+
+  return getLayout(<Component {...pageProps} />)
+}
+```
+
+### Data Fetching
+
+Inside your layout, you can fetch data on the client-side using `useEffect` or a library like SWR. Since this file is not a Page, you cannot use `getStaticProps` or `getServerSideProps`.
+
+```jsx
+import useSWR from 'swr'
+import Navbar from './navbar'
+import Footer from './footer'
+
+export default function Layout({ children }) {
+  const { data, error } = useSWR('/api/navigation', fetcher)
+
+  if (error) return <div>Failed to load</div>
+  if (!data) return <div>Loading...</div>
+
+  return (
+    <>
+      <Navbar links={data.links} />
+      <main>{children}</main>
+      <Footer />
+    </>
+  )
+}
+```
+
+# Dynamic Routes
+
+Dynamic Routes are pages that allow you to add custom parameters to your URLs. Start creating Dynamic Routes and learn more.
+
+## Overview
+
+When you don't know the exact segment names ahead of time and want to create routes from dynamic data, you can use Dynamic Segments that are filled in at request time or prerendered at build time.
+
+## Convention
+
+A Dynamic Segment can be created by wrapping a file or folder name in square brackets: `[segmentName]`. For example, `[id]` or `[slug]`.
+
+Dynamic Segments can be accessed from `useRouter`.
+
+## Example
+
+For example, a blog could include the following route `pages/blog/[slug].js` where `[slug]` is the Dynamic Segment for blog posts.
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+  return <p>Post: {router.query.slug}</p>
+}
+```
+
+Route Examples:
+
+- Route: `pages/blog/[slug].js`
+  - Example URL: `/blog/a`
+    - Params: `{ slug: 'a' }`
+  - Example URL: `/blog/b`
+    - Params: `{ slug: 'b' }`
+  - Example URL: `/blog/c`
+    - Params: `{ slug: 'c' }`
+
+## Catch-all Segments
+
+Dynamic Segments can be extended to catch-all subsequent segments by adding an ellipsis inside the brackets `[...segmentName]`.
+
+For example, `pages/shop/[...slug].js` will match `/shop/clothes`, but also `/shop/clothes/tops`, `/shop/clothes/tops/t-shirts`, and so on.
+
+Route Examples:
+
+- Route: `pages/shop/[...slug].js`
+  - Example URL: `/shop/a`
+    - Params: `{ slug: ['a'] }`
+  - Example URL: `/shop/a/b`
+    - Params: `{ slug: ['a', 'b'] }`
+  - Example URL: `/shop/a/b/c`
+    - Params: `{ slug: ['a', 'b', 'c'] }`
+
+## Optional Catch-all Segments
+
+Catch-all Segments can be made optional by including the parameter in double square brackets: `[[...segmentName]]`.
+
+For example, `pages/shop/[[...slug]].js` will also match `/shop`, in addition to `/shop/clothes`, `/shop/clothes/tops`, `/shop/clothes/tops/t-shirts`.
+
+Route Examples:
+
+- Route: `pages/shop/[[...slug]].js`
+  - Example URL: `/shop`
+    - Params: `{ slug: undefined }`
+  - Example URL: `/shop/a`
+    - Params: `{ slug: ['a'] }`
+  - Example URL: `/shop/a/b`
+    - Params: `{ slug: ['a', 'b'] }`
+  - Example URL: `/shop/a/b/c`
+    - Params: `{ slug: ['a', 'b', 'c'] }`
+
+## Next Steps
+
+For more information on what to do next, we recommend the following sections:
+
+- pages/building-your-application/routing/linking-and-navigating
+- pages/api-reference/functions/use-router
+
+# Linking and Navigating
+
+Learn how navigation works in Next.js, and how to use the Link Component and `useRouter` hook.
+
+The Next.js router allows client-side route transitions between pages, similar to a single-page application. A React component called `Link` is provided for this purpose.
+
+```jsx
+import Link from 'next/link'
+
+function Home() {
+  return (
+    <ul>
+      <li>
+        <Link href="/">Home</Link>
+      </li>
+      <li>
+        <Link href="/about">About Us</Link>
+      </li>
+      <li>
+        <Link href="/blog/hello-world">Blog Post</Link>
+      </li>
+    </ul>
+  )
+}
+
+export default Home
+```
+
+The example above uses multiple links. Each one maps a path (`href`) to a known page:
+
+- `/` → `pages/index.js`
+- `/about` → `pages/about.js`
+- `/blog/hello-world` → `pages/blog/[slug].js`
+
+Any `<Link />` in the viewport will be prefetched by default for pages using Static Generation. The corresponding data for server-rendered routes is fetched only when the `<Link />` is clicked.
+
+## Linking to dynamic paths
+
+You can use interpolation to create the path for dynamic route segments. For example, to show a list of posts passed to the component as a prop:
+
+```jsx
+import Link from 'next/link'
+
+function Posts({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>
+          <Link href={`/blog/${encodeURIComponent(post.slug)}`}>
+            {post.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export default Posts
+```
+
+Alternatively, using a URL Object:
+
+```jsx
+import Link from 'next/link'
+
+function Posts({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>
+          <Link
+            href={{
+              pathname: '/blog/[slug]',
+              query: { slug: post.slug },
+            }}
+          >
+            {post.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export default Posts
+```
+
+In this case, `pathname` is the name of the page in the `pages` directory, and `query` is an object with the dynamic segment.
+
+## Injecting the router
+
+To access the `router` object in a React component, you can use `useRouter` or `withRouter`. It is generally recommended to use `useRouter`.
+
+## Imperative Routing
+
+`next/link` covers most routing needs, but you can also perform client-side navigations without it. The following example shows basic page navigations with `useRouter`:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function ReadMore() {
+  const router = useRouter()
+
+  return (
+    <button onClick={() => router.push('/about')}>
+      Click here to read more
+    </button>
+  )
+}
+```
+
+## Shallow Routing
+
+Shallow routing allows you to change the URL without running data fetching methods again, including `getServerSideProps`, `getStaticProps`, and `getInitialProps`. You'll receive the updated `pathname` and `query` via the `router` object without losing state.
+
+To enable shallow routing, set the `shallow` option to `true`. Consider the following example:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+function Page() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.push('/?counter=10', undefined, { shallow: true })
+  }, [])
+
+  useEffect(() => {
+    // The counter changed!
+  }, [router.query.counter])
+}
+
+export default Page
+```
+
+The URL will update to `/?counter=10` without replacing the page, only changing the state of the route.
+
+You can also watch for URL changes via `componentDidUpdate`:
+
+```jsx
+componentDidUpdate(prevProps) {
+  const { pathname, query } = this.props.router
+  if (query.counter !== prevProps.router.query.counter) {
+    // fetch data based on the new query
+  }
+}
+```
+
+### Caveats
+
+Shallow routing only works for URL changes in the current page. For example, if you run:
+
+```js
+router.push('/?counter=10', '/about?counter=10', { shallow: true })
+```
+
+This will unload the current page and load the new one, waiting for data fetching despite the shallow routing request.
+
+When shallow routing is used with middleware, it will not ensure the new page matches the current page, as middleware can rewrite dynamically and cannot be verified client-side without a data fetch. Thus, a shallow route change must always be treated as shallow.
+
+# Redirecting
+
+Learn the different ways to handle redirects in Next.js. 
+
+The content of this document is generated from the source app/building-your-application/routing/redirecting. To edit the content, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component to add content specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Custom App
+
+Control page initialization and add a layout that persists for all pages by overriding the default App component used by Next.js.
+
+Next.js uses the `App` component to initialize pages. You can override it to:
+
+- Create a shared layout between page changes
+- Inject additional data into pages
+- Add global CSS
+
+## Usage
+
+To override the default `App`, create the file `pages/_app` as shown below:
+
+```tsx
+import type { AppProps } from 'next/app'
+
+export default function MyApp({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />
+}
+```
+
+```jsx
+export default function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+```
+
+The `Component` prop is the active `page`, so whenever you navigate between routes, `Component` will change to the new `page`. Any props you send to `Component` will be received by the `page`.
+
+`pageProps` is an object with the initial props that were preloaded for your page by one of the data fetching methods, otherwise it's an empty object.
+
+> **Good to know**:
+>
+> - If your app is running and you added a custom `App`, you'll need to restart the development server. This is only required if `pages/_app.js` didn't exist before.
+> - `App` does not support Next.js Data Fetching methods like `getStaticProps` or `getServerSideProps`.
+
+## `getInitialProps` with `App`
+
+Using `getInitialProps` in `App` will disable Automatic Static Optimization for pages without `getStaticProps`.
+
+**We do not recommend using this pattern.** Instead, consider incrementally adopting the App Router, which allows you to more easily fetch data for pages and layouts.
+
+```tsx
+import App, { AppContext, AppInitialProps, AppProps } from 'next/app'
+
+type AppOwnProps = { example: string }
+
+export default function MyApp({
+  Component,
+  pageProps,
+  example,
+}: AppProps & AppOwnProps) {
+  return (
+    <>
+      <p>Data: {example}</p>
+      <Component {...pageProps} />
+    </>
+  )
+}
+
+MyApp.getInitialProps = async (
+  context: AppContext
+): Promise<AppOwnProps & AppInitialProps> => {
+  const ctx = await App.getInitialProps(context)
+
+  return { ...ctx, example: 'data' }
+}
+```
+
+```jsx
+import App from 'next/app'
+
+export default function MyApp({ Component, pageProps, example }) {
+  return (
+    <>
+      <p>Data: {example}</p>
+      <Component {...pageProps} />
+    </>
+  )
+}
+
+MyApp.getInitialProps = async (context) => {
+  const ctx = await App.getInitialProps(context)
+
+  return { ...ctx, example: 'data' }
+}
+```
+
+# Custom Document
+
+A custom `Document` can update the `<html>` and `<body>` tags used to render a Page.
+
+To override the default `Document`, create the file `pages/_document` as shown below:
+
+```tsx
+import { Html, Head, Main, NextScript } from 'next/document'
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head />
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  )
+}
+```
+
+```jsx
+import { Html, Head, Main, NextScript } from 'next/document'
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head />
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  )
+}
+```
+
+**Good to know**:
+- `_document` is only rendered on the server, so event handlers like `onClick` cannot be used in this file.
+- `<Html>`, `<Head />`, `<Main />`, and `<NextScript />` are required for the page to be properly rendered.
+
+## Caveats
+
+- The `<Head />` component used in `_document` is not the same as `next/head`. The `<Head />` component here should only be used for any `<head>` code that is common for all pages. For all other cases, such as `<title>` tags, use `next/head` in your pages or components.
+- React components outside of `<Main />` will not be initialized by the browser. Do not add application logic here or custom CSS (like `styled-jsx`). For shared components in all pages (like a menu or a toolbar), refer to Layouts.
+- `Document` does not support Next.js Data Fetching methods like `getStaticProps` or `getServerSideProps`.
+
+## Customizing `renderPage`
+
+Customizing `renderPage` is advanced and only needed for libraries like CSS-in-JS to support server-side rendering. This is not needed for built-in `styled-jsx` support.
+
+**We do not recommend using this pattern.** Instead, consider incrementally adopting the App Router, which allows you to more easily fetch data for pages and layouts.
+
+```tsx
+import Document, {
+  Html,
+  Head,
+  Main,
+  NextScript,
+  DocumentContext,
+  DocumentInitialProps,
+} from 'next/document'
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
+    const originalRenderPage = ctx.renderPage
+
+    ctx.renderPage = () =>
+      originalRenderPage({
+        enhanceApp: (App) => App,
+        enhanceComponent: (Component) => Component,
+      })
+
+    const initialProps = await Document.getInitialProps(ctx)
+
+    return initialProps
+  }
+
+  render() {
+    return (
+      <Html lang="en">
+        <Head />
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    )
+  }
+}
+
+export default MyDocument
+```
+
+```jsx
+import Document, { Html, Head, Main, NextScript } from 'next/document'
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx) {
+    const originalRenderPage = ctx.renderPage
+
+    ctx.renderPage = () =>
+      originalRenderPage({
+        enhanceApp: (App) => App,
+        enhanceComponent: (Component) => Component,
+      })
+
+    const initialProps = await Document.getInitialProps(ctx)
+
+    return initialProps
+  }
+
+  render() {
+    return (
+      <Html lang="en">
+        <Head />
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    )
+  }
+}
+
+export default MyDocument
+```
+
+**Good to know**:
+- `getInitialProps` in `_document` is not called during client-side transitions.
+- The `ctx` object for `_document` is equivalent to the one received in `getInitialProps`, with the addition of `renderPage`.
+
+# API Routes
+
+Next.js supports API Routes, allowing you to build your API within your Next.js app.
+
+## Overview
+
+API routes provide a solution to build a public API with Next.js. Any file inside the `pages/api` folder is mapped to `/api/*` and treated as an API endpoint. They are server-side only and do not increase client-side bundle size.
+
+### Example API Route
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+type ResponseData = {
+  message: string
+}
+
+export default function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
+) {
+  res.status(200).json({ message: 'Hello from Next.js!' })
+}
+```
+
+### Important Notes
+
+- API Routes do not specify CORS headers, meaning they are same-origin only by default.
+- API Routes cannot be used with static exports. Route Handlers in the App Router can be used instead.
+- API Routes are affected by `pageExtensions` configuration in `next.config.js`.
+
+## Parameters
+
+```tsx
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  // ...
+}
+```
+
+- `req`: An instance of http.IncomingMessage.
+- `res`: An instance of http.ServerResponse.
+
+## HTTP Methods
+
+Handle different HTTP methods using `req.method`:
+
+```ts
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'POST') {
+    // Process a POST request
+  } else {
+    // Handle any other HTTP method
+  }
+}
+```
+
+## Request Helpers
+
+API Routes provide built-in request helpers:
+
+- `req.cookies`: Contains cookies sent by the request.
+- `req.query`: Contains the query string.
+- `req.body`: Contains the body parsed by content-type.
+
+### Custom Config
+
+Every API Route can export a `config` object to change default configurations:
+
+```js
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+  maxDuration: 5,
+}
+```
+
+- `bodyParser`: Automatically enabled; set to `false` to consume the body as a Stream.
+- `responseLimit`: Automatically enabled; can be set to `false` or a specific size.
+
+## Response Helpers
+
+The Server Response object includes helper methods:
+
+- `res.status(code)`: Sets the status code.
+- `res.json(body)`: Sends a JSON response.
+- `res.send(body)`: Sends the HTTP response.
+- `res.redirect([status,] path)`: Redirects to a specified path or URL.
+- `res.revalidate(urlPath)`: Revalidates a page on demand.
+
+### Example Responses
+
+#### JSON Response
+
+```ts
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const result = await someAsyncOperation()
+    res.status(200).json({ result })
+  } catch (err) {
+    res.status(500).json({ error: 'failed to load data' })
+  }
+}
+```
+
+#### HTTP Response
+
+```ts
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const result = await someAsyncOperation()
+    res.status(200).send({ result })
+  } catch (err) {
+    res.status(500).send({ error: 'failed to fetch data' })
+  }
+}
+```
+
+#### Redirect Example
+
+```ts
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { name, message } = req.body
+  try {
+    await handleFormInputAsync({ name, message })
+    res.redirect(307, '/')
+  } catch (err) {
+    res.status(500).send({ error: 'Failed to fetch data' })
+  }
+}
+```
+
+## Dynamic API Routes
+
+API Routes support dynamic routes, following the same file naming rules used for pages.
+
+```ts
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { pid } = req.query
+  res.end(`Post: ${pid}`)
+}
+```
+
+### Catch-All API Routes
+
+Catch all paths can be matched by adding three dots (`...`) inside brackets.
+
+```ts
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { slug } = req.query
+  res.end(`Post: ${slug.join(', ')}`)
+}
+```
+
+### Optional Catch-All API Routes
+
+Optional catch-all routes can be created using double brackets (`[[...slug]]`).
+
+## Caveats
+
+- Predefined API routes take precedence over dynamic API routes, which take precedence over catch-all API routes.
+
+## Edge API Routes
+
+For using API Routes with the Edge Runtime, consider adopting the App Router and using Route Handlers instead. The function signature is isomorphic for both Edge and Node.js runtimes.
+
+# Custom Errors
+
+Override and extend the built-in Error page to handle custom errors.
+
+## 404 Page
+
+A 404 page may be accessed frequently. Server-rendering an error page for every visit increases the load on the Next.js server, leading to higher costs and slower experiences. To mitigate this, Next.js provides a static 404 page by default.
+
+### Customizing The 404 Page
+
+To create a custom 404 page, create a `pages/404.js` file. This file is statically generated at build time.
+
+```jsx
+export default function Custom404() {
+  return <h1>404 - Page Not Found</h1>
+}
+```
+
+Good to know: You can use `getStaticProps` inside this page if you need to fetch data at build time.
+
+## 500 Page
+
+Server-rendering an error page for every visit complicates error responses. Next.js provides a static 500 page by default.
+
+### Customizing The 500 Page
+
+To customize the 500 page, create a `pages/500.js` file. This file is statically generated at build time.
+
+```jsx
+export default function Custom500() {
+  return <h1>500 - Server-side error occurred</h1>
+}
+```
+
+Good to know: You can use `getStaticProps` inside this page if you need to fetch data at build time.
+
+### More Advanced Error Page Customizing
+
+500 errors are handled by the `Error` component on both client-side and server-side. To override it, define the file `pages/_error.js`:
+
+```jsx
+function Error({ statusCode }) {
+  return (
+    <p>
+      {statusCode
+        ? `An error ${statusCode} occurred on server`
+        : 'An error occurred on client'}
+    </p>
+  )
+}
+
+Error.getInitialProps = ({ res, err }) => {
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404
+  return { statusCode }
+}
+
+export default Error
+```
+
+`pages/_error.js` is only used in production. In development, an error with the call stack will indicate where the error originated.
+
+### Reusing the Built-in Error Page
+
+To render the built-in error page, import the `Error` component:
+
+```jsx
+import Error from 'next/error'
+
+export async function getServerSideProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const errorCode = res.ok ? false : res.status
+  const json = await res.json()
+
+  return {
+    props: { errorCode, stars: json.stargazers_count },
+  }
+}
+
+export default function Page({ errorCode, stars }) {
+  if (errorCode) {
+    return <Error statusCode={errorCode} />
+  }
+
+  return <div>Next stars: {stars}</div>
+}
+```
+
+The `Error` component accepts `title` as a property for a text message along with a `statusCode`. If you have a custom `Error` component, ensure to import that instead. `next/error` exports the default component used by Next.js.
+
+### Caveats
+
+- `Error` does not currently support Next.js Data Fetching methods like `getStaticProps` or `getServerSideProps`.
+- `_error`, like `_app`, is a reserved pathname. `_error` is used to define customized layouts and behaviors of error pages. Accessing `/_error` directly will render 404 when routed or rendered in a custom server.
+
+# Internationalization (i18n) Routing
+
+Next.js has built-in support for internationalized (i18n) routing since v10.0.0. You can provide a list of locales, the default locale, and domain-specific locales, and Next.js will automatically handle the routing.
+
+The i18n routing support complements existing i18n library solutions like react-intl, react-i18next, lingui, rosetta, next-intl, next-translate, next-multilingual, tolgee, and paraglide-next by streamlining routes and locale parsing.
+
+## Getting Started
+
+To get started, add the `i18n` config to your `next.config.js` file. Locales are UTS Locale Identifiers, a standardized format for defining locales.
+
+Examples of Locale Identifiers:
+- `en-US` - English as spoken in the United States
+- `nl-NL` - Dutch as spoken in the Netherlands
+- `nl` - Dutch, no specific region
+
+If a user locale is `nl-BE` and it is not listed in your configuration, they will be redirected to `nl` if available, or to the default locale otherwise. It is good practice to include country locales that will act as fallbacks.
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en-US', 'fr', 'nl-NL'],
+    defaultLocale: 'en-US',
+    domains: [
+      {
+        domain: 'example.com',
+        defaultLocale: 'en-US',
+      },
+      {
+        domain: 'example.nl',
+        defaultLocale: 'nl-NL',
+      },
+      {
+        domain: 'example.fr',
+        defaultLocale: 'fr',
+        http: true,
+      },
+    ],
+  },
+}
+```
+
+## Locale Strategies
+
+### Sub-path Routing
+
+Sub-path Routing puts the locale in the URL path.
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en-US', 'fr', 'nl-NL'],
+    defaultLocale: 'en-US',
+  },
+}
+```
+
+Available URLs for `pages/blog.js`:
+- `/blog`
+- `/fr/blog`
+- `/nl-nl/blog`
+
+### Domain Routing
+
+Domain routing allows locales to be served from different domains.
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['en-US', 'fr', 'nl-NL', 'nl-BE'],
+    defaultLocale: 'en-US',
+    domains: [
+      {
+        domain: 'example.com',
+        defaultLocale: 'en-US',
+      },
+      {
+        domain: 'example.fr',
+        defaultLocale: 'fr',
+      },
+      {
+        domain: 'example.nl',
+        defaultLocale: 'nl-NL',
+        locales: ['nl-BE'],
+      },
+    ],
+  },
+}
+```
+
+Available URLs for `pages/blog.js`:
+- `example.com/blog`
+- `www.example.com/blog`
+- `example.fr/blog`
+- `example.nl/blog`
+- `example.nl/nl-BE/blog`
+
+## Automatic Locale Detection
+
+Next.js will try to automatically detect the user's preferred locale based on the `Accept-Language` header and the current domain. If a locale other than the default is detected, the user will be redirected accordingly.
+
+### Prefixing the Default Locale
+
+With Next.js 12 and Middleware, you can add a prefix to the default locale.
+
+```js
+module.exports = {
+  i18n: {
+    locales: ['default', 'en', 'de', 'fr'],
+    defaultLocale: 'default',
+    localeDetection: false,
+  },
+  trailingSlash: true,
+}
+```
+
+Middleware example:
+
+```ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function middleware(req: NextRequest) {
+  if (req.nextUrl.locale === 'default') {
+    const locale = req.cookies.get('NEXT_LOCALE')?.value || 'en'
+    return NextResponse.redirect(new URL(`/${locale}${req.nextUrl.pathname}${req.nextUrl.search}`, req.url))
+  }
+}
+```
+
+### Disabling Automatic Locale Detection
+
+Disable automatic locale detection with:
+
+```js
+module.exports = {
+  i18n: {
+    localeDetection: false,
+  },
+}
+```
+
+## Accessing Locale Information
+
+Access locale information via the Next.js router using the `useRouter()` hook. Available properties:
+- `locale` - currently active locale
+- `locales` - all configured locales
+- `defaultLocale` - configured default locale
+
+## Transition Between Locales
+
+Use `next/link` or `next/router` to transition between locales.
+
+Example with `next/link`:
+
+```jsx
+import Link from 'next/link'
+
+export default function IndexPage() {
+  return (
+    <Link href="/another" locale="fr">
+      To /fr/another
+    </Link>
+  )
+}
+```
+
+Example with `next/router`:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function IndexPage() {
+  const router = useRouter()
+
+  return (
+    <div onClick={() => router.push('/another', '/another', { locale: 'fr' })}>
+      to /fr/another
+    </div>
+  )
+}
+```
+
+## Leveraging the `NEXT_LOCALE` Cookie
+
+Set a `NEXT_LOCALE=the-locale` cookie to take priority over the accept-language header. This cookie can be set using a language switcher.
+
+## Search Engine Optimization
+
+Next.js automatically adds the `lang` attribute to the `<html>` tag. Add `hreflang` meta tags using next/head.
+
+## Static Generation
+
+Internationalized Routing does not integrate with `output: 'export'`. For pages using `getStaticProps` with Dynamic Routes, return all locale variants from `getStaticPaths`.
+
+Example:
+
+```jsx
+export const getStaticPaths = ({ locales }) => {
+  return {
+    paths: [
+      { params: { slug: 'post-1' }, locale: 'en-US' },
+      { params: { slug: 'post-1' }, locale: 'fr' },
+    ],
+    fallback: true,
+  }
+}
+```
+
+## Limits for the i18n Config
+
+- `locales`: 100 total locales
+- `domains`: 100 total locale domain items
+
+These limits are to prevent potential performance issues at build time. Workarounds can be implemented using Middleware in Next.js 12.
+
+# Middleware
+
+Learn how to use Middleware to run code before a request is completed.
+
+## Overview
+
+Middleware is a function that runs before the request is completed. It can be used for various purposes such as authentication, logging, and modifying the request or response.
+
+## Usage
+
+To implement middleware, define a function that takes the request and response objects, along with the next middleware function. Call the next function to pass control to the next middleware in the stack.
+
+## Example
+
+```javascript
+function myMiddleware(req, res, next) {
+    console.log('Request received:', req.url);
+    next(); // Pass control to the next middleware
+}
+```
+
+## Applying Middleware
+
+Middleware can be applied globally or to specific routes. Use the following syntax to apply middleware:
+
+### Global Middleware
+
+```javascript
+app.use(myMiddleware);
+```
+
+### Route-Specific Middleware
+
+```javascript
+app.get('/specific-route', myMiddleware, (req, res) => {
+    res.send('This is a specific route.');
+});
+```
+
+## Conclusion
+
+Middleware is a powerful feature that allows you to run code at various points in the request-response cycle. Use it wisely to enhance your application's functionality.
+
+# Routing
+
+The Pages Router features a file-system based routing system centered around the concept of pages. When a file is added to the `pages` directory, it automatically becomes available as a route.
+
+# Server-side Rendering (SSR)
+
+Also referred to as "SSR" or "Dynamic Rendering".
+
+If a page uses **Server-side Rendering**, the page HTML is generated on **each request**.
+
+To use Server-side Rendering for a page, you need to `export` an `async` function called `getServerSideProps`. This function will be called by the server on every request.
+
+For example, suppose that your page needs to pre-render frequently updated data (fetched from an external API). You can write `getServerSideProps` which fetches this data and passes it to `Page` as shown below:
+
+```jsx
+export default function Page({ data }) {
+  // Render data...
+}
+
+// This gets called on every request
+export async function getServerSideProps() {
+  // Fetch data from external API
+  const res = await fetch(`https://.../data`)
+  const data = await res.json()
+
+  // Pass data to the page via props
+  return { props: { data } }
+}
+```
+
+`getServerSideProps` is similar to `getStaticProps`, but the difference is that `getServerSideProps` is run on every request instead of at build time.
+
+To learn more about how `getServerSideProps` works, refer to the Data Fetching documentation.
+
+# Static Site Generation (SSG)
+
+Use Static Site Generation (SSG) to pre-render pages at build time.
+
+## Examples
+
+- WordPress Example: github.com/vercel/next.js/tree/canary/examples/cms-wordpress (Demo: next-blog-wordpress.vercel.app)
+- Blog Starter using markdown files: github.com/vercel/next.js/tree/canary/examples/blog-starter (Demo: next-blog-starter.vercel.app)
+- DatoCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-datocms (Demo: next-blog-datocms.vercel.app)
+- TakeShape Example: github.com/vercel/next.js/tree/canary/examples/cms-takeshape (Demo: next-blog-takeshape.vercel.app)
+- Sanity Example: github.com/vercel/next.js/tree/canary/examples/cms-sanity (Demo: next-blog-sanity.vercel.app)
+- Prismic Example: github.com/vercel/next.js/tree/canary/examples/cms-prismic (Demo: next-blog-prismic.vercel.app)
+- Contentful Example: github.com/vercel/next.js/tree/canary/examples/cms-contentful (Demo: next-blog-contentful.vercel.app)
+- Strapi Example: github.com/vercel/next.js/tree/canary/examples/cms-strapi (Demo: next-blog-strapi.vercel.app)
+- Prepr Example: github.com/vercel/next.js/tree/canary/examples/cms-prepr (Demo: next-blog-prepr.vercel.app)
+- Agility CMS Example: github.com/vercel/next.js/tree/canary/examples/cms-agilitycms (Demo: next-blog-agilitycms.vercel.app)
+- Cosmic Example: github.com/vercel/next.js/tree/canary/examples/cms-cosmic (Demo: next-blog-cosmic.vercel.app)
+- ButterCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-buttercms (Demo: next-blog-buttercms.vercel.app)
+- Storyblok Example: github.com/vercel/next.js/tree/canary/examples/cms-storyblok (Demo: next-blog-storyblok.vercel.app)
+- GraphCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-graphcms (Demo: next-blog-graphcms.vercel.app)
+- Kontent Example: github.com/vercel/next.js/tree/canary/examples/cms-kontent-ai (Demo: next-blog-kontent.vercel.app)
+- Builder.io Example: github.com/vercel/next.js/tree/canary/examples/cms-builder-io (Demo: cms-builder-io.vercel.app)
+- TinaCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-tina (Demo: cms-tina-example.vercel.app)
+- Static Tweet (Demo: static-tweet.vercel.app)
+- Enterspeed Example: github.com/vercel/next.js/tree/canary/examples/cms-enterspeed (Demo: next-blog-demo.enterspeed.com)
+
+## Overview
+
+If a page uses Static Generation, the page HTML is generated at build time. In production, the page HTML is generated when you run `next build`. This HTML will then be reused on each request and can be cached by a CDN.
+
+In Next.js, you can statically generate pages with or without data.
+
+### Static Generation without Data
+
+By default, Next.js pre-renders pages using Static Generation without fetching data.
+
+```jsx
+function About() {
+  return <div>About</div>
+}
+
+export default About
+```
+
+### Static Generation with Data
+
+Some pages require fetching external data for pre-rendering. There are two scenarios:
+
+1. Your page content depends on external data: Use `getStaticProps`.
+2. Your page paths depend on external data: Use `getStaticPaths` (usually in addition to `getStaticProps`).
+
+#### Scenario 1: Page Content Depends on External Data
+
+Example: A blog page fetching the list of blog posts from a CMS.
+
+```jsx
+export default function Blog({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+
+  return {
+    props: {
+      posts,
+    },
+  }
+}
+```
+
+#### Scenario 2: Page Paths Depend on External Data
+
+Example: Creating dynamic routes for blog posts.
+
+```jsx
+export async function getStaticPaths() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+
+  const paths = posts.map((post) => ({
+    params: { id: post.id },
+  }))
+
+  return { paths, fallback: false }
+}
+
+export default function Post({ post }) {
+  // Render post...
+}
+
+export async function getStaticProps({ params }) {
+  const res = await fetch(`https://.../posts/${params.id}`)
+  const post = await res.json()
+
+  return { props: { post } }
+}
+```
+
+### When to Use Static Generation
+
+Use Static Generation whenever possible for faster page loads. Suitable for:
+
+- Marketing pages
+- Blog posts and portfolios
+- E-commerce product listings
+- Help and documentation
+
+Ask: "Can I pre-render this page ahead of a user's request?" If yes, choose Static Generation.
+
+Not suitable for pages with frequently updated data. Alternatives include:
+
+- Static Generation with Client-side data fetching.
+- Server-Side Rendering: Pre-renders a page on each request, slower but always up-to-date.
+
+# Automatic Static Optimization
+
+Next.js automatically optimizes your app to be static HTML whenever possible. This occurs when a page has no blocking data requirements, determined by the absence of `getServerSideProps` and `getInitialProps`.
+
+This feature enables Next.js to create hybrid applications with both server-rendered and statically generated pages. Statically generated pages remain reactive, as Next.js hydrates the application client-side for full interactivity.
+
+## Benefits
+
+Optimized pages require no server-side computation and can be instantly streamed from multiple CDN locations, resulting in an ultra-fast loading experience for users.
+
+## How It Works
+
+If `getServerSideProps` or `getInitialProps` is present, Next.js renders the page on-demand per request (Server-Side Rendering). If not, Next.js statically optimizes the page by prerendering it to static HTML.
+
+During prerendering, the router's `query` object will be empty. After hydration, Next.js updates the application to provide route parameters in the `query` object. The query will be updated after hydration in the following cases:
+
+- The page is a dynamic route.
+- The page has query values in the URL.
+- Rewrites are configured in `next.config.js`, which may have parameters needing to be parsed.
+
+To check if the query is fully updated, use the `isReady` field on `next/router`.
+
+Parameters added with dynamic routes to a page using `getStaticProps` will always be available in the `query` object.
+
+`next build` emits `.html` files for statically optimized pages. For example, the output for `pages/about.js` will be:
+
+```
+.next/server/pages/about.html
+```
+
+If `getServerSideProps` is added, it will be JavaScript:
+
+```
+.next/server/pages/about.js
+```
+
+## Caveats
+
+- A custom App with `getInitialProps` disables optimization in pages without Static Generation.
+- A custom Document with `getInitialProps` should check if `ctx.req` is defined before assuming server-side rendering, as `ctx.req` will be `undefined` for prerendered pages.
+- Avoid using the `asPath` value on `next/router` in the rendering tree until the router's `isReady` field is true. Statically optimized pages only know `asPath` on the client, which may lead to mismatch errors if used as a prop.
+
+# Client-side Rendering (CSR)
+
+Learn how to implement client-side rendering in the Pages Router.
+
+In Client-Side Rendering (CSR) with React, the browser downloads a minimal HTML page and the JavaScript needed for the page. The JavaScript updates the DOM and renders the page. Initially, users may notice a slight delay before seeing the full page, as it isn't fully rendered until all JavaScript is downloaded, parsed, and executed.
+
+After the initial load, navigating to other pages is typically faster, as only necessary data needs to be fetched, allowing JavaScript to re-render parts of the page without a full refresh.
+
+In Next.js, you can implement client-side rendering in two ways:
+
+1. Using React's `useEffect()` hook inside your pages instead of server-side rendering methods.
+2. Using a data fetching library like SWR or TanStack Query to fetch data on the client (recommended).
+
+### Example using `useEffect()`
+
+```jsx
+import React, { useState, useEffect } from 'react'
+
+export function Page() {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch('https://api.example.com/data')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const result = await response.json()
+      setData(result)
+    }
+
+    fetchData().catch((e) => {
+      console.error('An error occurred while fetching the data: ', e)
+    })
+  }, [])
+
+  return <p>{data ? `Your data: ${data}` : 'Loading...'}</p>
+}
+```
+
+In this example, the component starts by rendering `Loading...`. Once the data is fetched, it re-renders to display the data.
+
+Although fetching data in `useEffect` is common in older React applications, using a data-fetching library is recommended for better performance, caching, and optimistic updates. Here's a minimum example using SWR:
+
+### Example using SWR
+
+```jsx
+import useSWR from 'swr'
+
+export function Page() {
+  const { data, error, isLoading } = useSWR(
+    'https://api.example.com/data',
+    fetcher
+  )
+
+  if (error) return <p>Failed to load.</p>
+  if (isLoading) return <p>Loading...</p>
+
+  return <p>Your Data: {data}</p>
+}
+```
+
+**Good to know**: CSR can impact SEO, as some search engine crawlers might not execute JavaScript and only see the initial empty or loading state. It may also lead to performance issues for users with slower internet connections or devices, as they must wait for all JavaScript to load and run before seeing the full page. Next.js promotes a hybrid approach, allowing a combination of server-side rendering, static site generation, and client-side rendering based on the needs of each page. In the App Router, you can also use Loading UI with Suspense to show a loading indicator while the page is being rendered.
+
+# Edge and Node.js Runtimes
+
+Learn more about the switchable runtimes (Edge and Node.js) in Next.js.
+
+The content of this document is generated from the source. To edit the content, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component to add content specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Rendering
+
+Learn the fundamentals of rendering in React and Next.js.
+
+By default, Next.js pre-renders every page. This means that Next.js generates HTML for each page in advance, instead of having it all done by client-side JavaScript. Pre-rendering can result in better performance and SEO.
+
+Each generated HTML is associated with minimal JavaScript code necessary for that page. When a page is loaded by the browser, its JavaScript code runs and makes the page fully interactive (this process is called hydration in React).
+
+## Pre-rendering
+
+Next.js has two forms of pre-rendering: Static Generation and Server-side Rendering. The difference is in when it generates the HTML for a page.
+
+- **Static Generation**: The HTML is generated at build time and will be reused on each request.
+- **Server-side Rendering**: The HTML is generated on each request.
+
+Next.js lets you choose which pre-rendering form to use for each page. You can create a "hybrid" Next.js app by using Static Generation for most pages and Server-side Rendering for others.
+
+It is recommended to use Static Generation over Server-side Rendering for performance reasons. Statically generated pages can be cached by CDN with no extra configuration to boost performance. However, in some cases, Server-side Rendering might be the only option.
+
+You can also use client-side data fetching along with Static Generation or Server-side Rendering. This means some parts of a page can be rendered entirely by client-side JavaScript. To learn more, refer to the Data Fetching documentation.
+
+# getStaticProps
+
+Fetch data and generate static pages with `getStaticProps`. Learn more about this API for data fetching in Next.js.
+
+If you export a function called `getStaticProps` (Static Site Generation) from a page, Next.js will pre-render this page at build time using the props returned by `getStaticProps`.
+
+```tsx
+import type { InferGetStaticPropsType, GetStaticProps } from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getStaticProps = (async (context) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetStaticProps<{
+  repo: Repo
+}>
+
+export default function Page({
+  repo,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  return repo.stargazers_count
+}
+```
+
+```jsx
+export async function getStaticProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return repo.stargazers_count
+}
+```
+
+Note that irrespective of rendering type, any `props` will be passed to the page component and can be viewed on the client-side in the initial HTML. This is to allow the page to be hydrated correctly. Make sure that you don't pass any sensitive information that shouldn't be available on the client in `props`.
+
+The `getStaticProps` API reference covers all parameters and props that can be used with `getStaticProps`.
+
+## When should I use getStaticProps?
+
+You should use `getStaticProps` if:
+
+- The data required to render the page is available at build time ahead of a user’s request.
+- The data comes from a headless CMS.
+- The page must be pre-rendered (for SEO) and be very fast — `getStaticProps` generates HTML and JSON files, both of which can be cached by a CDN for performance.
+- The data can be publicly cached (not user-specific). This condition can be bypassed in certain specific situations by using Middleware to rewrite the path.
+
+## When does getStaticProps run
+
+`getStaticProps` always runs on the server and never on the client. You can validate code written inside `getStaticProps` is removed from the client-side bundle with a specific tool.
+
+- `getStaticProps` always runs during `next build`.
+- `getStaticProps` runs in the background when using `fallback: true`.
+- `getStaticProps` is called before initial render when using `fallback: blocking`.
+- `getStaticProps` runs in the background when using revalidate.
+- `getStaticProps` runs on-demand in the background when using `revalidate()`.
+
+When combined with Incremental Static Regeneration, `getStaticProps` will run in the background while the stale page is being revalidated, and the fresh page served to the browser.
+
+`getStaticProps` does not have access to the incoming request (such as query parameters or HTTP headers) as it generates static HTML. If you need access to the request for your page, consider using Middleware in addition to `getStaticProps`.
+
+## Using getStaticProps to fetch data from a CMS
+
+The following example shows how you can fetch a list of blog posts from a CMS.
+
+```tsx
+export default function Blog({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+  return {
+    props: {
+      posts,
+    },
+  }
+}
+```
+
+```jsx
+export default function Blog({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+  return {
+    props: {
+      posts,
+    },
+  }
+}
+```
+
+The `getStaticProps` API reference covers all parameters and props that can be used with `getStaticProps`.
+
+## Write server-side code directly
+
+As `getStaticProps` runs only on the server-side, it will never run on the client-side. It won’t even be included in the JS bundle for the browser, so you can write direct database queries without them being sent to browsers.
+
+This means that instead of fetching an API route from `getStaticProps`, you can write the server-side code directly in `getStaticProps`.
+
+```js
+export async function loadPosts() {
+  const res = await fetch('https://.../posts/')
+  const data = await res.json()
+  return data
+}
+```
+
+```jsx
+import { loadPosts } from '../lib/load-posts'
+
+export async function getStaticProps() {
+  const posts = await loadPosts()
+  return { props: { posts } }
+}
+```
+
+Alternatively, if you are not using API routes to fetch data, then the fetch API can be used directly in `getStaticProps` to fetch data.
+
+## Statically generates both HTML and JSON
+
+When a page with `getStaticProps` is pre-rendered at build time, in addition to the page HTML file, Next.js generates a JSON file holding the result of running `getStaticProps`.
+
+This JSON file will be used in client-side routing through next/link or next/router. When you navigate to a page that’s pre-rendered using `getStaticProps`, Next.js fetches this JSON file (pre-computed at build time) and uses it as the props for the page component. This means that client-side page transitions will not call `getStaticProps` as only the exported JSON is used.
+
+When using Incremental Static Generation, `getStaticProps` will be executed in the background to generate the JSON needed for client-side navigation. You may see this in the form of multiple requests being made for the same page, however, this is intended and has no impact on end-user performance.
+
+## Where can I use getStaticProps
+
+`getStaticProps` can only be exported from a page. You cannot export it from non-page files, _app, _document, or _error.
+
+One of the reasons for this restriction is that React needs to have all the required data before the page is rendered.
+
+Also, you must use export `getStaticProps` as a standalone function — it will not work if you add `getStaticProps` as a property of the page component.
+
+Good to know: if you have created a custom app, ensure you are passing the `pageProps` to the page component as shown in the linked document, otherwise the props will be empty.
+
+## Runs on every request in development
+
+In development (`next dev`), `getStaticProps` will be called on every request.
+
+## Preview Mode
+
+You can temporarily bypass static generation and render the page at request time instead of build time using Preview Mode. For example, you might be using a headless CMS and want to preview drafts before they're published.
+
+# getStaticPaths
+
+Fetch data and generate static pages with `getStaticPaths`. Learn more about this API for data fetching in Next.js.
+
+If a page has Dynamic Routes and uses `getStaticProps`, it needs to define a list of paths to be statically generated.
+
+When you export a function called `getStaticPaths` (Static Site Generation) from a page that uses dynamic routes, Next.js will statically pre-render all the paths specified by `getStaticPaths`.
+
+```tsx
+import type {
+  InferGetStaticPropsType,
+  GetStaticProps,
+  GetStaticPaths,
+} from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getStaticPaths = (async () => {
+  return {
+    paths: [
+      {
+        params: {
+          name: 'next.js',
+        },
+      },
+    ],
+    fallback: true,
+  }
+}) satisfies GetStaticPaths
+
+export const getStaticProps = (async (context) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetStaticProps<{
+  repo: Repo
+}>
+
+export default function Page({
+  repo,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  return repo.stargazers_count
+}
+```
+
+```jsx
+export async function getStaticPaths() {
+  return {
+    paths: [
+      {
+        params: {
+          name: 'next.js',
+        },
+      },
+    ],
+    fallback: true,
+  }
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return repo.stargazers_count
+}
+```
+
+The getStaticPaths API reference covers all parameters and props that can be used with `getStaticPaths`.
+
+## When should I use getStaticPaths?
+
+Use `getStaticPaths` if you’re statically pre-rendering pages that use dynamic routes and:
+
+- The data comes from a headless CMS
+- The data comes from a database
+- The data comes from the filesystem
+- The data can be publicly cached (not user-specific)
+- The page must be pre-rendered (for SEO) and be very fast
+
+## When does getStaticPaths run
+
+`getStaticPaths` runs during build in production and will not be called during runtime. You can validate code written inside `getStaticPaths` is removed from the client-side bundle.
+
+### How does getStaticProps run with regards to getStaticPaths
+
+- `getStaticProps` runs during `next build` for any `paths` returned during build
+- `getStaticProps` runs in the background when using `fallback: true`
+- `getStaticProps` is called before initial render when using `fallback: blocking`
+
+## Where can I use getStaticPaths
+
+- `getStaticPaths` must be used with `getStaticProps`
+- You cannot use `getStaticPaths` with `getServerSideProps`
+- You can export `getStaticPaths` from a Dynamic Route that also uses `getStaticProps`
+- You cannot export `getStaticPaths` from non-page files (e.g., your components folder)
+- You must export `getStaticPaths` as a standalone function, not a property of the page component
+
+## Runs on every request in development
+
+In development, `getStaticPaths` will be called on every request.
+
+## Generating paths on-demand
+
+`getStaticPaths` allows you to control which pages are generated during the build instead of on-demand with fallback. Generating more pages during a build will cause slower builds.
+
+You can defer generating all pages on-demand by returning an empty array for `paths`. This can be helpful when deploying your Next.js application to multiple environments. For example, you can have faster builds by generating all pages on-demand for previews (but not production builds).
+
+```jsx
+export async function getStaticPaths() {
+  if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+    return {
+      paths: [],
+      fallback: 'blocking',
+    }
+  }
+
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+
+  const paths = posts.map((post) => ({
+    params: { id: post.id },
+  }))
+
+  return { paths, fallback: false }
+}
+```
+
+# Forms and Mutations
+
+Forms enable you to create and update data in web applications. Next.js provides a powerful way to handle form submissions and data mutations using API Routes.
+
+**Good to know:**
+- Incrementally adopt the App Router and use Server Actions for handling form submissions and data mutations. Server Actions allow you to define asynchronous server functions that can be called directly from your components, without needing to manually create an API Route.
+- API Routes do not specify CORS headers, meaning they are same-origin only by default.
+- Since API Routes run on the server, sensitive values (like API keys) can be used through Environment Variables without exposing them to the client, which is critical for security.
+
+## Examples
+
+### Server-only form
+
+With the Pages Router, manually create API endpoints to securely mutate data on the server.
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const data = req.body
+  const id = await createItem(data)
+  res.status(200).json({ id })
+}
+```
+
+```js
+export default function handler(req, res) {
+  const data = req.body
+  const id = await createItem(data)
+  res.status(200).json({ id })
+}
+```
+
+Call the API Route from the client with an event handler:
+
+```tsx
+import { FormEvent } from 'react'
+
+export default function Page() {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const response = await fetch('/api/submit', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const data = await response.json()
+    // ...
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input type="text" name="name" />
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+```
+
+```jsx
+export default function Page() {
+  async function onSubmit(event) {
+    event.preventDefault()
+
+    const formData = new FormData(event.target)
+    const response = await fetch('/api/submit', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const data = await response.json()
+    // ...
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input type="text" name="name" />
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+```
+
+## Form validation
+
+Use HTML validation like `required` and `type="email"` for basic client-side form validation. For advanced server-side validation, use a schema validation library like zod:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { z } from 'zod'
+
+const schema = z.object({
+  // ...
+})
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const parsed = schema.parse(req.body)
+  // ...
+}
+```
+
+```js
+import { z } from 'zod'
+
+const schema = z.object({
+  // ...
+})
+
+export default async function handler(req, res) {
+  const parsed = schema.parse(req.body)
+  // ...
+}
+```
+
+### Error handling
+
+Use React state to show an error message when a form submission fails:
+
+```tsx
+import React, { useState, FormEvent } from 'react'
+
+export default function Page() {
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit the data. Please try again.')
+      }
+
+      const data = await response.json()
+      // ...
+    } catch (error) {
+      setError(error.message)
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <form onSubmit={onSubmit}>
+        <input type="text" name="name" />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Submit'}
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+```jsx
+import React, { useState } from 'react'
+
+export default function Page() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function onSubmit(event) {
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit the data. Please try again.')
+      }
+
+      const data = await response.json()
+      // ...
+    } catch (error) {
+      setError(error.message)
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <form onSubmit={onSubmit}>
+        <input type="text" name="name" />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Submit'}
+        </button>
+      </form>
+    </div>
+  )
+}
+```
+
+## Displaying loading state
+
+Use React state to show a loading state when a form is submitting on the server:
+
+```tsx
+import React, { useState, FormEvent } from 'react'
+
+export default function Page() {
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setIsLoading(true)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+      // ...
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input type="text" name="name" />
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Loading...' : 'Submit'}
+      </button>
+    </form>
+  )
+}
+```
+
+```jsx
+import React, { useState } from 'react'
+
+export default function Page() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function onSubmit(event) {
+    event.preventDefault()
+    setIsLoading(true)
+
+    try {
+      const formData = new FormData(event.currentTarget)
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+      // ...
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input type="text" name="name" />
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Loading...' : 'Submit'}
+      </button>
+    </form>
+  )
+}
+```
+
+### Redirecting
+
+Redirect the user to a different route after a mutation:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const id = await addPost()
+  res.redirect(307, `/post/${id}`)
+}
+```
+
+```js
+export default async function handler(req, res) {
+  const id = await addPost()
+  res.redirect(307, `/post/${id}`)
+}
+```
+
+### Setting cookies
+
+Set cookies inside an API Route using the `setHeader` method on the response:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  res.setHeader('Set-Cookie', 'username=lee; Path=/; HttpOnly')
+  res.status(200).send('Cookie has been set.')
+}
+```
+
+```js
+export default async function handler(req, res) {
+  res.setHeader('Set-Cookie', 'username=lee; Path=/; HttpOnly')
+  res.status(200).send('Cookie has been set.')
+}
+```
+
+### Reading cookies
+
+Read cookies inside an API Route using the cookies request helper:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const auth = req.cookies.authorization
+  // ...
+}
+```
+
+```js
+export default async function handler(req, res) {
+  const auth = req.cookies.authorization
+  // ...
+}
+```
+
+### Deleting cookies
+
+Delete cookies inside an API Route using the `setHeader` method on the response:
+
+```ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  res.setHeader('Set-Cookie', 'username=; Path=/; HttpOnly; Max-Age=0')
+  res.status(200).send('Cookie has been deleted.')
+}
+```
+
+```js
+export default async function handler(req, res) {
+  res.setHeader('Set-Cookie', 'username=; Path=/; HttpOnly; Max-Age=0')
+  res.status(200).send('Cookie has been deleted.')
+}
+```
+
+# getServerSideProps
+
+`getServerSideProps` is a Next.js function used to fetch data and render the contents of a page at request time.
+
+## Example
+
+You can use `getServerSideProps` by exporting it from a Page Component. The example below shows how to fetch data from a 3rd party API in `getServerSideProps` and pass the data to the page as props:
+
+```tsx
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getServerSideProps = (async () => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo: Repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetServerSideProps<{ repo: Repo }>
+
+export default function Page({
+  repo,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  return (
+    <main>
+      <p>{repo.stargazers_count}</p>
+    </main>
+  )
+}
+```
+
+```jsx
+export async function getServerSideProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return (
+    <main>
+      <p>{repo.stargazers_count}</p>
+    </main>
+  )
+}
+```
+
+## When to Use `getServerSideProps`
+
+Use `getServerSideProps` if you need to render a page that relies on personalized user data or information known only at request time, such as authorization headers or geolocation. If you do not need to fetch data at request time or prefer to cache data and pre-rendered HTML, consider using `getStaticProps`.
+
+## Behavior
+
+- Runs on the server.
+- Can only be exported from a page.
+- Returns JSON.
+- Fetches data at request time to render the initial HTML of the page.
+- Props passed to the page component are part of the initial HTML for hydration. Avoid passing sensitive information.
+- When visiting the page through next/link or next/router, Next.js sends an API request to the server to run `getServerSideProps`.
+- No need to call a Next.js API Route to fetch data; you can call a CMS, database, or third-party APIs directly.
+
+**Good to know:**
+- See the `getServerSideProps` API reference for parameters and props.
+- Use the next-code-elimination tool to verify what Next.js eliminates from the client-side bundle.
+
+## Error Handling
+
+If an error occurs in `getServerSideProps`, it will show the `pages/500.js` file. During development, the development error overlay will be shown instead.
+
+## Edge Cases
+
+### Caching with Server-Side Rendering (SSR)
+
+You can use caching headers (`Cache-Control`) inside `getServerSideProps` to cache dynamic responses. For example, using stale-while-revalidate.
+
+```jsx
+export async function getServerSideProps({ req, res }) {
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=10, stale-while-revalidate=59'
+  )
+
+  return {
+    props: {},
+  }
+}
+```
+
+Before using `cache-control`, consider if `getStaticProps` with Incremental Static Regeneration (ISR) is a better fit for your use case.
+
+# Incremental Static Regeneration (ISR)
+
+Learn how to create or update static pages at runtime with Incremental Static Regeneration.
+
+## Overview
+
+Incremental Static Regeneration (ISR) allows you to update static pages after you’ve built your site. This means you can create or update pages in the background while serving static content to users.
+
+## Key Concepts
+
+- **Static Generation**: Pre-rendering pages at build time.
+- **Revalidation**: Updating static pages at runtime based on a defined interval.
+- **Fallback**: Serving a fallback version of a page while the new version is being generated.
+
+## Usage
+
+To implement ISR, you need to use the `getStaticProps` function in your page component. Specify the `revalidate` property to define how often a page should be regenerated.
+
+Example:
+
+```javascript
+export async function getStaticProps() {
+  const data = await fetchData();
+  
+  return {
+    props: { data },
+    revalidate: 10, // Regenerate the page every 10 seconds
+  };
+}
+```
+
+## Benefits
+
+- Improved performance by serving static content.
+- Ability to keep content up-to-date without a full rebuild.
+- Enhanced user experience with faster load times.
+
+## Considerations
+
+- Ensure your data fetching logic can handle revalidation.
+- Be mindful of the revalidation interval to balance freshness and performance.
+
+For more detailed information, refer to the official documentation.
+
+# Client-side Fetching
+
+Client-side data fetching is useful when your page doesn't require SEO indexing, when you don't need to pre-render your data, or when the content of your pages needs to update frequently. Unlike server-side rendering APIs, client-side data fetching can be used at the component level.
+
+When done at the page level, data is fetched at runtime, and the content updates as the data changes. At the component level, data is fetched when the component mounts, and the content updates as the data changes.
+
+Using client-side data fetching can affect application performance and page load speed since data fetching occurs at the time of component or page mount, and data is not cached.
+
+## Client-side data fetching with useEffect
+
+The following example demonstrates how to fetch data on the client side using the useEffect hook.
+
+```jsx
+import { useState, useEffect } from 'react'
+
+function Profile() {
+  const [data, setData] = useState(null)
+  const [isLoading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/profile-data')
+      .then((res) => res.json())
+      .then((data) => {
+        setData(data)
+        setLoading(false)
+      })
+  }, [])
+
+  if (isLoading) return <p>Loading...</p>
+  if (!data) return <p>No profile data</p>
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.bio}</p>
+    </div>
+  )
+}
+```
+
+## Client-side data fetching with SWR
+
+The team behind Next.js has created a React hook library for data fetching called SWR. It is highly recommended for client-side data fetching as it handles caching, revalidation, focus tracking, refetching on intervals, and more.
+
+Using the same example as above, we can now use SWR to fetch the profile data. SWR automatically caches the data and revalidates it if it becomes stale.
+
+For more information on using SWR, refer to the SWR documentation.
+
+```jsx
+import useSWR from 'swr'
+
+const fetcher = (...args) => fetch(...args).then((res) => res.json())
+
+function Profile() {
+  const { data, error } = useSWR('/api/profile-data', fetcher)
+
+  if (error) return <div>Failed to load</div>
+  if (!data) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.bio}</p>
+    </div>
+  )
+}
+```
+
+# Data Fetching
+
+Next.js allows you to fetch data in multiple ways, including pre-rendering with Server-side Rendering or Static Generation, and updating or creating content at runtime with Incremental Static Regeneration. 
+
+## Examples
+
+- WordPress Example: github.com/vercel/next.js/tree/canary/examples/cms-wordpress (Demo: next-blog-wordpress.vercel.app)
+- Blog Starter using markdown files: github.com/vercel/next.js/tree/canary/examples/blog-starter (Demo: next-blog-starter.vercel.app)
+- DatoCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-datocms (Demo: next-blog-datocms.vercel.app)
+- TakeShape Example: github.com/vercel/next.js/tree/canary/examples/cms-takeshape (Demo: next-blog-takeshape.vercel.app)
+- Sanity Example: github.com/vercel/next.js/tree/canary/examples/cms-sanity (Demo: next-blog-sanity.vercel.app)
+- Prismic Example: github.com/vercel/next.js/tree/canary/examples/cms-prismic (Demo: next-blog-prismic.vercel.app)
+- Contentful Example: github.com/vercel/next.js/tree/canary/examples/cms-contentful (Demo: next-blog-contentful.vercel.app)
+- Strapi Example: github.com/vercel/next.js/tree/canary/examples/cms-strapi (Demo: next-blog-strapi.vercel.app)
+- Prepr Example: github.com/vercel/next.js/tree/canary/examples/cms-prepr (Demo: next-blog-prepr.vercel.app)
+- Agility CMS Example: github.com/vercel/next.js/tree/canary/examples/cms-agilitycms (Demo: next-blog-agilitycms.vercel.app)
+- Cosmic Example: github.com/vercel/next.js/tree/canary/examples/cms-cosmic (Demo: next-blog-cosmic.vercel.app)
+- ButterCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-buttercms (Demo: next-blog-buttercms.vercel.app)
+- Storyblok Example: github.com/vercel/next.js/tree/canary/examples/cms-storyblok (Demo: next-blog-storyblok.vercel.app)
+- GraphCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-graphcms (Demo: next-blog-graphcms.vercel.app)
+- Kontent Example: github.com/vercel/next.js/tree/canary/examples/cms-kontent-ai (Demo: next-blog-kontent.vercel.app)
+- Static Tweet Demo: static-tweet.vercel.app
+- Enterspeed Example: github.com/vercel/next.js/tree/canary/examples/cms-enterspeed (Demo: next-blog-demo.enterspeed.com)
+
+# CSS Modules
+
+Style your Next.js Application using CSS Modules.
+
+## Overview
+
+CSS Modules allow you to write CSS that is scoped locally to the component, preventing styles from leaking into other components. This is particularly useful in large applications where style conflicts can occur.
+
+## Usage
+
+1. **Create a CSS Module**: Create a CSS file with the `.module.css` extension. For example, `styles.module.css`.
+
+2. **Import the CSS Module**: In your component file, import the CSS module:
+   ```javascript
+   import styles from './styles.module.css';
+   ```
+
+3. **Apply Styles**: Use the imported styles in your JSX:
+   ```javascript
+   <div className={styles.container}>
+     <h1 className={styles.title}>Hello, World!</h1>
+   </div>
+   ```
+
+## Benefits
+
+- **Scoped Styles**: Styles are scoped to the component, reducing the risk of conflicts.
+- **Dynamic Class Names**: Class names are generated dynamically, ensuring uniqueness.
+- **Maintainability**: Easier to maintain styles as they are tied to specific components.
+
+## Best Practices
+
+- Use descriptive class names to improve readability.
+- Keep your CSS modules organized in a dedicated folder.
+- Avoid using global styles unless necessary.
+
+## Conclusion
+
+CSS Modules provide a powerful way to manage styles in Next.js applications, enhancing maintainability and preventing style conflicts.
+
+# Tailwind CSS
+
+Style your Next.js Application using Tailwind CSS.
+
+## Introduction
+
+Tailwind CSS is a utility-first CSS framework that allows you to build custom designs without leaving your HTML. It provides low-level utility classes that let you create complex designs directly in your markup.
+
+## Installation
+
+To install Tailwind CSS in your Next.js application, follow these steps:
+
+1. Install Tailwind CSS via npm:
+
+   ```
+   npm install -D tailwindcss postcss autoprefixer
+   ```
+
+2. Create a `tailwind.config.js` file:
+
+   ```
+   npx tailwindcss init -p
+   ```
+
+3. Configure your `tailwind.config.js` file:
+
+   ```javascript
+   module.exports = {
+     content: [
+       "./pages/**/*.{js,ts,jsx,tsx}",
+       "./components/**/*.{js,ts,jsx,tsx}",
+     ],
+     theme: {
+       extend: {},
+     },
+     plugins: [],
+   }
+   ```
+
+4. Add Tailwind to your CSS by including the following lines in your `globals.css` or equivalent file:
+
+   ```css
+   @tailwind base;
+   @tailwind components;
+   @tailwind utilities;
+   ```
+
+## Usage
+
+You can now use Tailwind CSS classes in your components. For example:
+
+```jsx
+export default function Home() {
+  return (
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <h1 className="text-4xl font-bold text-blue-500">Hello, Tailwind CSS!</h1>
+    </div>
+  );
+}
+```
+
+## Customization
+
+Tailwind CSS is highly customizable. You can extend the default theme in your `tailwind.config.js` file to add custom colors, spacing, and more.
+
+## Conclusion
+
+Using Tailwind CSS with Next.js allows for rapid UI development with a focus on utility classes. For more advanced usage and features, refer to the official Tailwind CSS documentation.
+
+# CSS-in-JS
+
+Use CSS-in-JS libraries with Next.js.
+
+## Overview
+
+CSS-in-JS is a popular approach for styling applications, allowing you to write CSS directly within your JavaScript files. This method provides benefits such as scoped styles, dynamic styling, and easier maintenance.
+
+## Libraries
+
+Several CSS-in-JS libraries can be used with Next.js, including:
+
+- **Styled Components**: A library for styling React components using tagged template literals.
+- **Emotion**: A performant and flexible CSS-in-JS library that allows for both styled components and CSS prop usage.
+- **JSS**: A library for writing CSS styles with JavaScript, providing a powerful API for dynamic styling.
+
+## Installation
+
+To use a CSS-in-JS library, install it via npm or yarn. For example, to install Styled Components, run:
+
+```
+npm install styled-components
+```
+
+or
+
+```
+yarn add styled-components
+```
+
+## Usage
+
+### Styled Components Example
+
+1. Create a styled component:
+
+```javascript
+import styled from 'styled-components';
+
+const Button = styled.button`
+  background-color: blue;
+  color: white;
+  padding: 10px;
+`;
+```
+
+2. Use the styled component in your application:
+
+```javascript
+function App() {
+  return <Button>Click Me</Button>;
+}
+```
+
+### Emotion Example
+
+1. Install Emotion:
+
+```
+npm install @emotion/react @emotion/styled
+```
+
+2. Create a styled component:
+
+```javascript
+/** @jsxImportSource @emotion/react */
+import styled from '@emotion/styled';
+
+const Button = styled.button`
+  background-color: blue;
+  color: white;
+  padding: 10px;
+`;
+```
+
+3. Use the styled component:
+
+```javascript
+function App() {
+  return <Button>Click Me</Button>;
+}
+```
+
+## Server-Side Rendering
+
+Next.js supports server-side rendering (SSR) for CSS-in-JS libraries. Ensure you follow the library's documentation for proper SSR setup to avoid style mismatches.
+
+## Conclusion
+
+CSS-in-JS libraries provide a powerful way to manage styles in Next.js applications. Choose a library that fits your needs and follow the installation and usage guidelines to get started.
+
+# Sass
+
+Learn how to use Sass in your Next.js application.
+
+## Introduction to Sass
+
+Sass (Syntactically Awesome Style Sheets) is a preprocessor scripting language that is interpreted or compiled into Cascading Style Sheets (CSS). It provides features such as variables, nested rules, and mixins, which help in writing maintainable and scalable CSS.
+
+## Setting Up Sass in Next.js
+
+To use Sass in your Next.js application, follow these steps:
+
+1. **Install Sass**: Run the following command in your terminal:
+   ```
+   npm install sass
+   ```
+
+2. **Create a Sass file**: Create a `.scss` file in your styles directory. For example, `styles/Home.module.scss`.
+
+3. **Import the Sass file**: Import the Sass file in your component or page:
+   ```javascript
+   import styles from '../styles/Home.module.scss';
+   ```
+
+4. **Use the styles**: Apply the styles in your JSX:
+   ```jsx
+   <div className={styles.container}>
+     <h1 className={styles.title}>Welcome to Next.js with Sass!</h1>
+   </div>
+   ```
+
+## Features of Sass
+
+- **Variables**: Store values in variables for reuse.
+- **Nesting**: Nest CSS selectors in a way that follows the same visual hierarchy of your HTML.
+- **Mixins**: Create reusable chunks of CSS that can be included in other styles.
+- **Partials**: Split your CSS into smaller, manageable files.
+
+## Example of Sass Usage
+
+Here’s a simple example of using Sass features:
+
+```scss
+// styles/Home.module.scss
+$primary-color: #0070f3;
+
+.container {
+  background-color: $primary-color;
+  padding: 20px;
+
+  .title {
+    color: white;
+    font-size: 2rem;
+  }
+}
+```
+
+## Conclusion
+
+Using Sass in your Next.js application enhances your styling capabilities and helps maintain a clean codebase. Follow the setup instructions and start leveraging Sass features for better styling management.
+
+# Styling
+
+Learn the different ways you can style your Next.js application. 
+
+The content of this document is generated from the source. To edit the content, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Image Optimization
+
+Optimize your images with the built-in `next/image` component.
+
+# Font Optimization
+
+Optimize your application's web fonts with the built-in `next/font` loaders.
+
+# Script Optimization
+
+Optimize 3rd party scripts with the built-in Script component.
+
+# Static Assets
+
+Next.js allows you to serve static files, like images, in the public directory. You can learn how it works here.
+
+# Optimizing Bundling
+
+Learn how to optimize your application's server and client bundles.
+
+## Overview
+
+Optimizing your application's bundling is crucial for improving performance and reducing load times. This guide provides strategies for both server and client-side optimizations.
+
+## Server Bundle Optimization
+
+1. **Code Splitting**: Break your server code into smaller chunks to load only what is necessary.
+2. **Tree Shaking**: Remove unused code from your bundles to reduce size.
+3. **Minification**: Compress your code to decrease file size and improve load times.
+
+## Client Bundle Optimization
+
+1. **Lazy Loading**: Load components only when they are needed to improve initial load time.
+2. **Bundle Analysis**: Use tools to analyze your bundle size and identify large dependencies.
+3. **Caching**: Implement caching strategies to reduce the need for repeated downloads.
+
+## Related Resources
+
+Learn more about optimizing your application for production:
+- Production Checklist: pages/building-your-application/deploying/production-checklist
+
+# Analytics
+
+Measure and track page performance using Next.js Speed Insights.
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Lazy Loading
+
+Lazy loading is a technique used to defer the loading of imported libraries and React components until they are needed. This approach can significantly enhance your application's overall loading performance.
+
+## Benefits of Lazy Loading
+
+- **Improved Initial Load Time**: By loading only essential components initially, the application can start faster.
+- **Reduced Resource Consumption**: Non-critical resources are loaded only when required, saving bandwidth and improving performance.
+- **Enhanced User Experience**: Users can interact with the application sooner, as they are not waiting for all components to load.
+
+## Implementation
+
+To implement lazy loading in your React application, you can use the `React.lazy` function along with `Suspense`. Here’s a basic example:
+
+```javascript
+import React, { Suspense, lazy } from 'react';
+
+const LazyComponent = lazy(() => import('./LazyComponent'));
+
+function App() {
+  return (
+    <div>
+      <h1>My App</h1>
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyComponent />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+In this example, `LazyComponent` will only be loaded when it is rendered, and a fallback UI will be displayed while it is loading.
+
+## Best Practices
+
+- **Use for Large Components**: Lazy loading is most beneficial for large components or libraries that are not immediately necessary.
+- **Combine with Code Splitting**: Use lazy loading in conjunction with code splitting to optimize your application further.
+- **Monitor Performance**: Regularly assess the performance impact of lazy loading to ensure it meets your application's needs.
+
+By adopting lazy loading, you can create a more efficient and responsive application, ultimately leading to a better user experience.
+
+# Instrumentation
+
+Learn how to use instrumentation to run code at server startup in your Next.js app.
+
+## Overview
+
+Instrumentation allows you to execute code during the server startup phase of your Next.js application. This can be useful for initializing resources, setting up logging, or performing other setup tasks.
+
+## Usage
+
+To implement instrumentation in your Next.js app, follow these steps:
+
+1. **Create a file for instrumentation**: You can create a dedicated file for your instrumentation logic. This file should export a function that will be called during server startup.
+
+2. **Export the function**: Ensure that the function you create is exported so that Next.js can invoke it.
+
+3. **Use the function in your application**: You can import and call this function in your server entry point or any other appropriate location in your application.
+
+## Example
+
+Here is a simple example of how to set up instrumentation:
+
+```javascript
+// instrumentation.js
+export function initialize() {
+  console.log('Server is starting up...');
+  // Add your initialization logic here
+}
+```
+
+Then, in your server entry point:
+
+```javascript
+import { initialize } from './instrumentation';
+
+initialize();
+```
+
+## Best Practices
+
+- Keep your instrumentation code modular and focused on specific tasks.
+- Avoid heavy computations or blocking operations during startup to ensure a fast server response.
+- Log important events to monitor the server's behavior during startup.
+
+By following these guidelines, you can effectively use instrumentation to enhance your Next.js application's startup process.
+
+# OpenTelemetry
+
+Learn how to instrument your Next.js app with OpenTelemetry.
+
+## Overview
+
+OpenTelemetry is a set of APIs, libraries, agents, and instrumentation to provide observability for applications. It helps in collecting metrics, logs, and traces from your application.
+
+## Instrumentation Steps
+
+1. **Install OpenTelemetry Packages**: Use the package manager to install the necessary OpenTelemetry packages for your Next.js application.
+
+2. **Initialize OpenTelemetry**: Set up the OpenTelemetry SDK in your application. This typically involves configuring the tracer and exporter.
+
+3. **Add Instrumentation**: Instrument your application code to capture traces and metrics. This can include HTTP requests, database queries, and other significant operations.
+
+4. **Export Data**: Configure the exporter to send the collected data to your preferred observability platform.
+
+5. **Verify Data Collection**: Ensure that the data is being collected and sent correctly by checking your observability platform.
+
+## Best Practices
+
+- Keep your instrumentation lightweight to avoid performance overhead.
+- Use context propagation to maintain trace context across asynchronous calls.
+- Regularly update your OpenTelemetry dependencies to benefit from the latest features and fixes.
+
+## Resources
+
+For more detailed information, refer to the OpenTelemetry documentation and community resources.
+
+# Third Party Libraries
+
+Optimize the performance of third-party libraries in your application with the `@next/third-parties` package.
+
+# Optimizations
+
+Optimize your Next.js application for best performance and user experience.
+
+## Performance Optimization Techniques
+
+1. **Image Optimization**: Use the Next.js Image component to automatically optimize images for different devices and screen sizes.
+
+2. **Code Splitting**: Leverage dynamic imports to split your code and load only the necessary parts of your application.
+
+3. **Static Generation**: Use static generation for pages that can be pre-rendered at build time, improving load times.
+
+4. **Server-Side Rendering**: Implement server-side rendering for pages that require up-to-date data on each request.
+
+5. **Caching**: Utilize caching strategies to reduce server load and improve response times.
+
+6. **Minification**: Ensure that your JavaScript and CSS files are minified to reduce file sizes.
+
+7. **Bundle Analysis**: Use tools like Webpack Bundle Analyzer to identify and eliminate unnecessary code.
+
+8. **Prefetching**: Implement prefetching for links to improve navigation speed.
+
+9. **Reduce JavaScript Execution Time**: Optimize your JavaScript code to minimize execution time and improve performance.
+
+10. **Optimize Fonts**: Use font optimization techniques to reduce loading times for custom fonts.
+
+## User Experience Enhancements
+
+- **Loading Indicators**: Implement loading indicators to enhance perceived performance during data fetching.
+
+- **Accessibility**: Ensure your application is accessible to all users by following best practices for web accessibility.
+
+- **Responsive Design**: Design your application to be responsive across various devices and screen sizes.
+
+- **Error Handling**: Provide clear error messages and fallback UI to improve user experience during failures.
+
+By applying these optimizations, you can significantly enhance the performance and user experience of your Next.js application.
+
+# TypeScript
+
+Next.js provides a TypeScript-first development experience for building your React application. 
+
+{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
+
+# ESLint
+
+Next.js reports ESLint errors and warnings during builds by default. Learn how to opt-out of this behavior here.
+
+# Environment Variables
+
+Learn to add and access environment variables in your Next.js application.
+
+## Adding Environment Variables
+
+1. Create a `.env.local` file in the root of your project.
+2. Add your environment variables in the format `KEY=VALUE`.
+
+Example:
+```
+NEXT_PUBLIC_API_URL=https://api.example.com
+```
+
+## Accessing Environment Variables
+
+- Use `process.env.KEY` to access your variables in your application code.
+
+Example:
+```javascript
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+```
+
+## Important Notes
+
+- Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser.
+- Restart the development server after adding or modifying environment variables.
+
+# Absolute Imports and Module Path Aliases
+
+Configure module path aliases that allow you to remap certain import paths.
+
+# src Directory
+
+Save pages under the `src` directory as an alternative to the root `pages` directory.
+
+# Markdown and MDX
+
+Learn how to configure MDX to write JSX in your markdown files.
+
+## Configuration
+
+To use MDX in your project, follow these steps:
+
+1. **Install MDX**: Add the necessary packages to your project.
+2. **Configure MDX**: Update your configuration files to support MDX.
+3. **Write MDX**: Create markdown files with JSX components.
+
+## Usage
+
+- You can use MDX to combine markdown content with React components.
+- Ensure that your components are imported correctly in your MDX files.
+
+## Notes
+
+- The content of this documentation is generated from the source. For editing, navigate to the source page in your editor.
+- Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# AMP
+
+With minimal config, and without leaving React, you can start adding AMP and improve the performance and speed of your pages.
+
+## Examples
+
+- AMP example: github.com/vercel/next.js/tree/canary/examples/amp
+
+With Next.js, you can turn any React page into an AMP page with minimal config.
+
+You can read more about AMP at amp.dev.
+
+## Enabling AMP
+
+To enable AMP support for a page and learn more about the different AMP configs, refer to the API documentation for `next/amp`.
+
+## Caveats
+
+- Only CSS-in-JS is supported. CSS Modules are not supported by AMP pages at the moment. You can contribute CSS Modules support to Next.js at github.com/vercel/next.js/issues/10549.
+
+## Adding AMP Components
+
+The AMP community provides many components to make AMP pages more interactive. Next.js will automatically import all components used on a page, and there is no need to manually import AMP component scripts:
+
+```jsx
+export const config = { amp: true }
+
+function MyAmpPage() {
+  const date = new Date()
+
+  return (
+    <div>
+      <p>Some time: {date.toJSON()}</p>
+      <amp-timeago
+        width="0"
+        height="15"
+        datetime={date.toJSON()}
+        layout="responsive"
+      >
+        .
+      </amp-timeago>
+    </div>
+  )
+}
+
+export default MyAmpPage
+```
+
+The above example uses the `amp-timeago` component.
+
+By default, the latest version of a component is always imported. If you want to customize the version, you can use `next/head`:
+
+```jsx
+import Head from 'next/head'
+
+export const config = { amp: true }
+
+function MyAmpPage() {
+  const date = new Date()
+
+  return (
+    <div>
+      <Head>
+        <script
+          async
+          key="amp-timeago"
+          custom-element="amp-timeago"
+          src="https://cdn.ampproject.org/v0/amp-timeago-0.1.js"
+        />
+      </Head>
+
+      <p>Some time: {date.toJSON()}</p>
+      <amp-timeago
+        width="0"
+        height="15"
+        datetime={date.toJSON()}
+        layout="responsive"
+      >
+        .
+      </amp-timeago>
+    </div>
+  )
+}
+
+export default MyAmpPage
+```
+
+## AMP Validation
+
+AMP pages are automatically validated with amphtml-validator during development. Errors and warnings will appear in the terminal where you started Next.js.
+
+Pages are also validated during Static HTML export, and any warnings/errors will be printed to the terminal. Any AMP errors will cause the export to exit with status code `1`.
+
+### Custom Validators
+
+You can set up a custom AMP validator in `next.config.js`:
+
+```js
+module.exports = {
+  amp: {
+    validator: './custom_validator.js',
+  },
+}
+```
+
+### Skip AMP Validation
+
+To turn off AMP validation, add the following code to `next.config.js`:
+
+```js
+experimental: {
+  amp: {
+    skipValidation: true
+  }
+}
+```
+
+### AMP in Static HTML Export
+
+When using Static HTML export, Next.js will detect if the page supports AMP and change the exporting behavior based on that.
+
+For example, the hybrid AMP page `pages/about.js` would output:
+
+- `out/about.html` - HTML page with client-side React runtime
+- `out/about.amp.html` - AMP page
+
+If `pages/about.js` is an AMP-only page, it would output:
+
+- `out/about.html` - Optimized AMP page
+
+Next.js will automatically insert a link to the AMP version of your page in the HTML version:
+
+```jsx
+<link rel="amphtml" href="/about.amp.html" />
+```
+
+The AMP version of your page will include a link to the HTML page:
+
+```jsx
+<link rel="canonical" href="/about" />
+```
+
+When trailingSlash is enabled, the exported pages for `pages/about.js` would be:
+
+- `out/about/index.html` - HTML page
+- `out/about.amp/index.html` - AMP page
+
+## TypeScript
+
+AMP currently doesn't have built-in types for TypeScript, but it's in their roadmap. As a workaround, you can manually create a file called `amp.d.ts` inside your project and add custom types.
+
+# Babel
+
+Extend the babel preset added by Next.js with your own configs.
+
+## Examples
+
+- Customizing babel configuration: GitHub repository for examples.
+
+Next.js includes the `next/babel` preset to your app, which includes everything needed to compile React applications and server-side code. If you want to extend the default Babel configs, it's possible.
+
+## Adding Presets and Plugins
+
+To start, define a `.babelrc` file (or `babel.config.js`) in the root directory of your project. If such a file is found, it will be considered the source of truth and must define what Next.js needs, which is the `next/babel` preset.
+
+Example `.babelrc` file:
+
+```json
+{
+  "presets": ["next/babel"],
+  "plugins": []
+}
+```
+
+To add presets/plugins without configuring them:
+
+```json
+{
+  "presets": ["next/babel"],
+  "plugins": ["@babel/plugin-proposal-do-expressions"]
+}
+```
+
+## Customizing Presets and Plugins
+
+To add presets/plugins with custom configuration, modify the `next/babel` preset as follows:
+
+```json
+{
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-env": {},
+        "transform-runtime": {},
+        "styled-jsx": {},
+        "class-properties": {}
+      }
+    ]
+  ],
+  "plugins": []
+}
+```
+
+For more options for each config, refer to Babel's documentation.
+
+**Good to know**:
+- Next.js uses the current Node.js version for server-side compilations.
+- The `modules` option on `"preset-env"` should be kept to `false`; otherwise, webpack code splitting is turned off.
+
+# PostCSS
+
+Extend the PostCSS config and plugins added by Next.js with your own.
+
+## Examples
+
+- Tailwind CSS Example: github.com/vercel/next.js/tree/canary/examples/with-tailwindcss
+
+## Default Behavior
+
+Next.js compiles CSS for its built-in CSS support using PostCSS.
+
+Out of the box, with no configuration, Next.js compiles CSS with the following transformations:
+
+- Autoprefixer automatically adds vendor prefixes to CSS rules (back to IE11).
+- Cross-browser Flexbox bugs are corrected to behave like the spec.
+- New CSS features are automatically compiled for Internet Explorer 11 compatibility:
+  - `all` Property
+  - Break Properties
+  - `font-variant` Property
+  - Gap Properties
+  - Media Query Ranges
+
+By default, CSS Grid and Custom Properties (CSS variables) are **not compiled** for IE11 support.
+
+To compile CSS Grid Layout for IE11, place the following comment at the top of your CSS file:
+
+```css
+/* autoprefixer grid: autoplace */
+```
+
+You can enable IE11 support for CSS Grid Layout in your entire project by configuring autoprefixer as shown below:
+
+```json
+{
+  "plugins": [
+    "postcss-flexbugs-fixes",
+    [
+      "postcss-preset-env",
+      {
+        "autoprefixer": {
+          "flexbox": "no-2009",
+          "grid": "autoplace"
+        },
+        "stage": 3,
+        "features": {
+          "custom-properties": false
+        }
+      }
+    ]
+  ]
+}
+```
+
+CSS variables are not compiled because it is not possible to safely do so. If you must use variables, consider using Sass variables which are compiled away by Sass.
+
+## Customizing Target Browsers
+
+Next.js allows you to configure the target browsers for Autoprefixer and compiled CSS features through Browserslist.
+
+To customize Browserslist, create a `browserslist` key in your `package.json`:
+
+```json
+{
+  "browserslist": [">0.3%", "not dead", "not op_mini all"]
+}
+```
+
+## CSS Modules
+
+No configuration is needed to support CSS Modules. To enable CSS Modules for a file, rename the file to have the extension `.module.css`.
+
+## Customizing Plugins
+
+**Warning**: When you define a custom PostCSS configuration file, Next.js completely disables the default behavior. Be sure to manually configure all the features you need compiled, including Autoprefixer. You also need to install any plugins included in your custom configuration manually.
+
+To customize the PostCSS configuration, create a `postcss.config.json` file in the root of your project.
+
+This is the default configuration used by Next.js:
+
+```json
+{
+  "plugins": [
+    "postcss-flexbugs-fixes",
+    [
+      "postcss-preset-env",
+      {
+        "autoprefixer": {
+          "flexbox": "no-2009"
+        },
+        "stage": 3,
+        "features": {
+          "custom-properties": false
+        }
+      }
+    ]
+  ]
+}
+```
+
+Next.js also allows the file to be named `.postcssrc.json`, or to be read from the `postcss` key in `package.json`.
+
+It is also possible to configure PostCSS with a `postcss.config.js` file, which is useful when you want to conditionally include plugins based on environment:
+
+```js
+module.exports = {
+  plugins:
+    process.env.NODE_ENV === 'production'
+      ? [
+          'postcss-flexbugs-fixes',
+          [
+            'postcss-preset-env',
+            {
+              autoprefixer: {
+                flexbox: 'no-2009',
+              },
+              stage: 3,
+              features: {
+                'custom-properties': false,
+              },
+            },
+          ],
+        ]
+      : [
+          // No transformations in development
+        ],
+}
+```
+
+Next.js also allows the file to be named `.postcssrc.js`.
+
+Do not use `require()` to import the PostCSS Plugins. Plugins must be provided as strings.
+
+If your `postcss.config.js` needs to support other non-Next.js tools in the same project, use the interoperable object-based format instead:
+
+```js
+module.exports = {
+  plugins: {
+    'postcss-flexbugs-fixes': {},
+    'postcss-preset-env': {
+      autoprefixer: {
+        flexbox: 'no-2009',
+      },
+      stage: 3,
+      features: {
+        'custom-properties': false,
+      },
+    },
+  },
+}
+```
+
+# Custom Server
+
+Start a Next.js app programmatically using a custom server.
+
+## Overview
+
+To create a custom server for your Next.js application, you can use Node.js and Express. This allows you to handle requests and responses in a more flexible way.
+
+## Setting Up a Custom Server
+
+1. **Install Dependencies**: Ensure you have Next.js and Express installed in your project.
+
+   ```
+   npm install next express
+   ```
+
+2. **Create a Server File**: Create a file named `server.js` in the root of your project.
+
+   ```javascript
+   const express = require('express');
+   const next = require('next');
+
+   const dev = process.env.NODE_ENV !== 'production';
+   const app = next({ dev });
+   const handle = app.getRequestHandler();
+
+   app.prepare().then(() => {
+     const server = express();
+
+     server.get('/custom-route', (req, res) => {
+       return app.render(req, res, '/custom-page', req.query);
+     });
+
+     server.all('*', (req, res) => {
+       return handle(req, res);
+     });
+
+     server.listen(3000, (err) => {
+       if (err) throw err;
+       console.log('> Ready on http://localhost:3000');
+     });
+   });
+   ```
+
+3. **Run the Server**: Start your custom server using Node.js.
+
+   ```
+   node server.js
+   ```
+
+## Custom Routes
+
+You can define custom routes in your server file. Use `server.get()` to handle specific routes and `server.all()` to handle all other requests.
+
+## Deployment
+
+When deploying your Next.js app with a custom server, ensure your hosting provider supports Node.js applications. Follow their specific instructions for deploying Node.js apps.
+
+## Conclusion
+
+Using a custom server with Next.js provides flexibility in handling requests and allows for custom routing. This setup is ideal for applications that require specific server-side logic.
+
+# Draft Mode
+
+Next.js has draft mode to toggle between static and dynamic pages. You can learn how it works with Pages Router.
+
+In the Pages documentation and the Data Fetching documentation, we discussed how to pre-render a page at build time (Static Generation) using `getStaticProps` and `getStaticPaths`.
+
+Static Generation is useful when your pages fetch data from a headless CMS. However, it’s not ideal when you’re writing a draft on your headless CMS and want to view the draft immediately on your page. You’d want Next.js to render these pages at request time instead of build time and fetch the draft content instead of the published content. Next.js has a feature called Draft Mode which solves this problem. Here are instructions on how to use it.
+
+## Step 1: Create and access the API route
+
+First, create the API route. It can have any name, e.g., `pages/api/draft.ts`.
+
+In this API route, you need to call `setDraftMode` on the response object.
+
+```js
+export default function handler(req, res) {
+  res.setDraftMode({ enable: true });
+}
+```
+
+This will set a cookie to enable draft mode. Subsequent requests containing this cookie will trigger Draft Mode, changing the behavior for statically generated pages.
+
+You can test this manually by creating an API route like below and accessing it from your browser:
+
+```ts filename="pages/api/draft.ts"
+export default function handler(req, res) {
+  res.setDraftMode({ enable: true });
+  res.end('Draft mode is enabled');
+}
+```
+
+If you open your browser’s developer tools and visit `/api/draft`, you’ll notice a `Set-Cookie` response header with a cookie named `__prerender_bypass`.
+
+### Securely accessing it from your Headless CMS
+
+You’d want to call this API route securely from your headless CMS. The specific steps will vary depending on which headless CMS you’re using, but here are some common steps:
+
+1. Create a secret token string using a token generator. This secret will only be known by your Next.js app and your headless CMS.
+2. If your headless CMS supports setting custom draft URLs, specify the following as the draft URL:
+
+```bash filename="Terminal"
+https://<your-site>/api/draft?secret=<token>&slug=<path>
+```
+
+- `<your-site>` should be your deployment domain.
+- `<token>` should be replaced with the secret token you generated.
+- `<path>` should be the path for the page that you want to view.
+
+3. In the draft API route:
+   - Check that the secret matches and that the `slug` parameter exists.
+   - Call `res.setDraftMode`.
+   - Redirect the browser to the path specified by `slug`.
+
+```js
+export default async (req, res) => {
+  if (req.query.secret !== 'MY_SECRET_TOKEN' || !req.query.slug) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+
+  const post = await getPostBySlug(req.query.slug);
+
+  if (!post) {
+    return res.status(401).json({ message: 'Invalid slug' });
+  }
+
+  res.setDraftMode({ enable: true });
+  res.redirect(post.slug);
+}
+```
+
+If it succeeds, the browser will be redirected to the path you want to view with the draft mode cookie.
+
+## Step 2: Update `getStaticProps`
+
+Update `getStaticProps` to support draft mode. If you request a page with `getStaticProps` and the cookie is set, `getStaticProps` will be called at request time.
+
+```js
+export async function getStaticProps(context) {
+  if (context.draftMode) {
+    // dynamic data
+  }
+}
+```
+
+You can fetch different data based on `context.draftMode`.
+
+```js
+export async function getStaticProps(context) {
+  const url = context.draftMode
+    ? 'https://draft.example.com'
+    : 'https://production.example.com';
+  const res = await fetch(url);
+  // ...
+}
+```
+
+Access the draft API route (with `secret` and `slug`) from your headless CMS or manually to see the draft content.
+
+## More Details
+
+### Clear the Draft Mode cookie
+
+To clear the Draft Mode cookie manually, create an API route that calls `setDraftMode({ enable: false })`:
+
+```ts filename="pages/api/disable-draft.ts"
+export default function handler(req, res) {
+  res.setDraftMode({ enable: false });
+}
+```
+
+Send a request to `/api/disable-draft` to invoke the API Route.
+
+### Works with `getServerSideProps`
+
+Draft Mode works with `getServerSideProps`, available as a `draftMode` key in the context object.
+
+### Works with API Routes
+
+API Routes will have access to `draftMode` on the request object.
+
+```js
+export default function myApiRoute(req, res) {
+  if (req.draftMode) {
+    // get draft data
+  }
+}
+```
+
+### Unique per `next build`
+
+A new bypass cookie value will be generated each time you run `next build`. This ensures that the bypass cookie can’t be guessed. To test Draft Mode locally over HTTP, your browser will need to allow third-party cookies and local storage access.
+
+# Error Handling
+
+This documentation explains how to handle development, server-side, and client-side errors in your Next.js app.
+
+## Handling Errors in Development
+
+During development, if a runtime error occurs, an **overlay** modal will appear, covering the webpage. This overlay is visible only when the development server is running with `next dev`, `pnpm dev`, `npm run dev`, `yarn dev`, or `bun dev`. It will not appear in production. Fixing the error will automatically dismiss the overlay.
+
+## Handling Server Errors
+
+Next.js provides a static 500 page by default for server-side errors. You can customize this page by creating a `pages/500.js` file. The 500 page does not display specific errors to users. Additionally, you can use a 404 page to handle specific runtime errors like "file not found."
+
+## Handling Client Errors
+
+React Error Boundaries allow you to handle JavaScript errors on the client gracefully, ensuring other parts of the application continue to function. They prevent page crashes, provide a custom fallback component, and enable error logging.
+
+To implement Error Boundaries in your Next.js application, create a class component `ErrorBoundary` and wrap the `Component` prop in the `pages/_app.js` file. The `ErrorBoundary` component should:
+
+- Render a fallback UI after an error is thrown
+- Provide a way to reset the application's state
+- Log error information
+
+Example of an `ErrorBoundary` class component:
+
+```jsx
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+  
+  componentDidCatch(error, errorInfo) {
+    console.log({ error, errorInfo })
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div>
+          <h2>Oops, there is an error!</h2>
+          <button
+            type="button"
+            onClick={() => this.setState({ hasError: false })}
+          >
+            Try again?
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export default ErrorBoundary
+```
+
+The `ErrorBoundary` component tracks an `hasError` state. When `hasError` is `true`, it renders a fallback UI; otherwise, it renders the children components.
+
+After creating the `ErrorBoundary`, import it in the `pages/_app.js` file to wrap the `Component` prop:
+
+```jsx
+import ErrorBoundary from '../components/ErrorBoundary'
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <ErrorBoundary>
+      <Component {...pageProps} />
+    </ErrorBoundary>
+  )
+}
+
+export default MyApp
+```
+
+For more information on Error Boundaries, refer to React's documentation.
+
+### Reporting Errors
+
+To monitor client errors, consider using services like Sentry, Bugsnag, or Datadog.
+
+# Preview Mode
+
+Next.js has the preview mode for statically generated pages. This feature is superseded by Draft Mode.
+
+## Examples
+
+- WordPress Example: github.com/vercel/next.js/tree/canary/examples/cms-wordpress (Demo: next-blog-wordpress.vercel.app)
+- DatoCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-datocms (Demo: next-blog-datocms.vercel.app)
+- TakeShape Example: github.com/vercel/next.js/tree/canary/examples/cms-takeshape (Demo: next-blog-takeshape.vercel.app)
+- Sanity Example: github.com/vercel/next.js/tree/canary/examples/cms-sanity (Demo: next-blog-sanity.vercel.app)
+- Prismic Example: github.com/vercel/next.js/tree/canary/examples/cms-prismic (Demo: next-blog-prismic.vercel.app)
+- Contentful Example: github.com/vercel/next.js/tree/canary/examples/cms-contentful (Demo: next-blog-contentful.vercel.app)
+- Strapi Example: github.com/vercel/next.js/tree/canary/examples/cms-strapi (Demo: next-blog-strapi.vercel.app)
+- Prepr Example: github.com/vercel/next.js/tree/canary/examples/cms-prepr (Demo: next-blog-prepr.vercel.app)
+- Agility CMS Example: github.com/vercel/next.js/tree/canary/examples/cms-agilitycms (Demo: next-blog-agilitycms.vercel.app)
+- Cosmic Example: github.com/vercel/next.js/tree/canary/examples/cms-cosmic (Demo: next-blog-cosmic.vercel.app)
+- ButterCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-buttercms (Demo: next-blog-buttercms.vercel.app)
+- Storyblok Example: github.com/vercel/next.js/tree/canary/examples/cms-storyblok (Demo: next-blog-storyblok.vercel.app)
+- GraphCMS Example: github.com/vercel/next.js/tree/canary/examples/cms-graphcms (Demo: next-blog-graphcms.vercel.app)
+- Kontent Example: github.com/vercel/next.js/tree/canary/examples/cms-kontent-ai (Demo: next-blog-kontent.vercel.app)
+- Umbraco Heartcore Example: github.com/vercel/next.js/tree/canary/examples/cms-umbraco-heartcore (Demo: next-blog-umbraco-heartcore.vercel.app)
+- Plasmic Example: github.com/vercel/next.js/tree/canary/examples/cms-plasmic (Demo: nextjs-plasmic-example.vercel.app)
+- Enterspeed Example: github.com/vercel/next.js/tree/canary/examples/cms-enterspeed (Demo: next-blog-demo.enterspeed.com)
+- Makeswift Example: github.com/vercel/next.js/tree/canary/examples/cms-makeswift (Demo: nextjs-makeswift-example.vercel.app)
+
+In the Pages documentation and the Data Fetching documentation, we discussed how to pre-render a page at build time (Static Generation) using `getStaticProps` and `getStaticPaths`.
+
+Static Generation is useful when your pages fetch data from a headless CMS. However, it’s not ideal when you’re writing a draft on your headless CMS and want to preview the draft immediately on your page. You’d want Next.js to render these pages at request time instead of build time and fetch the draft content instead of the published content. Next.js has a feature called Preview Mode which solves this problem.
+
+## Step 1: Create and access a preview API route
+
+First, create a preview API route, e.g., `pages/api/preview.js`.
+
+In this API route, call `setPreviewData` on the response object. The argument for `setPreviewData` should be an object, e.g., `{}`.
+
+```js
+export default function handler(req, res) {
+  res.setPreviewData({})
+}
+```
+
+`res.setPreviewData` sets cookies on the browser which turns on the preview mode. Any requests to Next.js containing these cookies will be considered as the preview mode.
+
+You can test this manually by creating an API route and accessing it from your browser:
+
+```js
+export default function handler(req, res) {
+  res.setPreviewData({})
+  res.end('Preview mode enabled')
+}
+```
+
+If you open your browser’s developer tools and visit `/api/preview`, you’ll notice that the `__prerender_bypass` and `__next_preview_data` cookies will be set.
+
+### Securely accessing it from your Headless CMS
+
+To call this API route securely from your headless CMS, follow these steps:
+
+1. Create a secret token string using a token generator. This secret will only be known by your Next.js app and your headless CMS.
+2. If your headless CMS supports setting custom preview URLs, specify the following as the preview URL:
+
+```bash
+https://<your-site>/api/preview?secret=<token>&slug=<path>
+```
+
+3. In the preview API route, check that the secret matches and that the `slug` parameter exists. Call `res.setPreviewData` and redirect the browser to the path specified by `slug`.
+
+```js
+export default async (req, res) => {
+  if (req.query.secret !== 'MY_SECRET_TOKEN' || !req.query.slug) {
+    return res.status(401).json({ message: 'Invalid token' })
+  }
+
+  const post = await getPostBySlug(req.query.slug)
+
+  if (!post) {
+    return res.status(401).json({ message: 'Invalid slug' })
+  }
+
+  res.setPreviewData({})
+  res.redirect(post.slug)
+}
+```
+
+## Step 2: Update `getStaticProps`
+
+Update `getStaticProps` to support the preview mode. If you request a page with the preview mode cookies set, `getStaticProps` will be called at request time.
+
+```js
+export async function getStaticProps(context) {
+  // context.preview will be true if preview mode is enabled
+  // context.previewData will contain the data passed to setPreviewData
+}
+```
+
+You can use `context.preview` to modify the API endpoint URL to fetch different data based on the preview mode.
+
+```js
+export async function getStaticProps(context) {
+  const res = await fetch(`https://.../${context.preview ? 'preview' : ''}`)
+}
+```
+
+## More Details
+
+### Specify the Preview Mode duration
+
+`setPreviewData` takes an optional second parameter for options:
+
+- `maxAge`: Specifies the duration for the preview session.
+- `path`: Specifies the path the cookie should be applied under.
+
+```js
+setPreviewData(data, {
+  maxAge: 60 * 60,
+  path: '/about',
+})
+```
+
+### Clear the Preview Mode cookies
+
+To clear the Preview Mode cookies manually, create an API route that calls `clearPreviewData()`:
+
+```js
+export default function handler(req, res) {
+  res.clearPreviewData({})
+}
+```
+
+### `previewData` size limits
+
+Preview data is limited to 2KB due to cookie size limitations.
+
+### Works with `getServerSideProps`
+
+Preview mode also works with `getServerSideProps`, providing access to `preview` and `previewData` in the context object.
+
+### Works with API Routes
+
+API Routes will have access to `preview` and `previewData` under the request object.
+
+```js
+export default function myApiRoute(req, res) {
+  const isPreview = req.preview
+  const previewData = req.previewData
+}
+```
+
+### Unique per `next build`
+
+The bypass cookie value and the private key for encrypting the `previewData` change with each `next build`, ensuring security.
+
+To test Preview Mode locally over HTTP, your browser will need to allow third-party cookies and local storage access.
+
+# Content Security Policy
+
+Learn how to set a Content Security Policy (CSP) for your Next.js application.
+
+To edit the content of this page, navigate to the source page in your editor. You can use the PagesOnly component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Debugging
+
+Learn how to debug your Next.js application with VS Code or Chrome DevTools.
+
+## Debugging with VS Code
+
+1. Open your Next.js project in VS Code.
+2. Go to the Debug view by clicking on the Debug icon in the Activity Bar on the side of the window.
+3. Click on the gear icon to configure a launch.json file.
+4. Select "Node.js" as the environment.
+5. Add the following configuration:
+
+```json
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Next.js",
+  "skipFiles": ["<node_internals>/**"],
+  "program": "${workspaceFolder}/node_modules/.bin/next",
+  "args": ["dev"],
+  "cwd": "${workspaceFolder}",
+  "runtimeArgs": ["--inspect-brk"],
+  "port": 9229
+}
+```
+
+6. Set breakpoints in your code by clicking in the gutter next to the line numbers.
+7. Start debugging by selecting the configuration and clicking the green play button.
+
+## Debugging with Chrome DevTools
+
+1. Start your Next.js application in development mode using `npm run dev`.
+2. Open Chrome and navigate to `chrome://inspect`.
+3. Click on "Configure" and ensure your target port (default is 9229) is listed.
+4. Click on "Open dedicated DevTools for Node".
+5. Set breakpoints in your code directly in the Sources panel.
+6. Use the Console panel to log messages and inspect variables.
+
+## Tips
+
+- Use the `debugger;` statement in your code to trigger breakpoints programmatically.
+- Check the terminal for any error messages that may help in debugging.
+- Utilize the React Developer Tools extension for additional debugging capabilities in React components.
+
+# Configuring
+
+Learn how to configure your Next.js application.
+
+The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# Setting up Vitest with Next.js
+
+Learn how to set up Next.js with Vitest and React Testing Library - two popular unit testing libraries.
+
+## Introduction
+
+This guide provides instructions for integrating Vitest into a Next.js application, enabling efficient unit testing.
+
+## Prerequisites
+
+- Node.js installed
+- A Next.js application
+
+## Installation
+
+1. Install Vitest and React Testing Library:
+
+   ```
+   npm install --save-dev vitest @testing-library/react
+   ```
+
+2. Create a configuration file for Vitest:
+
+   Create a file named `vitest.config.js` in the root of your project with the following content:
+
+   ```javascript
+   import { defineConfig } from 'vitest/config';
+
+   export default defineConfig({
+     test: {
+       environment: 'jsdom',
+     },
+   });
+   ```
+
+## Writing Tests
+
+1. Create a test file in your component directory, for example, `MyComponent.test.js`.
+
+2. Write your test cases using Vitest and React Testing Library:
+
+   ```javascript
+   import { render, screen } from '@testing-library/react';
+   import MyComponent from './MyComponent';
+
+   test('renders MyComponent', () => {
+     render(<MyComponent />);
+     const linkElement = screen.getByText(/my component/i);
+     expect(linkElement).toBeInTheDocument();
+   });
+   ```
+
+## Running Tests
+
+Run your tests using the following command:
+
+```
+npx vitest
+```
+
+## Conclusion
+
+You have successfully set up Vitest with Next.js. You can now write and run tests for your components using Vitest and React Testing Library.
+
+# Setting up Jest with Next.js
+
+Learn how to set up Next.js with Jest for Unit Testing.
+
+## Introduction
+
+Jest is a delightful JavaScript testing framework with a focus on simplicity. It works well with Next.js applications for unit testing.
+
+## Installation
+
+To get started, install Jest and its dependencies:
+
+```bash
+npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+```
+
+## Configuration
+
+Create a `jest.config.js` file in the root of your project:
+
+```javascript
+module.exports = {
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+};
+```
+
+## Setup File
+
+Create a `jest.setup.js` file in the root of your project:
+
+```javascript
+import '@testing-library/jest-dom/extend-expect';
+```
+
+## Writing Tests
+
+Create a `__tests__` directory in your component folder. Inside, create a test file for your component, e.g., `MyComponent.test.js`:
+
+```javascript
+import { render, screen } from '@testing-library/react';
+import MyComponent from '../MyComponent';
+
+test('renders MyComponent', () => {
+  render(<MyComponent />);
+  const linkElement = screen.getByText(/my component/i);
+  expect(linkElement).toBeInTheDocument();
+});
+```
+
+## Running Tests
+
+Run your tests using the following command:
+
+```bash
+npm test
+```
+
+## Conclusion
+
+You have successfully set up Jest with Next.js for unit testing. You can now write and run tests for your components to ensure they work as expected.
+
+# Setting up Playwright with Next.js
+
+Learn how to set up Next.js with Playwright for End-to-End (E2E) and Integration testing.
+
+## Introduction
+
+Playwright is a powerful tool for automating web applications. This guide will help you integrate Playwright with your Next.js application for effective testing.
+
+## Installation
+
+1. Install Playwright and its dependencies:
+   ```
+   npm install -D playwright
+   ```
+
+2. Install the browsers:
+   ```
+   npx playwright install
+   ```
+
+## Configuration
+
+Create a Playwright configuration file named `playwright.config.js` in the root of your project:
+
+```javascript
+const { defineConfig } = require('@playwright/test');
+
+module.exports = defineConfig({
+  testDir: './tests',
+  timeout: 30000,
+  expect: {
+    timeout: 5000,
+  },
+  reporter: 'html',
+});
+```
+
+## Writing Tests
+
+Create a test file in the `tests` directory, for example, `example.spec.js`:
+
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('homepage has title', async ({ page }) => {
+  await page.goto('http://localhost:3000');
+  await expect(page).toHaveTitle(/Next.js/);
+});
+```
+
+## Running Tests
+
+To run your tests, use the following command:
+
+```
+npx playwright test
+```
+
+## Conclusion
+
+You have successfully set up Playwright with Next.js for E2E and Integration testing. For more advanced configurations and features, refer to the Playwright documentation.
+
+# Setting up Cypress with Next.js
+
+Learn how to set up Next.js with Cypress for End-to-End (E2E) and Component Testing.
+
+## Introduction
+
+Cypress is a powerful testing framework that allows you to write tests for your applications. This guide will help you integrate Cypress with your Next.js application.
+
+## Installation
+
+1. Install Cypress as a development dependency:
+
+   ```
+   npm install --save-dev cypress
+   ```
+
+2. Open Cypress for the first time:
+
+   ```
+   npx cypress open
+   ```
+
+   This command will create a `cypress` folder in your project directory.
+
+## Configuration
+
+### Cypress Configuration File
+
+Create a `cypress.config.js` file in the root of your project:
+
+```javascript
+const { defineConfig } = require("cypress");
+
+module.exports = defineConfig({
+  e2e: {
+    baseUrl: "http://localhost:3000",
+  },
+});
+```
+
+### Adding Scripts
+
+Add the following scripts to your `package.json`:
+
+```json
+"scripts": {
+  "cypress:open": "cypress open",
+  "cypress:run": "cypress run"
+}
+```
+
+## Writing Tests
+
+### End-to-End Tests
+
+Create a new file in the `cypress/e2e` directory, for example, `home.spec.js`:
+
+```javascript
+describe("Home Page", () => {
+  it("should load the home page", () => {
+    cy.visit("/");
+    cy.contains("Welcome to Next.js!");
+  });
+});
+```
+
+### Component Tests
+
+For component testing, create a new file in the `cypress/component` directory, for example, `button.spec.js`:
+
+```javascript
+import { mount } from "cypress/react";
+import Button from "../../components/Button";
+
+describe("Button Component", () => {
+  it("should render correctly", () => {
+    mount(<Button label="Click Me" />);
+    cy.contains("Click Me");
+  });
+});
+```
+
+## Running Tests
+
+To run your tests, use the following commands:
+
+- For opening the Cypress UI:
+
+  ```
+  npm run cypress:open
+  ```
+
+- For running tests in headless mode:
+
+  ```
+  npm run cypress:run
+  ```
+
+## Conclusion
+
+You have successfully set up Cypress with your Next.js application. You can now write and run both End-to-End and Component tests to ensure your application works as expected.
+
+# Testing
+
+Learn how to set up Next.js with three commonly used testing tools — Cypress, Playwright, Vitest, and Jest.
+
+# Authentication
+
+Learn how to implement authentication in Next.js, covering best practices, securing routes, authorization techniques, and session management.
+
+## Best Practices
+
+- Use secure password storage techniques (e.g., bcrypt).
+- Implement multi-factor authentication (MFA) for added security.
+- Regularly update dependencies to mitigate vulnerabilities.
+
+## Securing Routes
+
+- Protect sensitive routes by checking user authentication status.
+- Use middleware to enforce authentication on specific pages or API routes.
+
+## Authorization Techniques
+
+- Implement role-based access control (RBAC) to manage user permissions.
+- Use claims-based authorization for fine-grained access control.
+
+## Session Management
+
+- Use secure cookies for session management.
+- Implement session expiration and renewal strategies to enhance security.
+
+# Production Checklist
+
+Recommendations to ensure the best performance and user experience before taking your Next.js application to production.
+
+1. **Performance Optimization**
+   - Analyze your application using tools like Lighthouse.
+   - Optimize images and assets.
+   - Use code splitting and lazy loading.
+
+2. **Security Best Practices**
+   - Implement HTTPS.
+   - Use environment variables for sensitive information.
+   - Regularly update dependencies.
+
+3. **Monitoring and Logging**
+   - Set up error tracking and logging.
+   - Monitor application performance in real-time.
+
+4. **SEO Considerations**
+   - Ensure proper meta tags are in place.
+   - Use structured data where applicable.
+
+5. **Testing**
+   - Conduct thorough testing, including unit, integration, and end-to-end tests.
+   - Test on various devices and browsers.
+
+6. **Deployment**
+   - Choose a reliable hosting provider.
+   - Automate deployment processes where possible.
+
+7. **Backup and Recovery**
+   - Implement a backup strategy for your application and database.
+   - Test recovery procedures regularly.
+
+8. **Documentation**
+   - Maintain up-to-date documentation for your application.
+   - Include setup instructions and troubleshooting tips.
+
+9. **User Experience**
+   - Ensure a responsive design.
+   - Optimize loading times for a better user experience.
+
+# Static Exports
+
+Next.js enables starting as a static site or Single-Page Application (SPA), then later optionally upgrading to use features that require a server.
+
+# Multi-Zones
+
+Learn how to build micro-frontends using Next.js Multi-Zones to deploy multiple Next.js apps under a single domain. 
+
+The content of this document is generated from the source. To edit the content, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Continuous Integration (CI) Build Caching
+
+To improve build performance, Next.js saves a cache to `.next/cache` that is shared between builds. To utilize this cache in Continuous Integration (CI) environments, your CI workflow must be configured to persist the cache between builds.
+
+If your CI is not configured to persist `.next/cache` between builds, you may see a No Cache Detected error.
+
+## Vercel
+
+Next.js caching is automatically configured. No action is required. If using Turborepo on Vercel, refer to the documentation for more information.
+
+## CircleCI
+
+Edit your `save_cache` step in `.circleci/config.yml` to include `.next/cache`:
+
+```yaml
+steps:
+  - save_cache:
+      key: dependency-cache-{{ checksum "yarn.lock" }}
+      paths:
+        - ./node_modules
+        - ./.next/cache
+```
+
+For additional setup, refer to CircleCI's documentation on build caching.
+
+## Travis CI
+
+Add or merge the following into your `.travis.yml`:
+
+```yaml
+cache:
+  directories:
+    - $HOME/.cache/yarn
+    - node_modules
+    - .next/cache
+```
+
+## GitLab CI
+
+Add or merge the following into your `.gitlab-ci.yml`:
+
+```yaml
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .next/cache/
+```
+
+## Netlify CI
+
+Use Netlify Plugins with `@netlify/plugin-nextjs`.
+
+## AWS CodeBuild
+
+Add (or merge) the following to your `buildspec.yml`:
+
+```yaml
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.next/cache/**/*'
+```
+
+## GitHub Actions
+
+Using GitHub's actions/cache, add the following step in your workflow file:
+
+```yaml
+uses: actions/cache@v4
+with:
+  path: |
+    ~/.npm
+    ${{ github.workspace }}/.next/cache
+  key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+  restore-keys: |
+    ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+```
+
+## Bitbucket Pipelines
+
+Add or merge the following into your `bitbucket-pipelines.yml` at the top level:
+
+```yaml
+definitions:
+  caches:
+    nextcache: .next/cache
+```
+
+Reference it in the `caches` section of your pipeline's `step`:
+
+```yaml
+- step:
+    name: your_step_name
+    caches:
+      - node
+      - nextcache
+```
+
+## Heroku
+
+Using Heroku's custom cache, add a `cacheDirectories` array in your top-level package.json:
+
+```javascript
+"cacheDirectories": [".next/cache"]
+```
+
+## Azure Pipelines
+
+Using Azure Pipelines' Cache task, add the following task to your pipeline yaml file before the task that executes `next build`:
+
+```yaml
+- task: Cache@2
+  displayName: 'Cache .next/cache'
+  inputs:
+    key: next | $(Agent.OS) | yarn.lock
+    path: '$(System.DefaultWorkingDirectory)/.next/cache'
+```
+
+## Jenkins (Pipeline)
+
+Using Jenkins' Job Cacher plugin, add the following build step to your `Jenkinsfile` where you would normally run `next build` or `npm install`:
+
+```yaml
+stage("Restore npm packages") {
+    steps {
+        writeFile file: "next-lock.cache", text: "$GIT_COMMIT"
+
+        cache(caches: [
+            arbitraryFileCache(
+                path: "node_modules",
+                includes: "**/*",
+                cacheValidityDecidingFile: "package-lock.json"
+            )
+        ]) {
+            sh "npm install"
+        }
+    }
+}
+stage("Build") {
+    steps {
+        writeFile file: "next-lock.cache", text: "$GIT_COMMIT"
+
+        cache(caches: [
+            arbitraryFileCache(
+                path: ".next/cache",
+                includes: "**/*",
+                cacheValidityDecidingFile: "next-lock.cache"
+            )
+        ]) {
+            sh "npm run build"
+        }
+    }
+}
+```
+
+# Deploying
+
+Learn how to deploy your Next.js app to production, either managed or self-hosted. 
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Codemods
+
+Use codemods to upgrade your Next.js codebase when new features are released.
+
+# From Pages to App
+
+Learn how to upgrade your existing Next.js application from the Pages Router to the App Router.
+
+## Overview
+
+This documentation provides guidance on migrating from the Pages Router to the App Router in Next.js applications. 
+
+## Migration Steps
+
+1. **Assess Your Current Application**: Review your existing application structure and identify components that need to be updated.
+
+2. **Update Dependencies**: Ensure that your Next.js version is compatible with the App Router.
+
+3. **Refactor Routing**: Change your routing structure to align with the App Router conventions.
+
+4. **Test Your Application**: After making changes, thoroughly test your application to ensure everything functions as expected.
+
+5. **Deploy Changes**: Once testing is complete, deploy your updated application.
+
+## Additional Resources
+
+For more detailed information, refer to the official Next.js documentation on upgrading to the App Router.
+
+# Migrating from Vite
+
+Learn how to migrate your existing React application from Vite to Next.js.
+
+## Migration Steps
+
+1. **Install Next.js**: Begin by installing Next.js in your project. Use the command:
+   ```
+   npm install next react react-dom
+   ```
+
+2. **Update Scripts**: Modify your `package.json` scripts to include Next.js commands:
+   ```json
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start"
+   }
+   ```
+
+3. **Create Pages**: Move your existing components into the `pages` directory. Each component should correspond to a route.
+
+4. **Update Imports**: Adjust your import statements to reflect the new file structure. Ensure that you import React and any other necessary libraries.
+
+5. **Handle Static Assets**: Move any static assets to the `public` directory. Update paths in your code accordingly.
+
+6. **Configure Next.js**: If you have specific configurations, create a `next.config.js` file in the root of your project.
+
+7. **Test Your Application**: Run your application using the command:
+   ```
+   npm run dev
+   ```
+   Check for any errors and ensure that all routes are functioning as expected.
+
+8. **Deploy**: Once everything is working locally, you can deploy your Next.js application using your preferred hosting service.
+
+## Additional Resources
+
+For more detailed information, refer to the official Next.js documentation.
+
+# Migrating from Create React App
+
+Learn how to migrate your existing React application from Create React App to Next.js.
+
+## Overview
+
+Migrating from Create React App (CRA) to Next.js involves several steps to ensure your application functions correctly in the new environment. This guide outlines the necessary changes and considerations.
+
+## Steps to Migrate
+
+1. **Install Next.js**: Begin by installing Next.js in your project.
+   - Run: `npm install next react react-dom`
+
+2. **Update Scripts**: Modify your `package.json` scripts to use Next.js.
+   - Replace the existing scripts with:
+     ```json
+     "scripts": {
+       "dev": "next dev",
+       "build": "next build",
+       "start": "next start"
+     }
+     ```
+
+3. **Create Pages**: Move your existing components into the `pages` directory.
+   - Each component should be a default export from a file named after the route.
+
+4. **Static Assets**: Move static assets to the `public` directory.
+   - Update paths in your components accordingly.
+
+5. **Routing**: Replace React Router with Next.js routing.
+   - Use the `Link` component from `next/link` for navigation.
+
+6. **API Routes**: If you have API endpoints, consider using Next.js API routes.
+   - Create a folder named `api` inside the `pages` directory.
+
+7. **Environment Variables**: Update your environment variables to follow Next.js conventions.
+   - Prefix variables with `NEXT_PUBLIC_` for client-side access.
+
+8. **CSS and Assets**: Ensure your CSS and other assets are imported correctly.
+   - Use global styles in `pages/_app.js`.
+
+9. **Testing**: Thoroughly test your application to ensure all features work as expected.
+
+## Conclusion
+
+Migrating from Create React App to Next.js can enhance your application's performance and capabilities. Follow the outlined steps carefully to ensure a smooth transition.
+
+# Version 14
+
+Upgrade your Next.js Application from Version 13 to 14.
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Version 13
+
+## Upgrading from 12 to 13
+
+To update to Next.js version 13, run the following command using your preferred package manager:
+
+```bash
+npm i next@13 react@latest react-dom@latest eslint-config-next@13
+```
+
+```bash
+yarn add next@13 react@latest react-dom@latest eslint-config-next@13
+```
+
+```bash
+pnpm i next@13 react@latest react-dom@latest eslint-config-next@13
+```
+
+```bash
+bun add next@13 react@latest react-dom@latest eslint-config-next@13
+```
+
+**Good to know:** If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their latest versions.
+
+### v13 Summary
+
+- Supported Browsers have been changed to drop Internet Explorer and target modern browsers.
+- The minimum Node.js version has been bumped from 12.22.0 to 16.14.0.
+- The minimum React version has been bumped from 17.0.2 to 18.2.0.
+- The `swcMinify` configuration property was changed from `false` to `true`.
+- The `next/image` import was renamed to `next/legacy/image`. The `next/future/image` import was renamed to `next/image`. A codemod is available to safely and automatically rename your imports.
+- The `next/link` child can no longer be `<a>`. Add the `legacyBehavior` prop to use the legacy behavior or remove the `<a>` to upgrade. A codemod is available to automatically upgrade your code.
+- The `target` configuration property has been removed and superseded by Output File Tracing.
+
+## Migrating shared features
+
+Next.js 13 introduces a new `app` directory with new features and conventions. However, upgrading to Next.js 13 does not require using the new `app` directory.
+
+You can continue using `pages` with new features that work in both directories, such as the updated Image component, Link component, Script component, and Font optimization.
+
+### `<Image/>` Component
+
+Next.js 12 introduced many improvements to the Image Component with a temporary import: `next/future/image`. Starting in Next.js 13, this new behavior is now the default for `next/image`.
+
+There are two codemods to help you migrate to the new Image Component:
+
+- `next-image-to-legacy-image`: This codemod will safely and automatically rename `next/image` imports to `next/legacy/image`.
+- `next-image-experimental`: After running the previous codemod, you can optionally run this experimental codemod to upgrade `next/legacy/image` to the new `next/image`.
+
+Alternatively, you can manually update by following the migration guide and also see the legacy comparison.
+
+### `<Link>` Component
+
+The `<Link>` Component no longer requires manually adding an `<a>` tag as a child. In Next.js 13, `<Link>` always renders `<a>` and allows you to forward props to the underlying tag.
+
+Example:
+
+```jsx
+import Link from 'next/link'
+
+// Next.js 12: `<a>` has to be nested otherwise it's excluded
+<Link href="/about">
+  <a>About</a>
+</Link>
+
+// Next.js 13: `<Link>` always renders `<a>` under the hood
+<Link href="/about">
+  About
+</Link>
+```
+
+To upgrade your links to Next.js 13, you can use the `new-link` codemod.
+
+### `<Script>` Component
+
+The behavior of `next/script` has been updated to support both `pages` and `app`. If incrementally adopting `app`, read the upgrade guide.
+
+### Font Optimization
+
+Version 13 introduces the new `next/font` module which gives you the ability to customize your font loading experience while ensuring great performance and privacy. See Optimizing Fonts to learn how to use `next/font`.
+
+# Version 12
+
+Upgrade your Next.js Application from Version 11 to Version 12.
+
+To upgrade to version 12, run the following command:
+
+```bash
+npm i next@12 react@17 react-dom@17 eslint-config-next@12
+```
+
+```bash
+yarn add next@12 react@17 react-dom@17 eslint-config-next@12
+```
+
+```bash
+pnpm up next@12 react@17 react-dom@17 eslint-config-next@12
+```
+
+```bash
+bun add next@12 react@17 react-dom@17 eslint-config-next@12
+```
+
+**Good to know:** If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their corresponding versions.
+
+## Upgrading to 12.2
+
+Middleware - If you were using Middleware prior to `12.2`, please see the upgrade guide for more information.
+
+## Upgrading to 12.0
+
+Minimum Node.js Version - The minimum Node.js version has been bumped from `12.0.0` to `12.22.0`, which is the first version of Node.js with native ES Modules support.
+
+Minimum React Version - The minimum required React version is `17.0.2`. To upgrade, run the following command in the terminal:
+
+```bash
+npm install react@latest react-dom@latest
+```
+
+```bash
+yarn add react@latest react-dom@latest
+```
+
+```bash
+pnpm update react@latest react-dom@latest
+```
+
+```bash
+bun add react@latest react-dom@latest
+```
+
+### SWC replacing Babel
+
+Next.js now uses the Rust-based compiler SWC to compile JavaScript/TypeScript. This new compiler is up to 17x faster than Babel when compiling individual files and up to 5x faster for Fast Refresh.
+
+Next.js provides full backward compatibility with applications that have custom Babel configuration. All transformations that Next.js handles by default, like styled-jsx and tree-shaking of `getStaticProps`, `getStaticPaths`, and `getServerSideProps`, have been ported to Rust.
+
+When an application has a custom Babel configuration, Next.js will automatically opt-out of using SWC for compiling JavaScript/TypeScript and will fall back to using Babel as in Next.js 11.
+
+Many integrations with external libraries that currently require custom Babel transformations will be ported to Rust-based SWC transforms in the near future, including Styled Components, Emotion, and Relay.
+
+To prioritize transforms that will help you adopt SWC, please provide your `.babelrc` on the feedback thread.
+
+### SWC replacing Terser for minification
+
+You can opt-in to replacing Terser with SWC for minifying JavaScript up to 7x faster using a flag in `next.config.js`:
+
+```js
+module.exports = {
+  swcMinify: true,
+}
+```
+
+Minification using SWC is an opt-in flag to ensure it can be tested against more real-world Next.js applications before it becomes the default in Next.js 12.1. If you have feedback about minification, please leave it on the feedback thread.
+
+### Improvements to styled-jsx CSS parsing
+
+A new CSS parser based on the one used for the styled-jsx Babel transform has been implemented. This parser has improved handling of CSS and now errors when invalid CSS is used that would previously slip through and cause unexpected behavior.
+
+Invalid CSS will throw an error during development and `next build`. This change only affects styled-jsx usage.
+
+### `next/image` changed wrapping element
+
+`next/image` now renders the `<img>` inside a `<span>` instead of `<div>`. If your application has specific CSS targeting span, upgrading to Next.js 12 might incorrectly match the wrapping element inside the `<Image>` component. You can avoid this by restricting the selector to a specific class.
+
+If your application has specific CSS targeting the `next/image` `<div>` tag, it may not match anymore. You can update the selector or add a new `<div className="wrapper">` wrapping the `<Image>` component.
+
+The `className` prop is unchanged and will still be passed to the underlying `<img>` element.
+
+### HMR connection now uses a WebSocket
+
+Next.js 12 now uses a WebSocket connection for HMR events. Ensure the upgrade request is handled correctly when proxying requests to the Next.js dev server.
+
+For `nginx`, add the following configuration:
+
+```nginx
+location /_next/webpack-hmr {
+    proxy_pass http://localhost:3000/_next/webpack-hmr;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
+For Apache (2.x), add the following configuration:
+
+```apache
+<VirtualHost *:443>
+ ServerName "${WEBSITE_SERVER_NAME}"
+ ProxyPass / http://localhost:3000/
+ ProxyPassReverse / http://localhost:3000/
+ <Location /_next/webpack-hmr>
+    RewriteEngine On
+    RewriteCond %{QUERY_STRING} transport=websocket [NC]
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule /(.*) ws://localhost:3000/_next/webpack-hmr/$1 [P,L]
+    ProxyPass ws://localhost:3000/_next/webpack-hmr retry=0 timeout=30
+    ProxyPassReverse ws://localhost:3000/_next/webpack-hmr
+ </Location>
+</VirtualHost>
+```
+
+For custom servers, such as `express`, use `app.all` to ensure the request is passed correctly:
+
+```js
+app.all('/_next/webpack-hmr', (req, res) => {
+  nextjsRequestHandler(req, res)
+})
+```
+
+### Webpack 4 support has been removed
+
+Next.js has adopted webpack 5 as the default for compilation. Next.js 12 removes support for webpack 4. If your application is still using webpack 4, you will see an error linking to the webpack 5 upgrading documentation.
+
+### `target` option deprecated
+
+The target option has been deprecated in favor of built-in support for tracing dependencies needed to run a page. During `next build`, Next.js will automatically trace each page and its dependencies.
+
+If you are currently using the `target` option set to `serverless`, please read the documentation on how to leverage the new output.
+
+# Version 11
+
+Upgrade your Next.js Application from Version 10 to Version 11.
+
+To upgrade to version 11, run the following command:
+
+```bash
+npm i next@11 react@17 react-dom@17
+```
+
+```bash
+yarn add next@11 react@17 react-dom@17
+```
+
+```bash
+pnpm up next@11 react@17 react-dom@17
+```
+
+```bash
+bun add next@11 react@17 react-dom@17
+```
+
+**Good to know:** If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their corresponding versions.
+
+## Webpack 5
+
+Webpack 5 is now the default for all Next.js applications. If you did not have a custom webpack configuration, your application is already using webpack 5. If you do have a custom webpack configuration, refer to the Next.js webpack 5 documentation for upgrade guidance.
+
+## Cleaning the `distDir` is now a default
+
+The build output directory (defaults to `.next`) is now cleared by default except for the Next.js caches. Refer to the cleaning `distDir` RFC for more information.
+
+If your application relied on this behavior previously, you can disable the new default behavior by adding the `cleanDistDir: false` flag in `next.config.js`.
+
+## `PORT` is now supported for `next dev` and `next start`
+
+Next.js 11 supports the `PORT` environment variable to set the port the application runs on. Using `-p`/`--port` is still recommended, but if you were prohibited from using `-p`, you can now use `PORT` as an alternative:
+
+Example:
+
+```
+PORT=4000 next start
+```
+
+## `next.config.js` customization to import images
+
+Next.js 11 supports static image imports with `next/image`. If you previously added the `next-images` or `next-optimized-images` packages, you can either move to the new built-in support using `next/image` or disable the feature:
+
+```js
+module.exports = {
+  images: {
+    disableStaticImages: true,
+  },
+}
+```
+
+## Remove `super.componentDidCatch()` from `pages/_app.js`
+
+The `next/app` component's `componentDidCatch` was deprecated in Next.js 9 and has since been a no-op. In Next.js 11, it was removed. If your `pages/_app.js` has a custom `componentDidCatch` method, you can remove `super.componentDidCatch`.
+
+## Remove `Container` from `pages/_app.js`
+
+This export was deprecated in Next.js 9 and has since been a no-op with a warning during development. In Next.js 11, it was removed. If your `pages/_app.js` imports `Container` from `next/app`, you can remove it.
+
+## Remove `props.url` usage from page components
+
+This property was deprecated in Next.js 4 and has since shown a warning during development. With the introduction of `getStaticProps` / `getServerSideProps`, these methods already disallowed the usage of `props.url`. In Next.js 11, it was removed.
+
+## Remove `unsized` property on `next/image`
+
+The `unsized` property on `next/image` was deprecated in Next.js 10.0.1. You can use `layout="fill"` instead. In Next.js 11, `unsized` was removed.
+
+## Remove `modules` property on `next/dynamic`
+
+The `modules` and `render` options for `next/dynamic` were deprecated in Next.js 9.5. In Next.js 11, these options were removed. If your application uses `modules` and `render`, refer to the documentation.
+
+## Remove `Head.rewind`
+
+`Head.rewind` has been a no-op since Next.js 9.5. In Next.js 11, it was removed. You can safely remove your usage of `Head.rewind`.
+
+## Moment.js locales excluded by default
+
+Next.js now automatically excludes Moment.js locales by default to optimize bundle size. To load a specific locale, use this snippet:
+
+```js
+import moment from 'moment'
+import 'moment/locale/ja'
+
+moment.locale('ja')
+```
+
+You can opt-out of this new default by adding `excludeDefaultMomentLocales: false` to `next.config.js`, but it is highly recommended to not disable this optimization.
+
+## Update usage of `router.events`
+
+In Next.js 11, `router.events` is no longer provided during pre-rendering. Ensure you're accessing `router.events` in `useEffect`:
+
+```js
+useEffect(() => {
+  const handleRouteChange = (url, { shallow }) => {
+    console.log(`App is changing to ${url} ${shallow ? 'with' : 'without'} shallow routing`)
+  }
+
+  router.events.on('routeChangeStart', handleRouteChange)
+
+  return () => {
+    router.events.off('routeChangeStart', handleRouteChange)
+  }
+}, [router])
+```
+
+If your application uses `router.router.events`, please make sure to use `router.events`.
+
+## React 16 to 17
+
+React 17 introduced a new JSX Transform that allows not having to `import React from 'react'` when using JSX. When using React 17, Next.js will automatically use the new transform. A codemod is available to automatically fix cases where you accidentally used `React` without importing it.
+
+Most applications already use the latest version of React. With Next.js 11, the minimum React version has been updated to 17.0.2.
+
+To upgrade, run the following command:
+
+```
+npm install react@latest react-dom@latest
+```
+
+Or using `yarn`:
+
+```
+yarn add react@latest react-dom@latest
+```
+
+# Version 10
+
+Upgrade your Next.js Application from Version 9 to Version 10.
+
+There were no breaking changes between versions 9 and 10.
+
+To upgrade to version 10, run one of the following commands:
+
+```bash
+npm i next@10
+```
+
+```bash
+yarn add next@10
+```
+
+```bash
+pnpm up next@10
+```
+
+```bash
+bun add next@10
+```
+
+Good to know: If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their corresponding versions.
+
+# Upgrading to Version 9
+
+Upgrade your Next.js Application from Version 8 to Version 9.
+
+To upgrade to version 9, run the following command:
+
+```bash
+npm i next@9
+```
+
+```bash
+yarn add next@9
+```
+
+```bash
+pnpm up next@9
+```
+
+```bash
+bun add next@9
+```
+
+**Good to know:** If you are using TypeScript, ensure you also upgrade `@types/react` and `@types/react-dom` to their corresponding versions.
+
+## Production Deployment on Vercel
+
+If you previously configured `routes` in your `vercel.json` file for dynamic routes, these rules can be removed when leveraging Next.js 9's new Dynamic Routing feature.
+
+Next.js 9's dynamic routes are automatically configured on Vercel and do not require any `vercel.json` customization.
+
+## Check your Custom App File (`pages/_app.js`)
+
+If you previously copied the Custom `<App>` example, you may be able to remove your `getInitialProps`.
+
+Removing `getInitialProps` from `pages/_app.js` (when possible) is important to leverage new Next.js features.
+
+The following `getInitialProps` does nothing and may be removed:
+
+```js
+class MyApp extends App {
+  // Remove me, I do nothing!
+  static async getInitialProps({ Component, ctx }) {
+    let pageProps = {}
+
+    if (Component.getInitialProps) {
+      pageProps = await Component.getInitialProps(ctx)
+    }
+
+    return { pageProps }
+  }
+
+  render() {
+    // ... etc
+  }
+}
+```
+
+## Breaking Changes
+
+### `@zeit/next-typescript` is no longer necessary
+
+Next.js will now ignore usage of `@zeit/next-typescript` and warn you to remove it. Please remove this plugin from your `next.config.js`.
+
+Remove references to `@zeit/next-typescript/babel` from your custom `.babelrc` (if present).
+
+The usage of `fork-ts-checker-webpack-plugin` should also be removed from your `next.config.js`.
+
+TypeScript Definitions are published with the `next` package, so you need to uninstall `@types/next` as they would conflict.
+
+The following types are different:
+
+From:
+
+```tsx
+import { NextContext } from 'next'
+import { NextAppContext, DefaultAppIProps } from 'next/app'
+import { NextDocumentContext, DefaultDocumentIProps } from 'next/document'
+```
+
+to
+
+```tsx
+import { NextPageContext } from 'next'
+import { AppContext, AppInitialProps } from 'next/app'
+import { DocumentContext, DocumentInitialProps } from 'next/document'
+```
+
+### The `config` key is now an export on a page
+
+You may no longer export a custom variable named `config` from a page. This exported variable is now used to specify page-level Next.js configuration like Opt-in AMP and API Route features.
+
+You must rename a non-Next.js-purposed `config` export to something different.
+
+### `next/dynamic` no longer renders "loading..." by default while loading
+
+Dynamic components will not render anything by default while loading. You can still customize this behavior by setting the `loading` property:
+
+```jsx
+import dynamic from 'next/dynamic'
+
+const DynamicComponentWithCustomLoading = dynamic(
+  () => import('../components/hello2'),
+  {
+    loading: () => <p>Loading</p>,
+  }
+)
+```
+
+### `withAmp` has been removed in favor of an exported configuration object
+
+Next.js now has the concept of page-level configuration, so the `withAmp` higher-order component has been removed for consistency.
+
+This change can be automatically migrated by running the following commands in the root of your Next.js project:
+
+```bash
+curl -L https://github.com/vercel/next-codemod/archive/master.tar.gz | tar -xz --strip=2 next-codemod-master/transforms/withamp-to-config.js npx jscodeshift -t ./withamp-to-config.js pages/**/*.js
+```
+
+To perform this migration by hand, or view what the codemod will produce, see below:
+
+**Before**
+
+```jsx
+import { withAmp } from 'next/amp'
+
+function Home() {
+  return <h1>My AMP Page</h1>
+}
+
+export default withAmp(Home)
+// or
+export default withAmp(Home, { hybrid: true })
+```
+
+**After**
+
+```jsx
+export default function Home() {
+  return <h1>My AMP Page</h1>
+}
+
+export const config = {
+  amp: true,
+  // or
+  amp: 'hybrid',
+}
+```
+
+### `next export` no longer exports pages as `index.html`
+
+Previously, exporting `pages/about.js` would result in `out/about/index.html`. This behavior has been changed to result in `out/about.html`.
+
+You can revert to the previous behavior by creating a `next.config.js` with the following content:
+
+```js
+module.exports = {
+  trailingSlash: true,
+}
+```
+
+### `pages/api/` is treated differently
+
+Pages in `pages/api/` are now considered API Routes. Pages in this directory will no longer contain a client-side bundle.
+
+## Deprecated Features
+
+### `next/dynamic` has deprecated loading multiple modules at once
+
+The ability to load multiple modules at once has been deprecated in `next/dynamic` to be closer to React's implementation (`React.lazy` and `Suspense`).
+
+Updating code that relies on this behavior is relatively straightforward. Here's an example of a before/after to help you migrate your application:
+
+**Before**
+
+```jsx
+import dynamic from 'next/dynamic'
+
+const HelloBundle = dynamic({
+  modules: () => {
+    const components = {
+      Hello1: () => import('../components/hello1').then((m) => m.default),
+      Hello2: () => import('../components/hello2').then((m) => m.default),
+    }
+
+    return components
+  },
+  render: (props, { Hello1, Hello2 }) => (
+    <div>
+      <h1>{props.title}</h1>
+      <Hello1 />
+      <Hello2 />
+    </div>
+  ),
+})
+
+function DynamicBundle() {
+  return <HelloBundle title="Dynamic Bundle" />
+}
+
+export default DynamicBundle
+```
+
+**After**
+
+```jsx
+import dynamic from 'next/dynamic'
+
+const Hello1 = dynamic(() => import('../components/hello1'))
+const Hello2 = dynamic(() => import('../components/hello2'))
+
+function HelloBundle({ title }) {
+  return (
+    <div>
+      <h1>{title}</h1>
+      <Hello1 />
+      <Hello2 />
+    </div>
+  )
+}
+
+function DynamicBundle() {
+  return <HelloBundle title="Dynamic Bundle" />
+}
+
+export default DynamicBundle
+```
+
+# Upgrading
+
+Learn how to upgrade to the latest versions of Next.js. 
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Building Your Application
+
+Learn how to use Next.js features to build your application. 
+
+The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# Font Module
+
+## API Reference for the Font Module
+
+The content of this document is generated from the source app/api-reference/components/font. To edit the content, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# Form
+
+Learn how to use the `<Form>` component to handle form submissions and search params updates with client-side navigation.
+
+## Overview
+
+The `<Form>` component is designed to facilitate form submissions and manage search parameters effectively. It enhances user experience by enabling client-side navigation without full page reloads.
+
+## Usage
+
+To implement the `<Form>` component, follow these guidelines:
+
+1. **Basic Structure**: Ensure your form is structured correctly with necessary input fields.
+2. **Submission Handling**: Utilize the component's built-in methods to handle submissions seamlessly.
+3. **Search Params**: Leverage the component to update search parameters dynamically based on user input.
+
+## Example
+
+```jsx
+<Form onSubmit={handleSubmit}>
+  <input type="text" name="search" />
+  <button type="submit">Search</button>
+</Form>
+```
+
+## Best Practices
+
+- Keep forms simple and intuitive.
+- Validate user input before submission.
+- Provide feedback to users upon successful submission or errors.
+
+## Conclusion
+
+The `<Form>` component is a powerful tool for managing forms in a client-side application. By following the guidelines and best practices outlined, you can create efficient and user-friendly forms.
+
+# Add Custom Elements to the Head of Your Page
+
+Add custom elements to the `head` of your page with the built-in Head component.
+
+## Examples
+
+- Head Elements: github.com/vercel/next.js/tree/canary/examples/head-elements
+- Layout Component: github.com/vercel/next.js/tree/canary/examples/layout-component
+
+## Usage
+
+We expose a built-in component for appending elements to the `head` of the page:
+
+```jsx
+import Head from 'next/head'
+
+function IndexPage() {
+  return (
+    <div>
+      <Head>
+        <title>My page title</title>
+      </Head>
+      <p>Hello world!</p>
+    </div>
+  )
+}
+
+export default IndexPage
+```
+
+## Avoid Duplicated Tags
+
+To avoid duplicate tags in your `head`, use the `key` property to ensure the tag is only rendered once:
+
+```jsx
+import Head from 'next/head'
+
+function IndexPage() {
+  return (
+    <div>
+      <Head>
+        <title>My page title</title>
+        <meta property="og:title" content="My page title" key="title" />
+      </Head>
+      <Head>
+        <meta property="og:title" content="My new title" key="title" />
+      </Head>
+      <p>Hello world!</p>
+    </div>
+  )
+}
+
+export default IndexPage
+```
+
+In this case, only the second `<meta property="og:title" />` is rendered. `meta` tags with duplicate `key` attributes are automatically handled.
+
+**Good to know**: `<title>` and `<base>` tags are automatically checked for duplicates by Next.js, so using `key` is not necessary for these tags.
+
+The contents of `head` get cleared upon unmounting the component, so ensure each page completely defines what it needs in `head`, without making assumptions about what other pages added.
+
+## Use Minimal Nesting
+
+`title`, `meta`, or any other elements (e.g., `script`) need to be contained as **direct** children of the `Head` element, or wrapped into a maximum of one level of `<React.Fragment>` or arrays—otherwise, the tags won't be correctly picked up on client-side navigations.
+
+## Use next/script for Scripts
+
+We recommend using `next/script` in your component instead of manually creating a `<script>` in `next/head`.
+
+## No html or body Tags
+
+You **cannot** use `<Head>` to set attributes on `<html>` or `<body>` tags. This will result in a `next-head-count is missing` error. `next/head` can only handle tags inside the HTML `<head>` tag.
+
+# Image (Legacy)
+
+Backwards compatible Image Optimization with the Legacy Image component.
+
+## Overview
+
+Starting with Next.js 13, the `next/image` component was rewritten for improved performance and developer experience. The old `next/image` was renamed to `next/legacy/image` for backwards compatibility.
+
+## Comparison
+
+Changes from `next/legacy/image` to `next/image`:
+
+- Removes `<span>` wrapper around `<img>` for native computed aspect ratio.
+- Adds support for canonical `style` prop.
+- Removes `layout`, `objectFit`, and `objectPosition` props in favor of `style` or `className`.
+- Removes `IntersectionObserver` for native lazy loading.
+- Changes `alt` prop from optional to required.
+- Changes `onLoadingComplete` callback to receive reference to `<img>` element.
+
+## Required Props
+
+### src
+
+Must be a statically imported image file or a path string (absolute URL or internal path). 
+
+- External URLs require configuration of remotePatterns.
+- Animated images or unknown formats are served as-is.
+- SVG format is blocked unless `unoptimized` or `dangerouslyAllowSVG` is enabled.
+
+### width
+
+Represents either rendered or original width in pixels, depending on `layout` and `sizes` properties. Required except for statically imported images or those with `layout="fill"`.
+
+### height
+
+Represents either rendered or original height in pixels, depending on `layout` and `sizes` properties. Required except for statically imported images or those with `layout="fill"`.
+
+## Optional Props
+
+### layout
+
+Defines the layout behavior of the image:
+
+- `intrinsic`: Scales down to fit the container.
+- `fixed`: Sized to exact width and height.
+- `responsive`: Scales to fit the container.
+- `fill`: Grows to fill the container.
+
+### loader
+
+Custom function to resolve URLs, overriding the default loader in `next.config.js`.
+
+### sizes
+
+String providing width information at different breakpoints, affecting performance for `layout="responsive"` or `layout="fill"`.
+
+### quality
+
+Integer between `1` and `100` for image quality, defaulting to `75`.
+
+### priority
+
+When true, the image is considered high priority and lazy loading is disabled.
+
+### placeholder
+
+Placeholder while the image loads, can be `blur` or `empty`.
+
+### Advanced Props
+
+#### style
+
+Allows passing CSS styles to the image element.
+
+#### objectFit
+
+Defines how the image fits into its parent container when using `layout="fill"`.
+
+#### objectPosition
+
+Defines how the image is positioned within its parent element when using `layout="fill"`.
+
+#### onLoadingComplete
+
+Callback invoked once the image is loaded.
+
+#### loading
+
+Defaults to `lazy`, can be set to `eager`.
+
+#### blurDataURL
+
+Data URL used as a placeholder before the image loads, effective with `placeholder="blur"`.
+
+#### lazyBoundary
+
+Bounding box for lazy loading detection, defaulting to `"200px"`.
+
+#### lazyRoot
+
+Ref pointing to the scrollable parent element, defaulting to `null`.
+
+#### unoptimized
+
+When true, the source image is served as-is. Defaults to `false`.
+
+## Configuration Options
+
+### Remote Patterns
+
+Configuration required to use external images for security. Defined in `next.config.js`.
+
+### Domains
+
+Deprecated since Next.js 14 in favor of strict remotePatterns.
+
+### Loader Configuration
+
+Configure a cloud provider for image optimization in `next.config.js`.
+
+### Built-in Loaders
+
+Includes default, Vercel, Imgix, Cloudinary, Akamai, and custom loaders.
+
+### Device Sizes
+
+Specify device width breakpoints in `next.config.js`.
+
+### Image Sizes
+
+Specify image widths in `next.config.js`.
+
+### Acceptable Formats
+
+Default formats detected via the request's `Accept` header.
+
+## Caching Behavior
+
+Images are optimized dynamically and cached. Cache status can be determined by the `x-nextjs-cache` response header.
+
+### Minimum Cache TTL
+
+Configure TTL for cached optimized images in `next.config.js`.
+
+### Disable Static Imports
+
+Disable static image imports in `next.config.js`.
+
+### Dangerously Allow SVG
+
+Allows serving SVG images with the default Image Optimization API.
+
+### contentDispositionType
+
+Sets the `Content-Disposition` header for added protection.
+
+### Animated Images
+
+Bypasses Image Optimization for animated images, serving them as-is. Use `unoptimized` prop to bypass optimization explicitly.
+
+## Version History
+
+| Version   | Changes                                     |
+| --------- | ------------------------------------------- |
+| `v13.0.0` | `next/image` renamed to `next/legacy/image` |
+
+# Optimize Images in your Next.js Application using the built-in `next/image` Component
+
+The `next/image` component is designed to optimize images in your Next.js application. It provides several features to enhance performance and user experience.
+
+## Key Features
+
+- **Automatic Image Optimization**: Images are automatically optimized on-demand as users request them.
+- **Responsive Images**: The component supports responsive images, allowing you to serve different image sizes based on the device's screen size.
+- **Lazy Loading**: Images are lazy-loaded by default, improving initial load time and performance.
+- **Placeholder Support**: You can use placeholders while images are loading to enhance user experience.
+
+## Usage
+
+To use the `next/image` component, import it into your file:
+
+```javascript
+import Image from 'next/image';
+```
+
+Then, use it in your JSX:
+
+```javascript
+<Image
+  src="/path/to/image.jpg"
+  alt="Description of the image"
+  width={500}
+  height={300}
+/>
+```
+
+## Props
+
+- `src`: The path to the image.
+- `alt`: A description of the image for accessibility.
+- `width`: The width of the image in pixels.
+- `height`: The height of the image in pixels.
+- Additional props can be used for further customization.
+
+## Best Practices
+
+- Always provide an `alt` attribute for accessibility.
+- Use appropriate `width` and `height` values to avoid layout shifts.
+- Optimize images before uploading to reduce file size.
+
+For more detailed information, refer to the official Next.js documentation.
+
+# Components
+
+API Reference for Next.js built-in components in the Pages Router.
+
+The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# API Reference for the Link Component
+
+This document provides an API reference for the Link component.
+
+**Note:** The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the PagesOnly component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# Optimize Third-Party Scripts in Next.js
+
+Optimize third-party scripts in your Next.js application using the built-in `next/script` Component.
+
+## Overview
+
+The `next/script` component allows you to load third-party scripts efficiently, improving performance and user experience.
+
+## Usage
+
+To use the `next/script` component, import it into your Next.js application:
+
+```javascript
+import Script from 'next/script';
+```
+
+You can then add scripts to your pages as follows:
+
+```javascript
+<Script
+  src="https://example.com/script.js"
+  strategy="lazyOnload"
+  onLoad={() => {
+    console.log('Script loaded successfully');
+  }}
+/>
+```
+
+## Script Loading Strategies
+
+The `next/script` component supports several loading strategies:
+
+- **beforeInteractive**: Load the script before the page becomes interactive.
+- **afterInteractive**: Load the script after the page becomes interactive.
+- **lazyOnload**: Load the script during idle time after the page has loaded.
+
+## Benefits
+
+Using the `next/script` component provides several benefits:
+
+- Improved performance by controlling when scripts are loaded.
+- Reduced layout shifts and improved user experience.
+- Easy integration with third-party libraries.
+
+## Conclusion
+
+Utilizing the `next/script` component in your Next.js application allows for optimized loading of third-party scripts, enhancing overall performance and user experience.
+
+# instrumentation.js
+
+API reference for the instrumentation.js file.
+
+**Note:** The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# getInitialProps
+
+Fetch dynamic data on the server for your React component with getInitialProps.
+
+**Good to know**: `getInitialProps` is a legacy API. We recommend using `getStaticProps` or `getServerSideProps` instead.
+
+`getInitialProps` is an `async` function that can be added to the default exported React component for the page. It will run on both the server-side and again on the client-side during page transitions. The result of the function will be forwarded to the React component as `props`.
+
+```tsx
+import { NextPageContext } from 'next'
+
+Page.getInitialProps = async (ctx: NextPageContext) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const json = await res.json()
+  return { stars: json.stargazers_count }
+}
+
+export default function Page({ stars }: { stars: number }) {
+  return stars
+}
+```
+
+```jsx
+Page.getInitialProps = async (ctx) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const json = await res.json()
+  return { stars: json.stargazers_count }
+}
+
+export default function Page({ stars }) {
+  return stars
+}
+```
+
+**Good to know**:
+- Data returned from `getInitialProps` is serialized when server rendering. Ensure the returned object from `getInitialProps` is a plain `Object`, and not using `Date`, `Map` or `Set`.
+- For the initial page load, `getInitialProps` will run on the server only. It will then also run on the client when navigating to a different route with the `next/link` component or by using `next/router`.
+- If `getInitialProps` is used in a custom `_app.js`, and the page being navigated to is using `getServerSideProps`, then `getInitialProps` will also run on the server.
+
+## Context Object
+
+`getInitialProps` receives a single argument called `context`, which is an object with the following properties:
+
+| Name       | Description                                                                                           |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| `pathname` | Current route, the path of the page in `/pages`                                                       |
+| `query`    | Query string of the URL, parsed as an object                                                          |
+| `asPath`   | `String` of the actual path (including the query) shown in the browser                                |
+| `req`      | HTTP request object (server only)                                                                     |
+| `res`      | HTTP response object (server only)                                                                    |
+| `err`      | Error object if any error is encountered during the rendering                                         |
+
+## Caveats
+
+- `getInitialProps` can only be used in `pages/` top level files, and not in nested components. To have nested data fetching at the component level, consider exploring the App Router.
+- Regardless of whether your route is static or dynamic, any data returned from `getInitialProps` as `props` will be able to be examined on the client-side in the initial HTML. This is to allow the page to be hydrated correctly. Make sure that you don't pass any sensitive information that shouldn't be available on the client in `props`.
+
+# getServerSideProps
+
+API reference for `getServerSideProps`. Learn how to fetch data on each request with Next.js.
+
+When exporting a function called `getServerSideProps` (Server-Side Rendering) from a page, Next.js will pre-render this page on each request using the data returned by `getServerSideProps`. This is useful for fetching frequently changing data and updating the page to show the most current information.
+
+```tsx
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getServerSideProps = (async () => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo: Repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetServerSideProps<{ repo: Repo }>
+
+export default function Page({
+  repo,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  return (
+    <main>
+      <p>{repo.stargazers_count}</p>
+    </main>
+  )
+}
+```
+
+```jsx
+export async function getServerSideProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return (
+    <main>
+      <p>{repo.stargazers_count}</p>
+    </main>
+  )
+}
+```
+
+You can import modules in top-level scope for use in `getServerSideProps`. Imports used will not be bundled for the client-side, allowing you to write server-side code directly in `getServerSideProps`, including fetching data from your database.
+
+## Context parameter
+
+The `context` parameter is an object containing the following keys:
+
+- `params`: Contains route parameters for dynamic routes.
+- `req`: The HTTP IncomingMessage object, with an additional `cookies` prop.
+- `res`: The HTTP response object.
+- `query`: An object representing the query string, including dynamic route parameters.
+- `preview`: (Deprecated for `draftMode`) Indicates if the page is in Preview Mode.
+- `previewData`: (Deprecated for `draftMode`) The preview data set by `setPreviewData`.
+- `draftMode`: Indicates if the page is in Draft Mode.
+- `resolvedUrl`: A normalized version of the request URL.
+- `locale`: Contains the active locale (if enabled).
+- `locales`: Contains all supported locales (if enabled).
+- `defaultLocale`: Contains the configured default locale (if enabled).
+
+## getServerSideProps return values
+
+The `getServerSideProps` function should return an object with any one of the following properties:
+
+### `props`
+
+The `props` object is a key-value pair, where each value is received by the page component. It should be a serializable object.
+
+```jsx
+export async function getServerSideProps(context) {
+  return {
+    props: { message: `Next.js is awesome` },
+  }
+}
+```
+
+### `notFound`
+
+The `notFound` boolean allows the page to return a 404 status. With `notFound: true`, the page will return a 404 even if there was a successfully generated page before.
+
+```js
+export async function getServerSideProps(context) {
+  const res = await fetch(`https://.../data`)
+  const data = await res.json()
+
+  if (!data) {
+    return {
+      notFound: true,
+    }
+  }
+
+  return {
+    props: { data },
+  }
+}
+```
+
+### `redirect`
+
+The `redirect` object allows redirecting to internal and external resources. It should match the shape of `{ destination: string, permanent: boolean }`.
+
+```js
+export async function getServerSideProps(context) {
+  const res = await fetch(`https://.../data`)
+  const data = await res.json()
+
+  if (!data) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: {},
+  }
+}
+```
+
+## Version History
+
+- `v13.4.0`: App Router is now stable with simplified data fetching.
+- `v10.0.0`: `locale`, `locales`, `defaultLocale`, and `notFound` options added.
+- `v9.3.0`: `getServerSideProps` introduced.
+
+# getStaticPaths
+
+## Overview
+
+When exporting a function called `getStaticPaths` from a page that uses Dynamic Routes, Next.js will statically pre-render all the paths specified by `getStaticPaths`.
+
+### Example in TypeScript
+
+```tsx
+import type {
+  InferGetStaticPropsType,
+  GetStaticProps,
+  GetStaticPaths,
+} from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getStaticPaths = (async () => {
+  return {
+    paths: [
+      {
+        params: {
+          name: 'next.js',
+        },
+      },
+    ],
+    fallback: true,
+  }
+}) satisfies GetStaticPaths
+
+export const getStaticProps = (async (context) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetStaticProps<{
+  repo: Repo
+}>
+
+export default function Page({
+  repo,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  return repo.stargazers_count
+}
+```
+
+### Example in JavaScript
+
+```jsx
+export async function getStaticPaths() {
+  return {
+    paths: [
+      {
+        params: {
+          name: 'next.js',
+        },
+      },
+    ],
+    fallback: true,
+  }
+}
+
+export async function getStaticProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return repo.stargazers_count
+}
+```
+
+## getStaticPaths Return Values
+
+The `getStaticPaths` function should return an object with the following required properties:
+
+### `paths`
+
+The `paths` key determines which paths will be pre-rendered. For example, if you have a page named `pages/posts/[id].js`, and you return the following for `paths`:
+
+```js
+return {
+  paths: [
+    { params: { id: '1' }},
+    {
+      params: { id: '2' },
+      locale: "en",
+    },
+  ],
+  fallback: ...
+}
+```
+
+Next.js will statically generate `/posts/1` and `/posts/2` during `next build`.
+
+The value for each `params` object must match the parameters used in the page name. The `params` strings are case-sensitive.
+
+### `fallback: false`
+
+If `fallback` is `false`, any paths not returned by `getStaticPaths` will result in a 404 page. This option is useful for a small number of paths.
+
+### `fallback: true`
+
+If `fallback` is `true`, the behavior of `getStaticProps` changes:
+
+- Paths returned from `getStaticPaths` will be rendered to HTML at build time.
+- Paths not generated at build time will not result in a 404 page. Instead, Next.js will serve a fallback version of the page on the first request.
+- In the background, Next.js will statically generate the requested path HTML and JSON.
+
+### `fallback: 'blocking'`
+
+If `fallback` is `'blocking'`, new paths not returned by `getStaticPaths` will wait for the HTML to be generated. The behavior is similar to SSR.
+
+### Fallback Pages
+
+In the fallback version of a page:
+
+- The page’s props will be empty.
+- You can detect if the fallback is being rendered using `router.isFallback`.
+
+### Example of Fallback Usage
+
+```jsx
+import { useRouter } from 'next/router'
+
+function Post({ post }) {
+  const router = useRouter()
+
+  if (router.isFallback) {
+    return <div>Loading...</div>
+  }
+
+  // Render post...
+}
+
+// This function gets called at build time
+export async function getStaticPaths() {
+  return {
+    paths: [{ params: { id: '1' } }, { params: { id: '2' } }],
+    fallback: true,
+  }
+}
+
+// This also gets called at build time
+export async function getStaticProps({ params }) {
+  const res = await fetch(`https://.../posts/${params.id}`)
+  const post = await res.json()
+
+  return {
+    props: { post },
+    revalidate: 1,
+  }
+}
+
+export default Post
+```
+
+## Version History
+
+| Version   | Changes                                                                                                                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v13.4.0` | App Router is now stable with simplified data fetching, including `generateStaticParams()`.                                                                                                               |
+| `v12.2.0` | On-Demand Incremental Static Regeneration is stable.                                                                                                                                                       |
+| `v12.1.0` | On-Demand Incremental Static Regeneration added (beta).                                                                                                                                                    |
+| `v9.5.0`  | Stable Incremental Static Regeneration.                                                                                                                                                                    |
+| `v9.3.0`  | `getStaticPaths` introduced.                                                                                                                                                                              |
+
+# getStaticProps
+
+API reference for `getStaticProps`. Learn how to use `getStaticProps` to generate static pages with Next.js.
+
+Exporting a function called `getStaticProps` will pre-render a page at build time using the props returned from the function:
+
+```tsx
+import type { InferGetStaticPropsType, GetStaticProps } from 'next'
+
+type Repo = {
+  name: string
+  stargazers_count: number
+}
+
+export const getStaticProps = (async (context) => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}) satisfies GetStaticProps<{
+  repo: Repo
+}>
+
+export default function Page({
+  repo,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  return repo.stargazers_count
+}
+```
+
+```jsx
+export async function getStaticProps() {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
+
+export default function Page({ repo }) {
+  return repo.stargazers_count
+}
+```
+
+You can import modules in top-level scope for use in `getStaticProps`. Imports used will not be bundled for the client-side. This means you can write server-side code directly in `getStaticProps`, including fetching data from your database.
+
+## Context parameter
+
+The `context` parameter is an object containing the following keys:
+
+- `params`: Contains the route parameters for pages using dynamic routes. For example, if the page name is `[id].js`, then `params` will look like `{ id: ... }`. Use this with `getStaticPaths`.
+- `preview`: (Deprecated for `draftMode`) `preview` is `true` if the page is in Preview Mode and `false` otherwise.
+- `previewData`: (Deprecated for `draftMode`) The preview data set by `setPreviewData`.
+- `draftMode`: `draftMode` is `true` if the page is in Draft Mode and `false` otherwise.
+- `locale`: Contains the active locale (if enabled).
+- `locales`: Contains all supported locales (if enabled).
+- `defaultLocale`: Contains the configured default locale (if enabled).
+- `revalidateReason`: Provides a reason for why the function was called. Possible values are "build", "stale", or "on-demand".
+
+## getStaticProps return values
+
+The `getStaticProps` function should return an object containing either `props`, `redirect`, or `notFound` followed by an optional `revalidate` property.
+
+### `props`
+
+The `props` object is a key-value pair, where each value is received by the page component. It should be a serializable object.
+
+```jsx
+export async function getStaticProps(context) {
+  return {
+    props: { message: `Next.js is awesome` },
+  }
+}
+```
+
+### `revalidate`
+
+The `revalidate` property is the amount in seconds after which a page re-generation can occur (defaults to `false`).
+
+```js
+export async function getStaticProps() {
+  const res = await fetch('https://.../posts')
+  const posts = await res.json()
+
+  return {
+    props: {
+      posts,
+    },
+    revalidate: 10,
+  }
+}
+```
+
+The cache status of a page leveraging ISR can be determined by reading the value of the `x-nextjs-cache` response header. Possible values are:
+
+- `MISS`: the path is not in the cache.
+- `STALE`: the path is in the cache but exceeded the revalidate time.
+- `HIT`: the path is in the cache and has not exceeded the revalidate time.
+
+### `notFound`
+
+The `notFound` boolean allows the page to return a `404` status. With `notFound: true`, the page will return a `404` even if there was a successfully generated page before.
+
+```js
+export async function getStaticProps(context) {
+  const res = await fetch(`https://.../data`)
+  const data = await res.json()
+
+  if (!data) {
+    return {
+      notFound: true,
+    }
+  }
+
+  return {
+    props: { data },
+  }
+}
+```
+
+### `redirect`
+
+The `redirect` object allows redirecting to internal or external resources. It should match the shape of `{ destination: string, permanent: boolean }`.
+
+```js
+export async function getStaticProps(context) {
+  const res = await fetch(`https://...`)
+  const data = await res.json()
+
+  if (!data) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { data },
+  }
+}
+```
+
+If the redirects are known at build-time, they should be added in next.config.js instead.
+
+## Reading files: Use `process.cwd()`
+
+Files can be read directly from the filesystem in `getStaticProps`. Use `process.cwd()` to get the directory where Next.js is being executed.
+
+```jsx
+import { promises as fs } from 'fs'
+import path from 'path'
+
+function Blog({ posts }) {
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h3>{post.filename}</h3>
+          <p>{post.content}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export async function getStaticProps() {
+  const postsDirectory = path.join(process.cwd(), 'posts')
+  const filenames = await fs.readdir(postsDirectory)
+
+  const posts = filenames.map(async (filename) => {
+    const filePath = path.join(postsDirectory, filename)
+    const fileContents = await fs.readFile(filePath, 'utf8')
+
+    return {
+      filename,
+      content: fileContents,
+    }
+  })
+
+  return {
+    props: {
+      posts: await Promise.all(posts),
+    },
+  }
+}
+
+export default Blog
+```
+
+## Version History
+
+- `v13.4.0`: App Router is now stable with simplified data fetching.
+- `v12.2.0`: On-Demand Incremental Static Regeneration is stable.
+- `v12.1.0`: On-Demand Incremental Static Regeneration added (beta).
+- `v10.0.0`: `locale`, `locales`, `defaultLocale`, and `notFound` options added.
+- `v10.0.0`: `fallback: 'blocking'` return option added.
+- `v9.5.0`: Stable Incremental Static Regeneration.
+- `v9.3.0`: `getStaticProps` introduced.
+
+# Functions
+
+API Reference for Functions and Hooks in Pages Router.
+
+**Note:** The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# NextRequest
+
+API Reference for NextRequest.
+
+**Note:** The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# NextResponse
+
+API Reference for NextResponse.
+
+## Overview
+
+NextResponse is a utility for handling responses in Next.js applications. It provides methods to create and manipulate HTTP responses.
+
+## Methods
+
+### NextResponse.json(data, init)
+
+Creates a JSON response.
+
+- **Parameters:**
+  - `data`: The data to be sent as JSON.
+  - `init`: Optional. An object containing additional response options.
+
+### NextResponse.redirect(url, status)
+
+Creates a redirect response.
+
+- **Parameters:**
+  - `url`: The URL to redirect to.
+  - `status`: Optional. The HTTP status code (default is 307).
+
+### NextResponse.rewrite(url)
+
+Creates a rewrite response.
+
+- **Parameters:**
+  - `url`: The URL to rewrite to.
+
+### NextResponse.next()
+
+Continues to the next middleware or route handler.
+
+## Usage
+
+To use NextResponse, import it from the appropriate module in your Next.js application. Utilize the methods as needed to handle responses effectively.
+
+## Notes
+
+- Ensure to handle errors and edge cases when using these methods.
+- Refer to the official Next.js documentation for more detailed examples and use cases.
+
+# useAmp
+
+Enable AMP in a page, and control the way Next.js adds AMP to the page with the AMP config.
+
+## Examples
+
+- AMP example: GitHub repository for Next.js examples.
+
+AMP support is one of our advanced features. For more information, refer to the AMP documentation.
+
+To enable AMP, add the following config to your page:
+
+```jsx
+export const config = { amp: true }
+```
+
+The `amp` config accepts the following values:
+
+- `true`: The page will be AMP-only.
+- `'hybrid'`: The page will have two versions, one with AMP and another one with HTML.
+
+## AMP First Page
+
+Example of an AMP-only page:
+
+```jsx
+export const config = { amp: true }
+
+function About(props) {
+  return <h3>My AMP About Page!</h3>
+}
+
+export default About
+```
+
+Characteristics of an AMP-only page:
+
+- No Next.js or React client-side runtime.
+- Automatically optimized with AMP Optimizer, improving performance by up to 42%.
+- User-accessible (optimized) version and a search-engine indexable (unoptimized) version.
+
+## Hybrid AMP Page
+
+Example of a hybrid AMP page:
+
+```jsx
+import { useAmp } from 'next/amp'
+
+export const config = { amp: 'hybrid' }
+
+function About(props) {
+  const isAmp = useAmp()
+
+  return (
+    <div>
+      <h3>My AMP About Page!</h3>
+      {isAmp ? (
+        <amp-img
+          width="300"
+          height="300"
+          src="/my-img.jpg"
+          alt="a cool image"
+          layout="responsive"
+        />
+      ) : (
+        <img width="300" height="300" src="/my-img.jpg" alt="a cool image" />
+      )}
+    </div>
+  )
+}
+
+export default About
+```
+
+Characteristics of a hybrid AMP page:
+
+- Rendered as traditional HTML (default) and AMP HTML (by adding `?amp=1` to the URL).
+- AMP version has valid optimizations applied with AMP Optimizer for search-engine indexability.
+
+The page uses `useAmp`, a React Hook that returns `true` if the page is using AMP, and `false` otherwise.
+
+# useReportWebVitals
+
+## Description
+The `useReportWebVitals` function is designed to report web vitals metrics for performance monitoring.
+
+## Usage
+To utilize `useReportWebVitals`, import it into your component and call it to start tracking performance metrics.
+
+## Parameters
+- **onPerfEntry**: A function that receives a performance entry object. This function is called whenever a new performance entry is recorded.
+
+## Example
+```javascript
+import { useReportWebVitals } from 'app/api-reference/functions/use-report-web-vitals';
+
+function MyApp({ Component, pageProps }) {
+  useReportWebVitals((metric) => {
+    console.log(metric);
+  });
+
+  return <Component {...pageProps} />;
+}
+```
+
+## Notes
+- Ensure that the function is called at the top level of your component to properly track metrics.
+- This function is particularly useful for measuring metrics like First Contentful Paint (FCP), Largest Contentful Paint (LCP), and others.
+
+## Additional Information
+For more details, refer to the official documentation on web vitals.
+
+# useRouter
+
+Learn more about the API of the Next.js Router, and access the router instance in your page with the useRouter hook.
+
+To access the `router` object inside any function component in your app, use the `useRouter` hook. Here’s an example:
+
+```jsx
+import { useRouter } from 'next/router'
+
+function ActiveLink({ children, href }) {
+  const router = useRouter()
+  const style = {
+    marginRight: 10,
+    color: router.asPath === href ? 'red' : 'black',
+  }
+
+  const handleClick = (e) => {
+    e.preventDefault()
+    router.push(href)
+  }
+
+  return (
+    <a href={href} onClick={handleClick} style={style}>
+      {children}
+    </a>
+  )
+}
+
+export default ActiveLink
+```
+
+`useRouter` is a React Hook, meaning it cannot be used with classes. You can either use `withRouter` or wrap your class in a function component.
+
+## `router` object
+
+The `router` object returned by both `useRouter` and `withRouter` includes:
+
+- `pathname`: `String` - The path for the current route file after `/pages`.
+- `query`: `Object` - The query string parsed to an object, including dynamic route parameters. Defaults to `{}`.
+- `asPath`: `String` - The path shown in the browser including search params.
+- `isFallback`: `boolean` - Indicates if the current page is in fallback mode.
+- `basePath`: `String` - The active basePath (if enabled).
+- `locale`: `String` - The active locale (if enabled).
+- `locales`: `String[]` - All supported locales (if enabled).
+- `defaultLocale`: `String` - The current default locale (if enabled).
+- `domainLocales`: `Array<{domain, defaultLocale, locales}>` - Configured domain locales.
+- `isReady`: `boolean` - Indicates if the router fields are updated client-side and ready for use.
+- `isPreview`: `boolean` - Indicates if the application is in preview mode.
+
+Using the `asPath` field may lead to a mismatch between client and server if the page is rendered using server-side rendering or automatic static optimization. Avoid using `asPath` until `isReady` is `true`.
+
+### Methods in `router`
+
+#### router.push
+
+Handles client-side transitions. Useful when `next/link` is not enough.
+
+```js
+router.push(url, as, options)
+```
+
+- `url`: `UrlObject | String` - The URL to navigate to.
+- `as`: `UrlObject | String` - Optional decorator for the path shown in the browser URL bar.
+- `options`: Optional object with:
+  - `scroll`: Optional boolean, controls scrolling to the top after navigation. Defaults to `true`.
+  - `shallow`: Update the path without rerunning `getStaticProps`, `getServerSideProps`, or `getInitialProps`. Defaults to `false`.
+  - `locale`: Optional string, indicates locale of the new page.
+
+Example for navigating to `pages/about.js`:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.push('/about')}>
+      Click me
+    </button>
+  )
+}
+```
+
+Example for navigating to a dynamic route `pages/post/[pid].js`:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.push('/post/abc')}>
+      Click me
+    </button>
+  )
+}
+```
+
+Example for redirecting to `pages/login.js`:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+const useUser = () => ({ user: null, loading: false })
+
+export default function Page() {
+  const { user, loading } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!(user || loading)) {
+      router.push('/login')
+    }
+  }, [user, loading])
+
+  return <p>Redirecting...</p>
+}
+```
+
+#### Resetting state after navigation
+
+When navigating to the same page, the page's state will not reset by default. To reset state, use `useEffect` or a React `key` to remount the component.
+
+Example using `useEffect`:
+
+```jsx
+useEffect(() => {
+  setCount(0)
+}, [router.query.slug])
+```
+
+Example using a React `key`:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function MyApp({ Component, pageProps }) {
+  const router = useRouter()
+  return <Component key={router.asPath} {...pageProps} />
+}
+```
+
+#### With URL object
+
+You can use a URL object for `url` and `as` parameters:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function ReadMore({ post }) {
+  const router = useRouter()
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        router.push({
+          pathname: '/post/[pid]',
+          query: { pid: post.id },
+        })
+      }}
+    >
+      Click here to read more
+    </button>
+  )
+}
+```
+
+### router.replace
+
+Similar to `replace` in `next/link`, `router.replace` prevents adding a new URL entry into the history stack.
+
+```js
+router.replace(url, as, options)
+```
+
+Example:
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.replace('/home')}>
+      Click me
+    </button>
+  )
+}
+```
+
+### router.prefetch
+
+Prefetch pages for faster client-side transitions. This method is useful for navigations without `next/link`.
+
+```js
+router.prefetch(url, as, options)
+```
+
+Example for prefetching a dashboard page after login:
+
+```jsx
+import { useCallback, useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+export default function Login() {
+  const router = useRouter()
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault()
+
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        /* Form data */
+      }),
+    }).then((res) => {
+      if (res.ok) router.push('/dashboard')
+    })
+  }, [])
+
+  useEffect(() => {
+    router.prefetch('/dashboard')
+  }, [router])
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit">Login</button>
+    </form>
+  )
+}
+```
+
+### router.beforePopState
+
+Listen to popstate events and perform actions before the router acts on it.
+
+```js
+router.beforePopState(cb)
+```
+
+Example:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.beforePopState(({ url, as, options }) => {
+      if (as !== '/' && as !== '/other') {
+        window.location.href = as
+        return false
+      }
+      return true
+    })
+  }, [router])
+
+  return <p>Welcome to the page</p>
+}
+```
+
+### router.back
+
+Navigate back in history.
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.back()}>
+      Click here to go back
+    </button>
+  )
+}
+```
+
+### router.reload
+
+Reload the current URL.
+
+```jsx
+import { useRouter } from 'next/router'
+
+export default function Page() {
+  const router = useRouter()
+
+  return (
+    <button type="button" onClick={() => router.reload()}>
+      Click here to reload
+    </button>
+  )
+}
+```
+
+### router.events
+
+Listen to different events in the Next.js Router:
+
+- `routeChangeStart(url, { shallow })`
+- `routeChangeComplete(url, { shallow })`
+- `routeChangeError(err, url, { shallow })`
+- `beforeHistoryChange(url, { shallow })`
+- `hashChangeStart(url, { shallow })`
+- `hashChangeComplete(url, { shallow })`
+
+Example for listening to `routeChangeStart`:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+export default function MyApp({ Component, pageProps }) {
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleRouteChange = (url, { shallow }) => {
+      console.log(`App is changing to ${url} ${shallow ? 'with' : 'without'} shallow routing`)
+    }
+
+    router.events.on('routeChangeStart', handleRouteChange)
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange)
+    }
+  }, [router])
+
+  return <Component {...pageProps} />
+}
+```
+
+### The `next/compat/router` export
+
+This is the same `useRouter` hook but can be used in both `app` and `pages` directories. It does not throw an error when the pages router is not mounted, returning `NextRouter | null`.
+
+Example:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/compat/router'
+import { useSearchParams } from 'next/navigation'
+
+const MyComponent = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (router && !router.isReady) {
+      return
+    }
+    const search = searchParams.get('search')
+    // ...
+  }, [router, searchParams])
+}
+```
+
+### Using `useRouter` outside of Next.js context in pages
+
+Use the compat router to avoid errors when rendering components outside of a Next.js application context.
+
+Example:
+
+```jsx
+import { renderToString } from 'react-dom/server'
+import { useRouter } from 'next/compat/router'
+
+const MyComponent = () => {
+  const router = useRouter()
+  // ...
+}
+
+export async function getServerSideProps() {
+  const renderedComponent = renderToString(<MyComponent />)
+  return {
+    props: {
+      renderedComponent,
+    },
+  }
+}
+```
+
+### Potential ESLint errors
+
+Certain methods return a Promise. If you have the ESLint rule `no-floating-promises` enabled, consider disabling it or handling the promise properly.
+
+Affected methods:
+
+- `router.push`
+- `router.replace`
+- `router.prefetch`
+
+Example solutions:
+
+```jsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
+const useUser = () => ({ user: null, loading: false })
+
+export default function Page() {
+  const { user, loading } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    // eslint-disable-next-line no-floating-promises
+    router.push('/login')
+
+    if (!(user || loading)) {
+      void router.push('/login')
+    }
+    async function handleRouteChange() {
+      if (!(user || loading)) {
+        await router.push('/login')
+      }
+    }
+    void handleRouteChange()
+  }, [user, loading])
+
+  return <p>Redirecting...</p>
+}
+```
+
+### withRouter
+
+If `useRouter` is not suitable, `withRouter` can add the same `router` object to any component.
+
+Example:
+
+```jsx
+import { withRouter } from 'next/router'
+
+function Page({ router }) {
+  return <p>{router.pathname}</p>
+}
+
+export default withRouter(Page)
+```
+
+### TypeScript
+
+For class components with `withRouter`, the component needs to accept a router prop:
+
+```tsx
+import React from 'react'
+import { withRouter, NextRouter } from 'next/router'
+
+interface WithRouterProps {
+  router: NextRouter
+}
+
+interface MyComponentProps extends WithRouterProps {}
+
+class MyComponent extends React.Component<MyComponentProps> {
+  render() {
+    return <p>{this.props.router.pathname}</p>
+  }
+}
+
+export default withRouter(MyComponent)
+```
+
+# userAgent
+
+The userAgent helper extends the Web Request API with additional properties and methods to interact with the user agent object from the request. 
+
+For editing the content of this documentation, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# assetPrefix
+
+Learn how to use the assetPrefix config option to configure your CDN.
+
+## Overview
+
+The `assetPrefix` option in your Next.js configuration allows you to specify a custom prefix for your static assets. This is particularly useful when you are serving your assets from a CDN or a different domain.
+
+## Usage
+
+To set the `assetPrefix`, add it to your `next.config.js` file:
+
+```javascript
+module.exports = {
+  assetPrefix: 'https://cdn.example.com/',
+}
+```
+
+Replace `https://cdn.example.com/` with the URL of your CDN.
+
+## Considerations
+
+- Ensure that the specified `assetPrefix` is accessible and correctly configured to serve your static assets.
+- This option is beneficial for improving load times and reducing latency by leveraging a CDN.
+
+## Conclusion
+
+Using the `assetPrefix` configuration can enhance the performance of your Next.js application by optimizing the delivery of static assets.
+
+# basePath
+
+Use `basePath` to deploy a Next.js application under a sub-path of a domain.
+
+## Overview
+
+The `basePath` configuration option allows you to specify a sub-path for your Next.js application. This is useful when you want to serve your application from a specific path rather than the root of the domain.
+
+## Configuration
+
+To set the `basePath`, add it to your `next.config.js` file:
+
+```javascript
+module.exports = {
+  basePath: '/your-sub-path',
+}
+```
+
+Replace `/your-sub-path` with the desired sub-path for your application.
+
+## Important Notes
+
+- Ensure that your server is configured to handle requests to the specified `basePath`.
+- All routes in your application will be prefixed with the `basePath`.
+- Static assets should also be served from the `basePath`.
+
+## Example
+
+If your `basePath` is set to `/blog`, your application will be accessible at:
+
+- `https://yourdomain.com/blog`
+- All routes will be prefixed, e.g., `/blog/about`, `/blog/contact`.
+
+## Conclusion
+
+Using `basePath` is essential for deploying Next.js applications in sub-paths, ensuring proper routing and asset management.
+
+# bundlePagesRouterDependencies
+
+Enable automatic server-side dependency bundling for Pages Router applications. Matches the automatic dependency bundling in App Router.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  bundlePagesRouterDependencies: true,
+}
+
+module.exports = nextConfig
+```
+
+Explicitly opt-out certain packages from being bundled using the `serverExternalPackages` option.
+
+## Version History
+
+- **Version v15.0.0**: Moved from experimental to stable. Renamed from `bundlePagesExternals` to `bundlePagesRouterDependencies`.
+
+# compress
+
+Next.js provides gzip compression to compress rendered content and static files. It only works with the server target. Learn more about it in the source documentation.
+
+# crossOrigin
+
+Use the `crossOrigin` option to add a crossOrigin tag on the `script` tags generated by `next/script` and `next/head`.
+
+The content of this documentation is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# devIndicators
+
+Optimized pages include an indicator to let you know if it's being statically optimized. You can opt-out of it here.
+
+# distDir
+
+Set a custom build directory to use instead of the default .next directory.
+
+Source: app/api-reference/next-config-js/distDir
+
+# env
+
+Learn to add and access environment variables in your Next.js application at build time.
+
+## Adding Environment Variables
+
+To add environment variables, create a `.env.local` file in the root of your Next.js project. Define your variables in the format:
+
+```
+NEXT_PUBLIC_API_URL=https://api.example.com
+```
+
+Variables prefixed with `NEXT_PUBLIC_` will be exposed to the browser.
+
+## Accessing Environment Variables
+
+You can access environment variables in your application using `process.env`. For example:
+
+```javascript
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+```
+
+## Important Notes
+
+- Environment variables are only available at build time.
+- Do not include sensitive information in variables that are prefixed with `NEXT_PUBLIC_`, as they will be exposed to the client-side code.
+- Use `.env.development`, `.env.production`, and `.env.test` for different environments.
+
+## Conclusion
+
+Environment variables are a powerful way to manage configuration in your Next.js application. Use them wisely to keep your application secure and maintainable.
+
+# eslint
+
+Next.js reports ESLint errors and warnings during builds by default. Learn how to opt-out of this behavior here.
+
+# exportPathMap
+
+## Description
+Customize the pages that will be exported as HTML files when using `next export`.
+
+## Usage
+The `exportPathMap` function allows you to define a mapping of your application's routes to the HTML files that will be generated during the export process. This is particularly useful for customizing the output of static pages.
+
+## Example
+```javascript
+module.exports = {
+  exportPathMap: async function(defaultPathMap) {
+    return {
+      '/': { page: '/' },
+      '/about': { page: '/about' },
+      '/contact': { page: '/contact' },
+    }
+  },
+}
+```
+
+## Notes
+- The function receives the default path map as an argument, which can be modified or replaced entirely.
+- Ensure that all paths you want to export are included in the returned object.
+
+## Additional Information
+For more details, refer to the official Next.js documentation.
+
+# generateBuildId
+
+Configure the build id, which is used to identify the current build in which your application is being served. 
+
+Note: The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# generateEtags
+
+Next.js will generate etags for every page by default. Learn more about how to disable etag generation here.
+
+# Headers
+
+Add custom HTTP headers to your Next.js app.
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# httpAgentOptions
+
+Next.js will automatically use HTTP Keep-Alive by default. Learn more about how to disable HTTP Keep-Alive here.
+
+# Images
+
+Custom configuration for the next/image loader.
+
+DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# next.config.js Options
+
+Learn about the options available in next.config.js for the Pages Router.
+
+## Options Overview
+
+next.config.js is a configuration file for Next.js applications. It allows developers to customize various aspects of their application.
+
+### Key Options
+
+1. **reactStrictMode**: Enables React's Strict Mode for the application.
+2. **swcMinify**: Enables the SWC compiler for minifying JavaScript.
+3. **images**: Configuration options for image optimization.
+4. **env**: Define environment variables that can be accessed in the application.
+5. **basePath**: Set a base path for the application.
+6. **trailingSlash**: Control whether to add a trailing slash to URLs.
+7. **i18n**: Internationalization settings for the application.
+
+### Example Configuration
+
+```javascript
+module.exports = {
+  reactStrictMode: true,
+  swcMinify: true,
+  images: {
+    domains: ['example.com'],
+  },
+  env: {
+    CUSTOM_KEY: 'value',
+  },
+  basePath: '/base',
+  trailingSlash: true,
+  i18n: {
+    locales: ['en-US', 'fr'],
+    defaultLocale: 'en-US',
+  },
+};
+```
+
+### Additional Information
+
+For more detailed information on each option, refer to the official Next.js documentation.
+
+# onDemandEntries
+
+Configure how Next.js will dispose and keep in memory pages created in development.
+
+## Configuration Options
+
+- **maxInactiveAge**: The maximum age (in milliseconds) of an inactive page before it is disposed of. Default is 1000 * 60 * 60 (1 hour).
+  
+- **pagesBufferLength**: The number of pages that are kept in memory. Default is 2.
+
+## Usage
+
+To configure onDemandEntries, add the following to your `next.config.js`:
+
+```javascript
+module.exports = {
+  onDemandEntries: {
+    maxInactiveAge: 1000 * 60 * 60, // 1 hour
+    pagesBufferLength: 2,
+  },
+}
+```
+
+## Notes
+
+- This configuration is only applicable in development mode.
+- Adjusting these settings can help optimize memory usage during development, especially in larger applications.
+
+# optimizePackageImports
+
+## Description
+API Reference for the `optimizePackageImports` Next.js Config Option.
+
+## Overview
+The `optimizePackageImports` option in Next.js allows for the optimization of package imports, improving the performance of your application by reducing the size of the JavaScript bundle.
+
+## Usage
+To use `optimizePackageImports`, add it to your Next.js configuration file (next.config.js):
+
+```javascript
+module.exports = {
+  optimizePackageImports: true,
+}
+```
+
+## Parameters
+- **optimizePackageImports**: A boolean value that enables or disables the optimization of package imports.
+
+## Benefits
+- Reduces the size of the JavaScript bundle.
+- Improves application performance.
+- Simplifies the import process for packages.
+
+## Notes
+- This feature is particularly useful for large applications with many dependencies.
+- Ensure that your packages support tree-shaking for optimal results.
+
+## Additional Information
+For more details, refer to the official Next.js documentation.
+
+# Output
+
+Next.js automatically traces which files are needed by each page to allow for easy deployment of your application. Learn how it works here.
+
+# pageExtensions
+
+Extend the default page extensions used by Next.js when resolving pages in the Pages Router.
+
+## Overview
+
+The `pageExtensions` configuration allows you to specify custom file extensions for your pages in a Next.js application. By default, Next.js recognizes `.js`, `.jsx`, `.ts`, and `.tsx` as valid page extensions. You can modify this behavior by providing an array of strings representing the extensions you want to use.
+
+## Usage
+
+To configure custom page extensions, add the `pageExtensions` property to your `next.config.js` file:
+
+```javascript
+// next.config.js
+module.exports = {
+  pageExtensions: ['mdx', 'jsx', 'js'],
+}
+```
+
+In this example, Next.js will recognize `.mdx`, `.jsx`, and `.js` files as valid pages.
+
+## Notes
+
+- Ensure that the specified extensions do not conflict with existing ones.
+- Custom extensions can be useful for integrating with other frameworks or file types.
+
+For more information, refer to the official Next.js documentation.
+
+# poweredByHeader
+
+Next.js will add the `x-powered-by` header by default. To opt-out of it, you can configure your Next.js application accordingly. 
+
+For more details, refer to the source documentation at app/api-reference/next-config-js/poweredByHeader.
+
+# productionBrowserSourceMaps
+
+Enables browser source map generation during the production build. 
+
+For editing, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# reactStrictMode
+
+The complete Next.js runtime is now Strict Mode-compliant. Learn how to opt-in. 
+
+To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# Redirects
+
+Add redirects to your Next.js app.
+
+## Overview
+
+Redirects allow you to send users from one URL to another. This is useful for maintaining SEO and providing a better user experience.
+
+## Configuration
+
+To set up redirects in your Next.js application, you need to modify the `next.config.js` file. Here’s how to do it:
+
+1. Open your `next.config.js` file.
+2. Add a `redirects` function that returns an array of redirect objects.
+
+### Example
+
+```javascript
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/old-path',
+        destination: '/new-path',
+        permanent: true, // This is a permanent redirect (308)
+      },
+      {
+        source: '/another-old-path',
+        destination: '/another-new-path',
+        permanent: false, // This is a temporary redirect (307)
+      },
+    ]
+  },
+}
+```
+
+## Redirect Object Properties
+
+- **source**: The path to match for the redirect.
+- **destination**: The path to redirect to.
+- **permanent**: A boolean indicating if the redirect is permanent (true) or temporary (false).
+
+## Notes
+
+- Redirects are processed before rendering the page.
+- Ensure that the source paths do not conflict with existing routes in your application.
+
+For more information, refer to the Next.js documentation on redirects.
+
+# Rewrites
+
+Add rewrites to your Next.js app.
+
+## Overview
+
+Rewrites allow you to map an incoming request path to a different destination path. This can be useful for various scenarios, such as redirecting users to a different page or serving content from a different location without changing the URL in the browser.
+
+## Configuration
+
+To add rewrites to your Next.js application, you need to modify the `next.config.js` file. Here’s how to do it:
+
+```javascript
+module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: '/old-path',
+        destination: '/new-path', // Matched parameters can be used in the destination
+      },
+      {
+        source: '/another-old-path/:slug*',
+        destination: '/another-new-path/:slug*',
+      },
+    ]
+  },
+}
+```
+
+## Notes
+
+- The `source` field defines the incoming request path.
+- The `destination` field defines where the request should be redirected.
+- You can use dynamic segments in the `source` and `destination` paths.
+- Rewrites do not change the URL in the browser, making them ideal for maintaining SEO.
+
+## Use Cases
+
+- Redirecting users from outdated URLs to new ones.
+- Serving content from a different path without exposing the internal structure.
+- Creating clean URLs for API endpoints.
+
+## Conclusion
+
+Rewrites are a powerful feature in Next.js that enhance routing capabilities and improve user experience. By configuring them in `next.config.js`, you can easily manage how requests are handled in your application.
+
+# Runtime Config
+
+Add client and server runtime configuration to your Next.js app.
+
+**Warning:**
+- This feature is deprecated. We recommend using environment variables instead, which can also support reading runtime values.
+- You can run code on server startup using the `register` function.
+- This feature does not work with Automatic Static Optimization, Output File Tracing, or React Server Components.
+
+To add runtime configuration to your app, open `next.config.js` and add the `publicRuntimeConfig` and `serverRuntimeConfig` configs:
+
+```js
+module.exports = {
+  serverRuntimeConfig: {
+    mySecret: 'secret',
+    secondSecret: process.env.SECOND_SECRET,
+  },
+  publicRuntimeConfig: {
+    staticFolder: '/static',
+  },
+}
+```
+
+Place any server-only runtime config under `serverRuntimeConfig`. Anything accessible to both client and server-side code should be under `publicRuntimeConfig`.
+
+A page that relies on `publicRuntimeConfig` must use `getInitialProps` or `getServerSideProps`, or your application must have a Custom App with `getInitialProps` to opt-out of Automatic Static Optimization. Runtime configuration won't be available to any page (or component in a page) without being server-side rendered.
+
+To access the runtime configs in your app, use `next/config`:
+
+```jsx
+import getConfig from 'next/config'
+import Image from 'next/image'
+
+const { serverRuntimeConfig, publicRuntimeConfig } = getConfig()
+console.log(serverRuntimeConfig.mySecret)
+console.log(publicRuntimeConfig.staticFolder)
+
+function MyImage() {
+  return (
+    <div>
+      <Image
+        src={`${publicRuntimeConfig.staticFolder}/logo.png`}
+        alt="logo"
+        layout="fill"
+      />
+    </div>
+  )
+}
+
+export default MyImage
+```
+
+# serverExternalPackages
+
+Opt-out specific dependencies from being included in the automatic bundling of the `bundlePagesRouterDependencies` option. These pages will then use native Node.js `require` to resolve the dependency.
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  serverExternalPackages: ['@acme/ui'],
+}
+
+module.exports = nextConfig
+```
+
+Next.js includes a short list of popular packages that currently are working on compatibility and automatically opted out:
+
+- @appsignal/nodejs
+- @aws-sdk/client-s3
+- @aws-sdk/s3-presigned-post
+- @blockfrost/blockfrost-js
+- @highlight-run/node
+- @jpg-store/lucid-cardano
+- @libsql/client
+- @mikro-orm/core
+- @mikro-orm/knex
+- @node-rs/argon2
+- @node-rs/bcrypt
+- @prisma/client
+- @react-pdf/renderer
+- @sentry/profiling-node
+- @sparticuz/chromium
+- @swc/core
+- argon2
+- autoprefixer
+- aws-crt
+- bcrypt
+- better-sqlite3
+- canvas
+- cpu-features
+- cypress
+- dd-trace
+- eslint
+- express
+- firebase-admin
+- import-in-the-middle
+- isolated-vm
+- jest
+- jsdom
+- keyv
+- libsql
+- mdx-bundler
+- mongodb
+- mongoose
+- newrelic
+- next-mdx-remote
+- next-seo
+- node-cron
+- node-pty
+- node-web-audio-api
+- oslo
+- pg
+- playwright
+- playwright-core
+- postcss
+- prettier
+- prisma
+- puppeteer-core
+- puppeteer
+- require-in-the-middle
+- rimraf
+- sharp
+- shiki
+- sqlite3
+- ts-node
+- ts-morph
+- typescript
+- vscode-oniguruma
+- webpack
+- websocket
+- zeromq
+
+# trailingSlash
+
+Configure Next.js pages to resolve with or without a trailing slash.
+
+## Overview
+
+The `trailingSlash` configuration option in Next.js allows you to specify whether your pages should be served with a trailing slash or not. This can be important for SEO and user experience, as it affects how URLs are structured and accessed.
+
+## Usage
+
+To configure the `trailingSlash` option, add it to your `next.config.js` file:
+
+```javascript
+module.exports = {
+  trailingSlash: true, // or false
+}
+```
+
+- Setting `trailingSlash` to `true` will ensure that all pages are served with a trailing slash (e.g., `/about/`).
+- Setting it to `false` will serve pages without a trailing slash (e.g., `/about`).
+
+## Considerations
+
+- Be mindful of how this setting interacts with your existing routes and links.
+- Changing this setting may affect your site's SEO, so consider implementing redirects if necessary.
+
+## Additional Information
+
+For more details, refer to the Next.js documentation on configuration options.
+
+# transpilePackages
+
+Automatically transpile and bundle dependencies from local packages (like monorepos) or from external dependencies (node_modules).
+
+# Turbo
+
+Configure Next.js with Turbopack-specific options.
+
+**Version:** Experimental
+
+**Source:** app/api-reference/next-config-js/turbo
+
+**Note:** The content of this document is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# TypeScript in Next.js
+
+Next.js reports TypeScript errors by default. To opt-out of this behavior, follow the instructions below.
+
+## Opting Out of TypeScript Error Reporting
+
+To disable TypeScript error reporting in your Next.js application, you can modify your `next.config.js` file. Add the following configuration:
+
+```javascript
+module.exports = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+}
+```
+
+This setting will allow you to build your application without TypeScript errors halting the process. However, it is recommended to address TypeScript errors to maintain code quality.
+
+## Important Notes
+
+- Disabling TypeScript error reporting may lead to runtime errors that could have been caught during development.
+- Regularly review and fix TypeScript errors to ensure the stability and reliability of your application.
+
+For more information, refer to the official Next.js documentation.
+
+# urlImports
+
+## Description
+Configure Next.js to allow importing modules from external URLs.
+
+## Version
+Experimental
+
+## Usage
+To enable importing modules from external URLs in your Next.js application, you need to modify the `next.config.js` file. 
+
+### Example Configuration
+```javascript
+module.exports = {
+  experimental: {
+    urlImports: ['https://example.com/path/to/module.js'],
+  },
+}
+```
+
+## Notes
+- Ensure that the external URLs are secure and trusted.
+- This feature is experimental and may change in future releases.
+
+# useLightningcss
+
+Enable experimental support for Lightning CSS.
+
+**Version:** experimental
+
+**Source:** app/api-reference/next-config-js/useLightningcss
+
+**Note:** The content of this document is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component.
+
+# webVitalsAttribution
+
+Learn how to use the webVitalsAttribution option to pinpoint the source of Web Vitals issues.
+
+## Overview
+
+The webVitalsAttribution option allows developers to identify the origin of Web Vitals metrics, helping to diagnose performance issues effectively.
+
+## Usage
+
+To implement webVitalsAttribution, include it in your configuration file as follows:
+
+```javascript
+module.exports = {
+  webVitalsAttribution: {
+    // Configuration options
+  },
+};
+```
+
+## Configuration Options
+
+- **option1**: Description of option1.
+- **option2**: Description of option2.
+
+## Example
+
+Here is an example of how to configure webVitalsAttribution:
+
+```javascript
+module.exports = {
+  webVitalsAttribution: {
+    option1: true,
+    option2: 'value',
+  },
+};
+```
+
+## Additional Information
+
+For more details, refer to the official documentation.
+
+# Custom Webpack Config
+
+Learn how to customize the webpack config used by Next.js.
+
+## Overview
+
+Next.js allows you to customize the webpack configuration to suit your project's needs. This can be done by modifying the `next.config.js` file.
+
+## Customizing Webpack
+
+To customize the webpack configuration, you need to export a function from your `next.config.js` file. This function receives the default webpack configuration as an argument, which you can modify.
+
+### Example
+
+```javascript
+// next.config.js
+module.exports = {
+  webpack: (config, { isServer }) => {
+    // Modify the config as needed
+    if (!isServer) {
+      config.resolve.fallback = {
+        fs: false,
+        path: false,
+      };
+    }
+    return config;
+  },
+};
+```
+
+## Important Notes
+
+- Ensure that any changes you make do not break the default behavior of Next.js.
+- Test your configuration thoroughly to avoid issues during development and production builds.
+
+## Additional Resources
+
+For more information, refer to the Next.js documentation on customizing webpack.
+
+# Edge Runtime
+
+API Reference for the Edge Runtime.
+
+**Note:** The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# CLI
+
+Create Next.js apps using one command with the create-next-app CLI.
+
+# CLI
+
+API Reference for the Next.js Command Line Interface (CLI) tools. 
+
+The content of this document is generated from the source. To edit, navigate to the source page in your editor. Use the `<PagesOnly>Content</PagesOnly>` component for content specific to the Pages Router. Shared content should not be wrapped in a component.
+
+# Next CLI
+
+Learn how to run and build your application with the Next.js CLI.
+
+## Overview
+
+The Next.js CLI provides commands to develop, build, and start your Next.js applications. 
+
+## Commands
+
+### Development
+
+- **next dev**: Starts the Next.js development server.
+
+### Build
+
+- **next build**: Compiles the application for production.
+
+### Start
+
+- **next start**: Starts the production server.
+
+## Usage
+
+To use the CLI, navigate to your project directory in the terminal and run the desired command. 
+
+## Additional Information
+
+For more details, refer to the official Next.js documentation.
+
+# API Reference
+
+Next.js API Reference for the Pages Router.
+
+## Overview
+
+The Pages Router in Next.js allows you to create dynamic routes and handle API requests seamlessly. This documentation provides an overview of the available API methods and their usage.
+
+## API Methods
+
+### `getStaticProps`
+
+Fetches data at build time for static generation.
+
+**Usage:**
+```javascript
+export async function getStaticProps(context) {
+  // Fetch data
+  return {
+    props: {
+      // Data to be passed to the page component
+    },
+  };
+}
+```
+
+### `getServerSideProps`
+
+Fetches data on each request for server-side rendering.
+
+**Usage:**
+```javascript
+export async function getServerSideProps(context) {
+  // Fetch data
+  return {
+    props: {
+      // Data to be passed to the page component
+    },
+  };
+}
+```
+
+### `getStaticPaths`
+
+Defines dynamic routes for static generation.
+
+**Usage:**
+```javascript
+export async function getStaticPaths() {
+  return {
+    paths: [
+      // Array of paths to pre-render
+    ],
+    fallback: false, // or true
+  };
+}
+```
+
+## API Routes
+
+You can create API routes by adding files in the `pages/api` directory.
+
+### Example
+
+```javascript
+export default function handler(req, res) {
+  res.status(200).json({ name: 'John Doe' });
+}
+```
+
+## Middleware
+
+Middleware allows you to run code before a request is completed.
+
+### Example
+
+```javascript
+export function middleware(req) {
+  // Code to run before request
+}
+```
+
+## Conclusion
+
+The Pages Router in Next.js provides powerful features for building dynamic applications. Utilize the methods and examples provided to enhance your development process.
+
+# Pages Router
+
+Before Next.js 13, the Pages Router was the main way to create routes in Next.js. It used an intuitive file-system router to map each file to a route. The Pages Router is still supported in newer versions of Next.js, but it is recommended to migrate to the new App Router to leverage React's latest features.
+
+Use this section of the documentation for existing applications that use the Pages Router.
+
+# Accessibility
+
+The Next.js team is committed to making Next.js accessible to all developers and their end-users. By adding accessibility features to Next.js by default, we aim to make the Web more inclusive for everyone.
+
+## Route Announcements
+
+When transitioning between pages rendered on the server (e.g., using the `<a href>` tag), screen readers and other assistive technology announce the page title when the page loads, helping users understand that the page has changed.
+
+Next.js supports client-side transitions for improved performance (using `next/link`). To ensure that client-side transitions are also announced to assistive technology, Next.js includes a route announcer by default.
+
+The Next.js route announcer looks for the page name to announce by inspecting `document.title`, then the `<h1>` element, and finally the URL pathname. For the most accessible user experience, ensure that each page in your application has a unique and descriptive title.
+
+## Linting
+
+Next.js provides an integrated ESLint experience out of the box, including custom rules for Next.js. By default, Next.js includes `eslint-plugin-jsx-a11y` to help catch accessibility issues early, including warnings on:
+
+- aria-props
+- aria-proptypes
+- aria-unsupported-elements
+- role-has-required-aria-props
+- role-supports-aria-props
+
+This plugin helps ensure you add alt text to `img` tags, use correct `aria-*` attributes, use correct `role` attributes, and more.
+
+## Accessibility Resources
+
+- WebAIM WCAG checklist
+- WCAG 2.2 Guidelines
+- The A11y Project
+- Check color contrast ratios between foreground and background elements
+- Use prefers-reduced-motion when working with animations
+
+# Fast Refresh
+
+Fast Refresh is a hot module reloading experience that provides instantaneous feedback on edits made to React components. It is integrated into Next.js and is enabled by default in all Next.js applications on version 9.4 or newer. Most edits should be visible within a second.
+
+## How It Works
+
+- Editing a file that only exports React components updates the code for that file and re-renders the component. You can modify styles, rendering logic, event handlers, or effects.
+- Editing a file with non-React component exports re-runs that file and any files importing it. For example, editing `theme.js` will update both `Button.js` and `Modal.js` if they import it.
+- Editing a file imported by non-React components results in a full reload. To avoid this, consider separating constants into a different file.
+
+## Error Resilience
+
+### Syntax Errors
+
+Fixing a syntax error during development will automatically remove the error without needing to reload the app. Component state will not be lost.
+
+### Runtime Errors
+
+Runtime errors inside a component trigger a contextual overlay. Fixing the error dismisses the overlay without reloading the app. Component state is retained unless the error occurs during rendering, in which case React will remount the application.
+
+Error boundaries can help manage rendering errors and prevent resets to the root app state. They should be designed intentionally and not be overly granular.
+
+## Limitations
+
+Fast Refresh preserves local React state in function components and Hooks, but not in class components. Local state may reset due to:
+
+- Other exports in the file besides a React component.
+- Exporting a higher-order component that returns a class.
+- Using anonymous arrow functions.
+
+As more code transitions to function components and Hooks, state preservation will improve.
+
+## Tips
+
+- Fast Refresh preserves local state in function components and Hooks by default.
+- To force a state reset and remount a component, add `// @refresh reset` in the file.
+- Use `console.log` or `debugger;` for debugging during development.
+- Imports are case sensitive; mismatches can cause refresh failures.
+
+## Fast Refresh and Hooks
+
+Fast Refresh attempts to preserve the state of components between edits. `useState` and `useRef` maintain their previous values unless their arguments or order change. Hooks with dependencies, like `useEffect`, `useMemo`, and `useCallback`, will always update during Fast Refresh, ignoring their dependency lists.
+
+Unexpected results may occur, such as `useEffect` re-running even with an empty dependency array. Writing resilient code for `useEffect` is a good practice, making it easier to introduce new dependencies later, and is enforced by React Strict Mode, which is recommended.
+
+# Architecture
+
+Learn about the Next.js architecture and how it works under the hood.
+
+# Next.js Compiler
+
+The Next.js Compiler, written in Rust using SWC, allows Next.js to transform and minify your JavaScript code for production. This replaces Babel for individual files and Terser for minifying output bundles.
+
+Compilation using the Next.js Compiler is 17x faster than Babel and is enabled by default since Next.js version 12. If you have an existing Babel configuration or are using unsupported features, your application will opt-out of the Next.js Compiler and continue using Babel.
+
+## Why SWC?
+
+SWC is an extensible Rust-based platform for the next generation of fast developer tools. It can be used for compilation, minification, bundling, and more, and is designed to be extended. We chose to build on SWC for several reasons:
+
+- **Extensibility:** SWC can be used as a Crate inside Next.js without forking the library.
+- **Performance:** Achieved ~3x faster Fast Refresh and ~5x faster builds in Next.js.
+- **WebAssembly:** Rust's support for WASM is essential for supporting all platforms.
+- **Community:** The Rust community and ecosystem are growing.
+
+## Supported Features
+
+### Styled Components
+
+To enable styled-components support, update to the latest version of Next.js and modify your `next.config.js`:
+
+```js
+module.exports = {
+  compiler: {
+    styledComponents: true,
+  },
+}
+```
+
+For advanced configurations, you can set individual properties for styled-components compilation.
+
+### Jest
+
+The Next.js Compiler simplifies configuring Jest with Next.js. Update to the latest version of Next.js and modify your `jest.config.js`:
+
+```js
+const nextJest = require('next/jest')
+const createJestConfig = nextJest({ dir: './' })
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+}
+module.exports = createJestConfig(customJestConfig)
+```
+
+### Relay
+
+To enable Relay support, update your `next.config.js`:
+
+```js
+module.exports = {
+  compiler: {
+    relay: {
+      src: './',
+      artifactDirectory: './__generated__',
+      language: 'typescript',
+      eagerEsModules: false,
+    },
+  },
+}
+```
+
+### Remove React Properties
+
+To remove JSX properties, update your `next.config.js`:
+
+```js
+module.exports = {
+  compiler: {
+    reactRemoveProperties: true,
+  },
+}
+```
+
+For custom properties:
+
+```js
+module.exports = {
+  compiler: {
+    reactRemoveProperties: { properties: ['^data-custom$'] },
+  },
+}
+```
+
+### Remove Console
+
+To remove all `console.*` calls:
+
+```js
+module.exports = {
+  compiler: {
+    removeConsole: true,
+  },
+}
+```
+
+To exclude `console.error`:
+
+```js
+module.exports = {
+  compiler: {
+    removeConsole: {
+      exclude: ['error'],
+    },
+  },
+}
+```
+
+### Legacy Decorators
+
+To enable legacy decorators, update your `jsconfig.json` or `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
+}
+```
+
+### importSource
+
+To use `jsxImportSource`, update your `jsconfig.json` or `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "jsxImportSource": "theme-ui"
+  }
+}
+```
+
+### Emotion
+
+To enable Emotion support, update your `next.config.js`:
+
+```js
+module.exports = {
+  compiler: {
+    emotion: boolean | {
+      sourceMap?: boolean,
+      autoLabel?: 'never' | 'dev-only' | 'always',
+      labelFormat?: string,
+      importMap?: {
+        [packageName: string]: {
+          [exportName: string]: {
+            canonicalImport?: [string, string],
+            styledBaseImport?: [string, string],
+          }
+        }
+      },
+    },
+  },
+}
+```
+
+### Minification
+
+Next.js' SWC compiler is used for minification by default since v13. To disable Terser:
+
+```js
+module.exports = {
+  swcMinify: false,
+}
+```
+
+### Module Transpilation
+
+To automatically transpile and bundle dependencies, update your `next.config.js`:
+
+```js
+module.exports = {
+  transpilePackages: ['@acme/ui', 'lodash-es'],
+}
+```
+
+### Experimental Features
+
+#### SWC Trace Profiling
+
+To enable SWC trace profiling:
+
+```js
+module.exports = {
+  experimental: {
+    swcTraceProfiling: true,
+  },
+}
+```
+
+#### SWC Plugins (experimental)
+
+To configure SWC's experimental plugin support:
+
+```js
+module.exports = {
+  experimental: {
+    swcPlugins: [
+      [
+        'plugin',
+        {
+          ...pluginOptions,
+        },
+      ],
+    ],
+  },
+}
+```
+
+## Unsupported Features
+
+If your application has a `.babelrc` file, Next.js will fall back to using Babel for transforming individual files. If using a custom Babel setup, share your configuration for potential support in the future.
+
+## Version History
+
+- `v13.1.0`: Module Transpilation and Modularize Imports stable.
+- `v13.0.0`: SWC Minifier enabled by default.
+- `v12.3.0`: SWC Minifier stable.
+- `v12.2.0`: SWC Plugins experimental support added.
+- `v12.1.0`: Added support for various features including Styled Components and Jest.
+- `v12.0.0`: Next.js Compiler introduced.
+
+# Supported Browsers
+
+Next.js supports modern browsers with zero configuration:
+
+- Chrome 64+
+- Edge 79+
+- Firefox 67+
+- Opera 51+
+- Safari 12+
+
+## Browserslist
+
+To target specific browsers or features, Next.js supports Browserslist configuration in your `package.json` file. The default configuration is:
+
+```json
+{
+  "browserslist": [
+    "chrome 64",
+    "edge 79",
+    "firefox 67",
+    "opera 51",
+    "safari 12"
+  ]
+}
+```
+
+## Polyfills
+
+Next.js injects widely used polyfills, including:
+
+- **fetch()** — Replacing: `whatwg-fetch` and `unfetch`.
+- **URL** — Replacing: the `url` package (Node.js API).
+- **Object.assign()** — Replacing: `object-assign`, `object.assign`, and `core-js/object/assign`.
+
+Dependencies that include these polyfills will be eliminated from the production build to avoid duplication. Next.js will only load these polyfills for browsers that require them, minimizing bundle size.
+
+### Custom Polyfills
+
+For features not supported by your target browsers (e.g., IE 11), you need to add polyfills yourself. Add a top-level import for the specific polyfill in your Custom `<App>` or the individual component.
+
+## JavaScript Language Features
+
+Next.js allows the use of the latest JavaScript features, including:
+
+- Async/await (ES2017)
+- Object Rest/Spread Properties (ES2018)
+- Dynamic `import()` (ES2020)
+- Optional Chaining (ES2020)
+- Nullish Coalescing (ES2020)
+- Class Fields and Static Properties (ES2022)
+- and more!
+
+### TypeScript Features
+
+Next.js has built-in TypeScript support.
+
+### Customizing Babel Config (Advanced)
+
+You can customize Babel configuration.
+
+# Turbopack
+
+Turbopack is an incremental bundler optimized for JavaScript and TypeScript, written in Rust, and built into Next.js.
+
+## Usage
+
+Turbopack can be used in Next.js in both the `pages` and `app` directories for faster local development. To enable Turbopack, use the `--turbopack` flag when running the Next.js development server.
+
+```json
+{
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
+}
+```
+
+## Supported Features
+
+Turbopack in Next.js requires zero configuration for most users and can be extended for more advanced use cases. To learn more about the currently supported features for Turbopack, refer to the API Reference.
+
+## Unsupported Features
+
+Turbopack currently only supports `next dev` and does not support `next build`. The following features are currently not supported:
+
+- Turbopack leverages Lightning CSS, which doesn't support some low usage CSS Modules features:
+  - `:local` and `:global` as standalone pseudo classes (only function variant supported).
+  - The @value rule (superseded by CSS variables).
+  - `:import` and `:export` ICSS rules.
+- Invalid CSS comment syntax (e.g., `//`):
+  - CSS comments should be written as `/* comment */`.
+- `webpack()` configuration in `next.config.js`:
+  - Turbopack replaces Webpack; webpack configuration is not supported.
+- Babel (`.babelrc`):
+  - Turbopack uses the SWC compiler for all transpilation and optimizations.
+- Creating a root layout automatically in App Router:
+  - This behavior is not supported; an error will prompt manual addition of a root layout.
+- `@next/font` (legacy font support):
+  - Deprecated in favor of `next/font`, which is fully supported with Turbopack.
+- Relay transforms:
+  - Planned for future implementation.
+- Blocking `.css` imports in `pages/_document.tsx`:
+  - Currently blocked with Webpack; future implementation planned.
+- `experimental.typedRoutes`:
+  - Planned for future implementation.
+- `experimental.nextScriptWorkers`:
+  - Planned for future implementation.
+- `experimental.sri.algorithm`:
+  - Planned for future implementation.
+- `experimental.fallbackNodePolyfills`:
+  - Planned for future implementation.
+- `experimental.esmExternals`:
+  - Not planning to support legacy esmExternals configuration.
+- AMP:
+  - Not planning to support AMP with Turbopack.
+- Yarn PnP:
+  - Not planning to support Yarn PnP with Turbopack.
+- `experimental.urlImports`:
+  - Not planning to support `experimental.urlImports` with Turbopack.
+- `:import` and `:export` ICSS rules:
+  - Not planning to support these rules as Lightning CSS does not support them.
+- `unstable_allowDynamic` configuration in edge runtime.
+
+## Generating Trace Files
+
+Trace files allow the Next.js team to investigate and improve performance metrics and memory usage. To generate a trace file, append `NEXT_TURBOPACK_TRACING=1` to the `next dev --turbopack` command, which will generate a `.next/trace.log` file.
+
+When reporting issues related to Turbopack performance and memory usage, please include the trace file in your GitHub issue.
+
+# Docs Contribution Guide
+
+Welcome to the Next.js Docs Contribution Guide! We're excited to have you here.
+
+This page provides instructions on how to edit the Next.js documentation. Our goal is to ensure that everyone in the community feels empowered to contribute and improve our docs.
+
+## Why Contribute?
+
+Open-source work is never done, and neither is documentation. Contributing to docs is a good way for beginners to get involved in open-source and for experienced developers to clarify more complex topics while sharing their knowledge with the community.
+
+By contributing to the Next.js docs, you're helping us build a more robust learning resource for all developers. Whether you've found a typo, a confusing section, or you've realized that a particular topic is missing, your contributions are welcomed and appreciated.
+
+## How to Contribute
+
+The docs content can be found on the Next.js repo. To contribute, you can edit the files directly on GitHub or clone the repo and edit the files locally.
+
+### GitHub Workflow
+
+If you're new to GitHub, we recommend reading the GitHub Open Source Guide to learn how to fork a repository, create a branch, and submit a pull request.
+
+**Good to know**: The underlying docs code lives in a private codebase that is synced to the Next.js public repo. This means that you can't preview the docs locally. However, you'll see your changes on nextjs.org after merging a pull request.
+
+### Writing MDX
+
+The docs are written in MDX, a markdown format that supports JSX syntax. This allows us to embed React components in the docs. See the GitHub Markdown Guide for a quick overview of markdown syntax.
+
+### VSCode
+
+#### Previewing Changes Locally
+
+VSCode has a built-in markdown previewer that you can use to see your edits locally. To enable the previewer for MDX files, you'll need to add a configuration option to your user settings.
+
+Open the command palette (`⌘ + ⇧ + P` on Mac or `Ctrl + Shift + P` on Windows) and search for `Preferences: Open User Settings (JSON)`.
+
+Then, add the following line to your `settings.json` file:
+
+```json
+{
+  "files.associations": {
+    "*.mdx": "markdown"
+  }
+}
+```
+
+Next, open the command palette again, and search for `Markdown: Preview File` or `Markdown: Open Preview to the Side`. This will open a preview window where you can see your formatted changes.
+
+#### Extensions
+
+We also recommend the following extensions for VSCode users:
+
+- MDX: Intellisense and syntax highlighting for MDX.
+- Prettier: Format MDX files on save.
+
+### Review Process
+
+Once you've submitted your contribution, the Next.js or Developer Experience teams will review your changes, provide feedback, and merge the pull request when it's ready.
+
+Please let us know if you have any questions or need further assistance in your PR's comments. Thank you for contributing to the Next.js docs and being a part of our community!
+
+**Tip:** Run `pnpm prettier-fix` to run Prettier before submitting your PR.
+
+## File Structure
+
+The docs use file-system routing. Each folder and files inside `/docs` represent a route segment. These segments are used to generate the URL paths, navigation, and breadcrumbs.
+
+The file structure reflects the navigation that you see on the site, and by default, navigation items are sorted alphabetically. However, we can change the order of the items by prepending a two-digit number (`00-`) to the folder or file name.
+
+For example, in the functions API Reference, the pages are sorted alphabetically:
+
+```txt
+03-functions
+├── cookies.mdx
+├── draft-mode.mdx
+├── fetch.mdx
+└── ...
+```
+
+In the routing section, the files are prefixed with a two-digit number, sorted in the order developers should learn these concepts:
+
+```txt
+02-routing
+├── 01-defining-routes.mdx
+├── 02-pages-and-layouts.mdx
+├── 03-linking-and-navigating.mdx
+└── ...
+```
+
+To quickly find a page, you can use `⌘ + P` (Mac) or `Ctrl + P` (Windows) to open the search bar on VSCode. Then, type the slug of the page you're looking for. E.g. `defining-routes`
+
+**Why not use a manifest?** We considered using a manifest file (another popular way to generate the docs navigation), but we found that a manifest would quickly get out of sync with the files. File-system routing forces us to think about the structure of the docs and feels more native to Next.js.
+
+## Metadata
+
+Each page has a metadata block at the top of the file separated by three dashes.
+
+### Required Fields
+
+The following fields are required:
+
+| Field         | Description                                                                  |
+| ------------- | ---------------------------------------------------------------------------- |
+| `title`       | The page's `<h1>` title, used for SEO and OG Images.                         |
+| `description` | The page's description, used in the `<meta name="description">` tag for SEO. |
+
+```yaml
+---
+title: Page Title
+description: Page Description
+---
+```
+
+It's good practice to limit the page title to 2-3 words (e.g. Optimizing Images) and the description to 1-2 sentences (e.g. Learn how to optimize images in Next.js).
+
+### Optional Fields
+
+The following fields are optional:
+
+| Field       | Description                                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nav_title` | Overrides the page's title in the navigation. This is useful when the page's title is too long to fit. If not provided, the `title` field is used. |
+| `source`    | Pulls content into a shared page. See Shared Pages.                                                                                               |
+| `related`   | A list of related pages at the bottom of the document. These will automatically be turned into cards. See Related Links.                         |
+
+```yaml
+---
+nav_title: Nav Item Title
+source: app/building-your-application/optimizing/images
+related:
+  description: See the image component API reference.
+  links:
+    - app/api-reference/components/image
+---
+```
+
+## `App` and `Pages` Docs
+
+Since most of the features in the **App Router** and **Pages Router** are completely different, their docs for each are kept in separate sections (`02-app` and `03-pages`). However, there are a few features that are shared between them.
+
+### Shared Pages
+
+To avoid content duplication and risk the content becoming out of sync, we use the `source` field to pull content from one page into another. For example, the `<Link>` component behaves mostly the same in **App** and **Pages**. Instead of duplicating the content, we can pull the content from `app/.../link.mdx` into `pages/.../link.mdx`:
+
+```mdx
+---
+title: <Link>
+description: API reference for the <Link> component.
+---
+
+This API reference will help you understand how to use the props
+and configuration options available for the Link Component.
+```
+
+```mdx
+---
+title: <Link>
+description: API reference for the <Link> component.
+source: app/api-reference/components/link
+---
+
+{/* DO NOT EDIT THIS PAGE. */}
+{/* The content of this page is pulled from the source above. */}
+```
+
+We can therefore edit the content in one place and have it reflected in both sections.
+
+### Shared Content
+
+In shared pages, sometimes there might be content that is **App Router** or **Pages Router** specific. For example, the `<Link>` component has a `shallow` prop that is only available in **Pages** but not in **App**.
+
+To make sure the content only shows in the correct router, we can wrap content blocks in an `<AppOnly>` or `<PagesOnly>` components:
+
+```mdx
+This content is shared between App and Pages.
+
+<PagesOnly>
+
+This content will only be shown on the Pages docs.
+
+</PagesOnly>
+
+This content is shared between App and Pages.
+```
+
+You'll likely use these components for examples and code blocks.
+
+## Code Blocks
+
+Code blocks should contain a minimum working example that can be copied and pasted. This means that the code should be able to run without any additional configuration.
+
+For example, if you're showing how to use the `<Link>` component, you should include the `import` statement and the `<Link>` component itself.
+
+```tsx
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/about">About</Link>
+}
+```
+
+Always run examples locally before committing them. This will ensure that the code is up-to-date and working.
+
+### Language and Filename
+
+Code blocks should have a header that includes the language and the `filename`. Add a `filename` prop to render a special Terminal icon that helps orientate users where to input the command. For example:
+
+````mdx
+```bash filename="Terminal"
+npx create-next-app
+```
+````
+
+Most examples in the docs are written in `tsx` and `jsx`, and a few in `bash`. However, you can use any supported language.
+
+When writing JavaScript code blocks, we use the following language and extension combinations.
+
+|                                | Language | Extension |
+| ------------------------------ | -------- | --------- |
+| JavaScript files with JSX code | ```jsx   | .js       |
+| JavaScript files without JSX   | ```js    | .js       |
+| TypeScript files with JSX      | ```tsx   | .tsx      |
+| TypeScript files without JSX   | ```ts    | .ts       |
+
+### TS and JS Switcher
+
+Add a language switcher to toggle between TypeScript and JavaScript. Code blocks should be TypeScript first with a JavaScript version to accommodate users.
+
+Currently, we write TS and JS examples one after the other, and link them with `switcher` prop:
+
+````mdx
+```tsx filename="app/page.tsx" switcher
+
+```
+
+```jsx filename="app/page.js" switcher
+
+```
+````
+
+**Good to know**: We plan to automatically compile TypeScript snippets to JavaScript in the future.
+
+### Line Highlighting
+
+Code lines can be highlighted. This is useful when you want to draw attention to a specific part of the code. You can highlight lines by passing a number to the `highlight` prop.
+
+**Single Line:** `highlight={1}`
+
+```tsx {1}
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/about">About</Link>
+}
+```
+
+**Multiple Lines:** `highlight={1,3}`
+
+```tsx highlight={1,3}
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/about">About</Link>
+}
+```
+
+**Range of Lines:** `highlight={1-5}`
+
+```tsx highlight={1-5}
+import Link from 'next/link'
+
+export default function Page() {
+  return <Link href="/about">About</Link>
+}
+```
+
+## Icons
+
+The following icons are available for use in the docs:
+
+```mdx
+<Check size={18} />
+<Cross size={18} />
+```
+
+We do not use emojis in the docs.
+
+## Notes
+
+For information that is important but not critical, use notes. Notes are a good way to add information without distracting the user from the main content.
+
+```mdx
+> **Good to know**: This is a single line note.
+
+> **Good to know**:
+>
+> - We also use this format for multi-line notes.
+> - There are sometimes multiple items worth knowing or keeping in mind.
+```
+
+## Related Links
+
+Related Links guide the user's learning journey by adding links to logical next steps.
+
+- Links will be displayed in cards under the main content of the page.
+- Links will be automatically generated for pages that have child pages. For example, the Optimizing section has links to all of its child pages.
+
+Create related links using the `related` field in the page's metadata.
+
+```yaml
+---
+related:
+  description: Learn how to quickly get started with your first application.
+  links:
+    - app/building-your-application/routing/defining-routes
+    - app/building-your-application/data-fetching
+    - app/api-reference/file-conventions/page
+---
+```
+
+### Nested Fields
+
+| Field         | Required? | Description                                                                                                                                               |
+| ------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`       | Optional  | The title of the card list. Defaults to **Next Steps**.                                                                                                   |
+| `description` | Optional  | The description of the card list.                                                                                                                         |
+| `links`       | Required  | A list of links to other doc pages. Each list item should be a relative URL path (without a leading slash) e.g. `app/api-reference/file-conventions/page` |
+
+## Diagrams
+
+Diagrams are a great way to explain complex concepts. We use Figma to create diagrams, following Vercel's design guide.
+
+The diagrams currently live in the `/public` folder in our private Next.js site. If you'd like to update or add a diagram, please open a GitHub issue with your ideas.
+
+## Custom Components and HTML
+
+These are the React Components available for the docs: `<Image />` (next/image), `<PagesOnly />`, `<AppOnly />`, `<Cross />`, and `<Check />`. We do not allow raw HTML in the docs besides the `<details>` tag.
+
+If you have ideas for new components, please open a GitHub issue.
+
+## Style Guide
+
+This section contains guidelines for writing docs for those who are new to technical writing.
+
+### Page Templates
+
+While we don't have a strict template for pages, there are page sections you'll see repeated across the docs:
+
+- **Overview:** The first paragraph of a page should tell the user what the feature is and what it's used for. Followed by a minimum working example or its API reference.
+- **Convention:** If the feature has a convention, it should be explained here.
+- **Examples**: Show how the feature can be used with different use cases.
+- **API Tables**: API Pages should have an overview table at the of the page with jump-to-section links (when possible).
+- **Next Steps (Related Links)**: Add links to related pages to guide the user's learning journey.
+
+Feel free to add these sections as needed.
+
+### Page Types
+
+Docs pages are also split into two categories: Conceptual and Reference.
+
+- **Conceptual** pages are used to explain a concept or feature. They are usually longer and contain more information than reference pages. In the Next.js docs, conceptual pages are found in the **Building Your Application** section.
+- **Reference** pages are used to explain a specific API. They are usually shorter and more focused. In the Next.js docs, reference pages are found in the **API Reference** section.
+
+**Good to know**: Depending on the page you're contributing to, you may need to follow a different voice and style. For example, conceptual pages are more instructional and use the word _you_ to address the user. Reference pages are more technical, they use more imperative words like "create, update, accept" and tend to omit the word _you_.
+
+### Voice
+
+Here are some guidelines to maintain a consistent style and voice across the docs:
+
+- Write clear, concise sentences. Avoid tangents.
+  - If you find yourself using a lot of commas, consider breaking the sentence into multiple sentences or use a list.
+  - Swap out complex words for simpler ones. For example, _use_ instead of _utilize_.
+- Be mindful with the word _this_. It can be ambiguous and confusing, don't be afraid to repeat the subject of the sentence if unclear.
+  - For example, _Next.js uses React_ instead of _Next.js uses this_.
+- Use an active voice instead of passive. An active sentence is easier to read.
+  - For example, _Next.js uses React_ instead of _React is used by Next.js_. If you find yourself using words like _was_ and _by_ you may be using a passive voice.
+- Avoid using words like _easy_, _quick_, _simple_, _just_, etc. This is subjective and can be discouraging to users.
+- Avoid negative words like _don't_, _can't_, _won't_, etc. This can be discouraging to readers.
+  - For example, _"You can use the `Link` component to create links between pages"_ instead of _"Don't use the `<a>` tag to create links between pages"_.
+- Write in second person (you/your). This is more personal and engaging.
+- Use gender-neutral language. Use _developers_, _users_, or _readers_, when referring to the audience.
+- If adding code examples, ensure they are properly formatted and working.
+
+While these guidelines are not exhaustive, they should help you get started. If you'd like to dive deeper into technical writing, check out the Google Technical Writing Course.
+
+Thank you for contributing to the docs and being part of the Next.js community!
+
+# Next.js Community
+
+Get involved in the Next.js community.
+
+With over 5 million weekly downloads, Next.js has a large and active community of developers across the world. Here's how you can get involved:
+
+## Contributing
+
+Ways to contribute to the development of Next.js:
+
+- Documentation: Suggest improvements or write new sections to help users understand how to use Next.js.
+- Examples: Help developers integrate Next.js with other tools and services by creating or improving examples.
+- Codebase: Learn about the underlying architecture, contribute to bug fixes, and suggest new features.
+
+## Discussions
+
+Join the conversation if you have questions about Next.js or want to help others:
+
+- GitHub Discussions
+- Discord
+- Reddit
+
+## Social Media
+
+Follow Next.js on Twitter for the latest updates, and subscribe to the Vercel YouTube channel for Next.js videos.
+
+## Code of Conduct
+
+We believe in creating an inclusive, welcoming community. All members are asked to adhere to our Code of Conduct, which outlines our expectations for participant behavior. We invite you to read it and help us maintain a safe and respectful environment.
+
+# Introduction
+
+Welcome to the Next.js documentation!
+
+## What is Next.js?
+
+Next.js is a React framework for building full-stack web applications. You use React Components to build user interfaces, and Next.js for additional features and optimizations. It abstracts and automatically configures tooling needed for React, like bundling and compiling, allowing you to focus on building your application.
+
+## Main Features
+
+Some of the main Next.js features include:
+
+- **Routing**: A file-system based router built on top of Server Components that supports layouts, nested routing, loading states, error handling, and more.
+- **Rendering**: Client-side and Server-side Rendering with Client and Server Components, optimized with Static and Dynamic Rendering on the server, and streaming on Edge and Node.js runtimes.
+- **Data Fetching**: Simplified data fetching with async/await in Server Components, and an extended fetch API for request memoization, data caching, and revalidation.
+- **Styling**: Support for preferred styling methods, including CSS Modules, Tailwind CSS, and CSS-in-JS.
+- **Optimizations**: Image, Fonts, and Script Optimizations to improve your application's Core Web Vitals and User Experience.
+- **TypeScript**: Improved support for TypeScript, with better type checking, efficient compilation, and custom TypeScript Plugin and type checker.
+
+## How to Use These Docs
+
+The docs navbar on the left organizes pages sequentially from basic to advanced. You can read them in any order or skip to relevant pages. The right side features a table of contents for easier navigation, and a search bar for quick access.
+
+To get started, check out the Installation guide.
+
+## App Router vs Pages Router
+
+Next.js has two routers: the App Router and the Pages Router. The App Router allows the use of React's latest features, while the Pages Router is the original router for server-rendered applications. A dropdown menu at the top of the sidebar lets you switch between the two, and breadcrumbs indicate which docs you are viewing.
+
+## Pre-Requisite Knowledge
+
+While the docs are beginner-friendly, a basic understanding of HTML, CSS, and React is recommended. For React fundamentals, consider the React Foundations Course, and learn more about Next.js by building a dashboard application.
+
+## Accessibility
+
+For optimal accessibility with screen readers, use Firefox and NVDA, or Safari and VoiceOver.
+
+## Join our Community
+
+For questions about Next.js, engage with our community on GitHub Discussions, Discord, X (Twitter), and Reddit.

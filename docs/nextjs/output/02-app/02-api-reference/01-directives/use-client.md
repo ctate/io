@@ -1,0 +1,88 @@
+# use client
+
+Learn how to use the `use client` directive to render a component on the client.
+
+The `use client` directive designates a component to be rendered on the client side and should be used when creating interactive user interfaces (UI) that require client-side JavaScript capabilities, such as state management, event handling, and access to browser APIs. This is a React feature.
+
+## Usage
+
+To designate a component as a Client Component, add the `use client` directive at the top of the file, before any imports:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+## Nesting Client Components within Server Components
+
+Combining Server and Client Components allows you to build applications that are both performant and interactive:
+
+1. **Server Components**: Use for static content, data fetching, and SEO-friendly elements.
+2. **Client Components**: Use for interactive elements that require state, effects, or browser APIs.
+3. **Component composition**: Nest Client Components within Server Components as needed for a clear separation of server and client logic.
+
+In the following example:
+
+- `Header` is a Server Component handling static content.
+- `Counter` is a Client Component enabling interactivity within the page.
+
+```tsx
+import Header from './header'
+import Counter from './counter' // This is a Client Component
+
+export default function Page() {
+  return (
+    <div>
+      <Header />
+      <Counter />
+    </div>
+  )
+}
+```
+
+```jsx
+import Header from './header'
+import Counter from './counter' // This is a Client Component
+
+export default function Page() {
+  return (
+    <div>
+      <Header />
+      <Counter />
+    </div>
+  )
+}
+```
+
+## Reference
+
+See the React documentation for more information on `use client`.
