@@ -22,7 +22,7 @@
     "dotenv": "^16.4.5",
     "lucide-react": "^0.453.0",
     "mdx-to-md": "^0.3.2",
-    "next": "15.0.5",
+    "next": "15.0.6",
     "react": "19.0.0-rc-65a56d0e-20241020",
     "react-dom": "19.0.0-rc-65a56d0e-20241020",
     "tailwind-merge": "^2.5.4",
